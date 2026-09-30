@@ -1,0 +1,78 @@
+<?php
+
+// Konfiguration und Hilfsfunktionen einbinden
+require_once __DIR__ . '/cfg/db.php';
+require_once __DIR__ . '/inc/functions.php';
+
+// Gegenstände inkl. zugewiesenem Standort-Namen abfragen
+$sql = "
+    SELECT i.id, i.name, i.quantity, i.location_id, l.name AS location_name
+    FROM inventory_items i
+    LEFT JOIN locations l ON l.id = i.location_id
+    ORDER BY i.name
+";
+$items = $pdo->query($sql)->fetchAll();
+
+// Alle Standorte für den Rekursionspfad (getLocationPath) abfragen
+$allLocations = $pdo->query("SELECT id, parent_id, name FROM locations")->fetchAll();
+
+require_once __DIR__ . '/inc/header.php';
+?>
+
+<!-- Schnellfilter / Suchleiste -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </span>
+            <input type="text" id="quickFilter" class="form-control" placeholder="Inventar durchsuchen...">
+        </div>
+    </div>
+</div>
+
+<!-- Inventarliste -->
+<div id="inventoryList">
+    <?php foreach ($items as $item): ?>
+        <?php 
+        $itemId = (int)$item['id'];
+        $path = getLocationPath($allLocations, (int)$item['location_id']);
+        $searchTerms = mb_strtolower($item['name'] . ' ' . ($item['location_name'] ?? ''));
+        ?>
+
+        <div class="card shadow-sm mb-2 inventory-item" data-search="<?= htmlspecialchars($searchTerms) ?>">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1">
+                            <i class="fa-solid fa-box text-primary me-1"></i>
+                            <?= htmlspecialchars($item['name']) ?>
+                        </h6>
+
+                        <!-- Standort-Link zum Ausklappen des Pfads -->
+                        <small>
+                            <a class="text-decoration-none text-muted" role="button" data-bs-toggle="collapse" href="#locationPath<?= $itemId ?>">
+                                <i class="fa-solid fa-location-dot me-1"></i>
+                                <?= htmlspecialchars($item['location_name'] ?? 'Kein Standort') ?>
+                            </a>
+                        </small>
+
+                        <!-- Aufklappbarer Standortpfad -->
+                        <div class="collapse mt-2" id="locationPath<?= $itemId ?>">
+                            <div class="small text-muted">
+                                <?= htmlspecialchars($path) ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Details-Link -->
+                    <a href="item.php?id=<?= $itemId ?>" class="btn btn-sm btn-outline-primary">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    <?php endforeach; ?>
+</div>
+
+<?php require_once __DIR__ . '/inc/footer.php'; ?>

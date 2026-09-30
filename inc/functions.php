@@ -22,26 +22,41 @@ function renderLocationOptions(array $locations, ?int $parentId = null, int $lev
 }
 
 /**
- * Gibt den Ort-Stammbaum als verschachtelte HTML-Liste (Bootstrap List-Group) aus.
+ * Gibt den Ort-Stammbaum als verschachtelte HTML-Liste aus.
  */
 function renderLocationTree(array $locations, ?int $parentId = null): void
 {
-    $children = array_filter($locations, fn($loc) => (int)$loc['parent_id'] === (int)$parentId);
+    $children = array_filter(
+        $locations,
+        fn($loc) => (int)$loc['parent_id'] === (int)$parentId
+    );
 
     if (empty($children)) {
         return;
     }
 
     echo '<ul class="list-group list-group-flush">';
+
     foreach ($children as $location) {
         echo '<li class="list-group-item">';
-        echo '<i class="fa-solid fa-folder-tree text-primary me-2"></i>' . htmlspecialchars($location['name']);
+        echo '<div class="d-flex justify-content-between align-items-center">';
 
-        // Rekursiver Aufruf für Kinder-Elemente
-        renderLocationTree($locations, (int)$location['id']);
+        echo '<div>';
+        echo '<i class="fa-solid fa-folder-tree text-primary me-2"></i>';
+        echo htmlspecialchars($location['name']);
+        echo '</div>';
+
+        echo '<a href="#" class="btn btn-sm btn-outline-danger location-delete-btn" data-id="' . (int)$location['id'] . '" data-name="' . htmlspecialchars($location['name']) . '">';
+        echo '<i class="fa-solid fa-trash"></i>';
+        echo '</a>';
+
+        echo '</div>';
+
+        renderLocationTree($locations, (int)$location['id'] );
 
         echo '</li>';
     }
+
     echo '</ul>';
 }
 

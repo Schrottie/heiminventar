@@ -26,5 +26,5 @@ $stmt->execute([
 ]);
 
 // --- Weiterleitung zur Übersicht ---
-header('Location: ../adm/locations.php');
+header('Location: ../locations.php');
 exit;

@@ -35,30 +35,37 @@ function renderLocationTree(array $locations, ?int $parentId = null): void
         return;
     }
 
-    echo '<ul class="list-group list-group-flush">';
+    // Beim Root-Element fügen wir die spezifische Klasse 'location-tree' hinzu
+    $ulClass = ($parentId === null) 
+        ? 'list-group list-group-flush location-tree' 
+        : 'list-group list-group-flush';
+
+    echo '<ul class="' . $ulClass . '">';
 
     foreach ($children as $location) {
         echo '<li class="list-group-item">';
-        echo '<div class="d-flex justify-content-between align-items-center">';
+        
+        echo '<div class="d-flex justify-content-between align-items-center py-1">';
 
         echo '<div>';
         echo '<i class="fa-solid fa-folder-tree text-primary me-2"></i>';
         echo htmlspecialchars($location['name']);
         echo '</div>';
 
-        echo '<a href="#" class="btn btn-sm btn-outline-danger location-delete-btn" data-id="' . (int)$location['id'] . '" data-name="' . htmlspecialchars($location['name']) . '">';
+        echo '<a href="#" class="btn btn-sm btn-outline-danger location-delete-btn ms-2" data-id="' . (int)$location['id'] . '" data-name="' . htmlspecialchars($location['name']) . '">';
         echo '<i class="fa-solid fa-trash"></i>';
         echo '</a>';
 
         echo '</div>';
 
-        renderLocationTree($locations, (int)$location['id'] );
+        renderLocationTree($locations, (int)$location['id']);
 
         echo '</li>';
     }
 
     echo '</ul>';
 }
+
 
 /**
  * Ermittelt den vollständigen Pfad eines Orts (z. B. "Hauptlager → Regal 1 → Fach A").

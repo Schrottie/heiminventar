@@ -79,3 +79,74 @@ body {
 #fabContainer.open #locationsFabBtn {
     transform: translateY(-115px);
 }
+
+
+/* =========================================
+   Locationtree
+   ========================================= */
+
+/* Container-Korrekturen für den Baum */
+.location-tree {
+    padding-left: 0;
+}
+
+/* Entfernt ungewollte Innenabstände bei verschachtelten Listen */
+.location-tree .list-group-item {
+    border: none;
+    padding-right: 0;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+/* Einrückung nur für den Namen/Inhalt, nicht für die ganze Zeile */
+.location-tree ul {
+    list-style: none;
+    padding-left: 1.5rem; /* Tiefe der Einrückung */
+    position: relative;
+}
+
+/* Feine Verbindungslinien (Baum-Optik) */
+.location-tree ul::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0.8rem;
+    left: 0.5rem;
+    width: 1px;
+    background-color: #e0e0e0; /* Sehr feine graue Linie */
+}
+
+.location-tree ul li {
+    position: relative;
+}
+
+/* Waagerechte feine Linie zum Ort */
+.location-tree ul li::before {
+    content: '';
+    position: absolute;
+    top: 1rem;
+    left: -1rem;
+    width: 0.8rem;
+    height: 1px;
+    background-color: #e0e0e0; /* Sehr feine graue Linie */
+}
+
+/* Weicher Übergang für den Glow-Effekt */
+.location-tree .list-group-item > .d-flex {
+    transition: all 0.2s ease-in-out;
+    border-radius: 6px;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+/* Glow- & Hervorhebungseffekt bei Hover über den Lösch-Button */
+.location-tree .list-group-item > .d-flex:has(.location-delete-btn:hover) {
+    background-color: rgba(220, 53, 69, 0.08); /* Zartes Rot als Hintergrund */
+    box-shadow: 0 0 10px rgba(220, 53, 69, 0.25); /* Sanfter roter Glow-Effekt */
+}
+
+/* Text des Ortes bei Button-Hover leicht anpassen */
+.location-tree .list-group-item > .d-flex:has(.location-delete-btn:hover) div {
+    color: #dc3545;
+    font-weight: 500;
+}

@@ -4,7 +4,7 @@
 require_once __DIR__ . '/cfg/db.php';
 require_once __DIR__ . '/inc/functions.php';
 
-// Gegenstände inkl. zugewiesenem Standort-Namen abfragen
+// Gegenstände inkl. zugewiesenem Lagerort-Namen abfragen
 $sql = "
     SELECT i.id, i.name, i.quantity, i.location_id, l.name AS location_name
     FROM inventory_items i
@@ -13,7 +13,7 @@ $sql = "
 ";
 $items = $pdo->query($sql)->fetchAll();
 
-// Alle Standorte für den Rekursionspfad (getLocationPath) abfragen
+// Alle Lagerorte für den Rekursionspfad (getLocationPath) abfragen
 $allLocations = $pdo->query("SELECT id, parent_id, name FROM locations")->fetchAll();
 
 require_once __DIR__ . '/inc/header.php';
@@ -49,15 +49,15 @@ require_once __DIR__ . '/inc/header.php';
                             <?= htmlspecialchars($item['name']) ?>
                         </h6>
 
-                        <!-- Standort-Link zum Ausklappen des Pfads -->
+                        <!-- Lagerort-Link zum Ausklappen des Pfads -->
                         <small>
                             <a class="text-decoration-none text-muted" role="button" data-bs-toggle="collapse" href="#locationPath<?= $itemId ?>">
                                 <i class="fa-solid fa-location-dot me-1"></i>
-                                <?= htmlspecialchars($item['location_name'] ?? 'Kein Standort') ?>
+                                <?= htmlspecialchars($item['location_name'] ?? 'Kein Lagerort') ?>
                             </a>
                         </small>
 
-                        <!-- Aufklappbarer Standortpfad -->
+                        <!-- Aufklappbarer Lagerortpfad -->
                         <div class="collapse mt-2" id="locationPath<?= $itemId ?>">
                             <div class="small text-muted">
                                 <?= htmlspecialchars($path) ?>

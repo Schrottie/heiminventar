@@ -1,8 +1,15 @@
 <?php
 
+// Prüfen, ob das System überhaupt installliert ist
+if (!file_exists(__DIR__ . '/cfg/.env')) {
+    header('Location: install.php');
+    exit;
+}
+
 // Konfiguration und Hilfsfunktionen einbinden
 require_once __DIR__ . '/cfg/db.php';
 require_once __DIR__ . '/inc/functions.php';
+
 
 // Gegenstände inkl. zugewiesenem Lagerort-Namen abfragen
 $sql = "

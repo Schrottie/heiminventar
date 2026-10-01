@@ -43,9 +43,13 @@ require_once __DIR__ . '/inc/header.php';
                 </select>
             </div>
 
-            <div class="d-grid">
-                <button type="submit" class="btn btn-success">
+            <!-- Schaltflächen zum Speichern -->
+            <div class="d-flex gap-2">
+                <button type="submit" name="action" value="save" class="btn btn-success flex-fill">
                     <i class="fa-solid fa-floppy-disk me-2"></i>Speichern
+                </button>
+                <button type="submit" name="action" value="save_and_next" class="btn btn-primary flex-fill">
+                    <i class="fa-solid fa-square-plus me-2"></i>Speichern und nächster Gegenstand
                 </button>
             </div>
         </form>

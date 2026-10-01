@@ -26,15 +26,15 @@ CREATE TABLE inventory_items (
     REFERENCES locations(id)
 );
 
-CREATE TABLE categories (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL
-);
+-- CREATE TABLE categories (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     name VARCHAR(100) NOT NULL
+-- );
 
-CREATE TABLE manufacturers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255)
-);
+-- CREATE TABLE manufacturers (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     name VARCHAR(255)
+-- );
 
 CREATE TABLE item_images (
     id INT AUTO_INCREMENT PRIMARY KEY,

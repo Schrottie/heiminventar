@@ -29,6 +29,13 @@ $stmt->execute([
     ':location_id' => $locationId
 ]);
 
-// --- Weiterleitung zur Hauptseite ---
-header('Location: ../index.php');
+$action = $_POST['action'] ?? 'save';
+
+if ($action === 'save_and_next') {
+    // Leeres Formular erneut aufrufen (ggf. mit Erfolgsmeldung)
+    header('Location: ../edit-item.php?status=success');
+} else {
+    // Zur Übersicht oder Detailseite weiterleiten
+    header('Location: ../index.php?status=success');
+}
 exit;

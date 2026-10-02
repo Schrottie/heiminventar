@@ -4,7 +4,7 @@
 require_once __DIR__ . '/cfg/db.php';
 require_once __DIR__ . '/inc/functions.php';
 
-// Alle Standorte für das Formular und den Baum abfragen
+// Alle Lagerorte für das Formular und den Baum abfragen
 $locations = $pdo->query("SELECT id, parent_id, name FROM locations ORDER BY name")->fetchAll();
 
 // Alle Items abfragen und nach location_id gruppieren
@@ -14,10 +14,10 @@ foreach ($rawItems as $item) {
     $itemsByLocation[$item['location_id']][] = $item;
 }
 
-// Array mit IDs aller Standorte erstellen, die Gegenstände enthalten (für die Validierung)
+// Array mit IDs aller Lagerorte erstellen, die Gegenstände enthalten (für die Validierung)
 $nonEmptyLocationIds = array_keys($itemsByLocation);
 
-// Hilfsobjekt erstellen, das speichert, welche Standorte Unterlagerorte besitzen
+// Hilfsobjekt erstellen, das speichert, welche Lagerorte Unterlagerorte besitzen
 $hasChildrenMap = [];
 foreach ($locations as $loc) {
     if (!empty($loc['parent_id'])) {
@@ -31,9 +31,9 @@ require_once __DIR__ . '/inc/header.php';
 <div class="row">
     <!-- Linke Spalte auf Desktop (Order 1) -->
     <div class="col-12 col-lg-4 order-1">
-        <!-- Card 1: Neuer Standort -->
+        <!-- Card 1: Neuer Lagerort -->
         <div class="card shadow-sm mb-3">
-            <div class="card-header">Neuer Standort</div>
+            <div class="card-header"><i class="fa-solid fa-circle-plus me-1"></i>Neuer Lagerort</div>
             <div class="card-body">
                 <form action="api/location-save.php" method="post">
                     <div class="mb-3">
@@ -56,7 +56,7 @@ require_once __DIR__ . '/inc/header.php';
             </div>
         </div>
 
-        <!-- Card 2: Umlagern (Desktop: unter 'Neuer Standort', Mobil: ganz unten durch Order 3 auf col-12) -->
+        <!-- Card 2: Umlagern (Desktop: unter 'Neuer Lagerort', Mobil: ganz unten durch Order 3 auf col-12) -->
         <div class="card shadow-sm mb-3 order-3 order-lg-2">
             <div class="card-header">
                 <i class="fa-solid fa-boxes-packing me-1"></i>Umlagern
@@ -99,11 +99,11 @@ require_once __DIR__ . '/inc/header.php';
         </div>
     </div>
 
-    <!-- Rechte Spalte: Standortstruktur (Order 2 auf Desktop, rutscht auf Mobil vor 'Umlagern') -->
+    <!-- Rechte Spalte: Lagerortstruktur (Order 2 auf Desktop, rutscht auf Mobil vor 'Umlagern') -->
     <div class="col-12 col-lg-8 order-2">
         <div class="card shadow-sm mb-3">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Standortstruktur</span>
+                <span><i class="fa-solid fa-folder-tree me-1"></i>Lagerortstruktur</span>
                 <!-- Umschalter für die Anzeige der Inhalte -->
                 <div class="form-check form-switch m-0">
                     <input class="form-check-input" type="checkbox" role="switch" id="toggleItemsSwitch" style="cursor: pointer;">
@@ -134,7 +134,7 @@ require_once __DIR__ . '/inc/header.php';
             <div class="modal-footer d-flex flex-column gap-2">
                 <!-- Option A: Nur Gegenstände des Quellorts -->
                 <button type="button" class="btn btn-primary w-100" data-mode="items_only">
-                    Nur Gegenstände aus Quellort verschieben (Standard)
+                    Nur Gegenstände aus Quellort verschieben (Lagerard)
                 </button>
                 <!-- Option B: Auch Gegenstände aus Unterlagerorten mitnehmen -->
                 <button type="button" class="btn btn-outline-primary w-100" data-mode="items_with_sub">

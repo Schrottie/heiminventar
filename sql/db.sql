@@ -12,14 +12,14 @@ CREATE TABLE locations (
 CREATE TABLE inventory_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
 
-    bezeichnung VARCHAR(255) NOT NULL,
-    beschreibung TEXT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT NULL,
 
     location_id INT NULL,
 
-    menge INT NOT NULL DEFAULT 1,
+    quantity INT NOT NULL DEFAULT 1,
 
-    erstellt_am TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_inventory_location
     FOREIGN KEY(location_id)

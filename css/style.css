@@ -72,12 +72,20 @@ body {
     pointer-events: auto;
 }
 
-#fabContainer.open #addFabBtn {
+#fabContainer.open #indexFabBtn {
     transform: translateY(-60px);
 }
 
-#fabContainer.open #locationsFabBtn {
+#fabContainer.open #addFabBtn {
     transform: translateY(-115px);
+}
+
+#fabContainer.open #locationsFabBtn {
+    transform: translateY(-170px);
+}
+
+#fabContainer.open #changeFabBtn {
+    transform: translateY(-225px);
 }
 
 

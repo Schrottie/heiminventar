@@ -6,9 +6,9 @@ $success = false;
 $envFile = __DIR__ . '/cfg/.env';
 $sqlFile = __DIR__ . '/sql/db.sql';
 
-// if (file_exists($envFile)) {
-//     die('Die Anwendung wurde bereits installiert.');
-// }
+if (file_exists($envFile)) {
+    die('Die Anwendung wurde bereits installiert.');
+}
 
 // Variablen für das Bootstrap Modal
 $showCreateDbModal = false;
@@ -57,13 +57,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
         );
 
-        if (!file_exists($sqlFile)) {
-            throw new Exception('SQL-Datei nicht gefunden.');
-        }
+        // Prüfen, ob bereits Tabellen in der Datenbank existieren
+        $tablesQuery =$pdo->query("SHOW TABLES");
+        $hasTables = (bool)$tablesQuery->fetchColumn();
 
-        // DB-Tabellen importieren
-        $sql = file_get_contents($sqlFile);
-        $pdo->exec($sql);
+        // SQL-Import nur ausführen, wenn noch keine Tabellen existieren
+        if (!$hasTables) {
+            if (!file_exists($sqlFile)) {
+                throw new Exception('SQL-Datei nicht gefunden.');
+            }
+
+            // DB-Tabellen importieren
+            $sql = file_get_contents($sqlFile);
+            $pdo->exec($sql);
+        }
 
         // .env Datei schreiben
         $envContent = <<<ENV
@@ -287,6 +294,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <?php endif; ?>
-
 
 <?php require_once __DIR__ . '/inc/footer.php'; ?>

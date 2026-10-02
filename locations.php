@@ -100,7 +100,7 @@ require_once __DIR__ . '/inc/header.php';
     </div>
 
     <!-- Rechte Spalte: Lagerortstruktur (Order 2 auf Desktop, rutscht auf Mobil vor 'Umlagern') -->
-    <div class="col-12 col-lg-8 order-2">
+    <div class="col-12 col-lg-8 order-2 order-lg-3">
         <div class="card shadow-sm mb-3">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="fa-solid fa-folder-tree me-1"></i>Lagerortstruktur</span>

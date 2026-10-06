@@ -80,11 +80,18 @@ DB_USER={$user}
 DB_PASS={$pass}
 ENV;
 
-        if (!is_dir(__DIR__ . '/cfg')) {
-            mkdir(__DIR__ . '/cfg', 0755, true);
+        $cfgDir = __DIR__ . '/cfg';
+        if (!is_dir($cfgDir)) {
+            if (!@mkdir($cfgDir, 0755, true)) {
+                throw new Exception("Ordner 'cfg' konnte nicht erstellt werden. Fehlende Schreibrechte im Hauptverzeichnis?");
+            }
         }
 
-        file_put_contents($envFile, $envContent);$success = true;
+        if (@file_put_contents($envFile,$envContent) === false) {
+            throw new Exception("Die Datei 'cfg/.env' konnte nicht geschrieben werden. Bitte Ordner-Schreibrechte (chmod/chown) prüfen.");
+        }
+
+        $success = true;
 
     } catch (PDOException $e) {
         // Falls Verbindung scheitert und nicht bereits im Modal bestätigt wurde
@@ -120,7 +127,7 @@ require_once __DIR__ . '/inc/header.php';
                             Installation erfolgreich
                         </h2>
                         <p>
-                            Die Datenbank wurde eingerichtet und die Konfiguration gespeichert.
+                            Die Datenbank wurde eingerichtet und die Konfiguration in <code>cfg/.env</code> gespeichert.
                         </p>
                         <a href="index.php" class="btn btn-primary">
                             Anwendung öffnen
@@ -144,11 +151,14 @@ require_once __DIR__ . '/inc/header.php';
                         <?php endif; ?>
 
                         <?php
+                        $cfgDir = __DIR__ . '/cfg';$cfgWritable = is_dir($cfgDir) ? is_writable($cfgDir) : is_writable(__DIR__);
+
                         $checks = [
                             'PDO MySQL' => extension_loaded('pdo_mysql'),
-                            'GD' => extension_loaded('gd'),
+                            'GD Extension' => extension_loaded('gd'),
                             'SQL-Datei vorhanden' => file_exists($sqlFile),
-                            'img/items beschreibbar' => is_writable(__DIR__ . '/img/items')
+                            'img/items beschreibbar' => is_writable(__DIR__ . '/img/items'),
+                            'Ordner /cfg beschreibbar' => $cfgWritable
                         ];
                         $allChecksOk = !in_array(false,$checks, true);
                         ?>

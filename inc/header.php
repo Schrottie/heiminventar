@@ -1,6 +1,11 @@
 <?php
-// Theme aus Cookie auslesen (falls vorhanden)
-$isNight = isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'dark';
+// Settings aus der Datenbank laden
+$settingsStmt = $pdo->query("SELECT setting_key, setting_value FROM settings");
+$settings = $settingsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+// Theme-Einstellung abfragen (Fallback: 'light')
+$currentTheme = $settings['theme'] ?? 'light';
+$isNight = ($currentTheme === 'dark');
 ?>
 <!doctype html>
 <html lang="de">
@@ -22,11 +27,6 @@ $isNight = isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'dark';
 <body class="<?= $isNight ? 'theme-dark' : '' ?>">
 
     <header id="heroHeader" class="hero-section">
-        <!-- Theme Toggle Button oben rechts -->
-        <button type="button" id="themeToggleBtn" class="theme-toggle-btn" title="Design wechseln (Tag/Nacht)">
-            <i class="fa-solid <?= $isNight ? 'fa-sun' : 'fa-moon' ?>"></i>
-        </button>
-        <!-- Titelsektion -->
         <div class="hero-content">
             <h1 class="hero-title">
                 <span class="title-prefix">

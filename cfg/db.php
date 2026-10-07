@@ -17,6 +17,10 @@ try {
             PDO::ATTR_EMULATE_PREPARES   => false
         ]
     );
+    
+    // Migrationen automatisch ausführen
+    require_once __DIR__ . '/../inc/migrations.php';
+    runDatabaseMigrations($pdo);
 }
 catch (PDOException $e) {
     die('Datenbankverbindung fehlgeschlagen.');

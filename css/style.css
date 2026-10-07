@@ -338,6 +338,10 @@ a {
     transform: translateY(-225px);
 }
 
+#fabContainer.open #settingsFabBtn {
+    transform: translateY(-280px);
+}
+
 
 /* ==========================================================================
    06. HELP LINK COMPONENT

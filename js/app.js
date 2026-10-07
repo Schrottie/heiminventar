@@ -5,6 +5,7 @@ const ROUTES = {
     ADD_ITEM: 'edit-item.php',
     LOCATIONS: 'locations.php',
     INVENTORY: 'inventory.php',
+    SETTINGS: 'settings.php',
     START: 'index.php'
 };
 
@@ -79,6 +80,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('indexFabBtn')
         ?.addEventListener('click', () => {
             window.location.href = ROUTES.START;
+        });
+
+    document.getElementById('settingsFabBtn')
+        ?.addEventListener('click', () => {
+            window.location.href = ROUTES.SETTINGS;
         });
 
 });

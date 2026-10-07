@@ -211,72 +211,77 @@ a {
 
 
 /* ==========================================================================
-   05. LOCATION TREE (BAUMSTRUKTUR)
+   04. LOCATION TREE (BAUMSTRUKTUR FIX)
    ========================================================================== */
 
-/* Basis-Anpassungen für die Baumansicht */
-.location-tree {
-    padding-left: 0;
-}
-
-.location-tree .list-group-item {
-    border: none;
-    padding-top: 0.25rem;
-    padding-bottom: 0.25rem;
-    padding-right: 0;
-}
-
-/* Verschachtelte Listen & vertikale Verbindungslinien */
-.location-tree ul {
+/* Basis-Container des Baums */
+.location-tree,
+.location-tree ul.location-children {
     list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+/* Verschachtelte Standort-Ebenen */
+.location-tree ul.location-children {
     padding-left: 1.5rem;
     position: relative;
 }
 
-.location-tree ul::before {
+/* Die vertikale Mutterlinie (NUR bei verschachtelten Standort-Listen) */
+.location-tree ul.location-children::before {
     content: '';
     position: absolute;
     top: 0;
-    bottom: 0.8rem;
-    left: 0.5rem;
-    width: 1px;
-    background-color: #e0e0e0;
+    bottom: 1rem;
+    left: 0.75rem; /* Perfekt mittig ausgerichtet */
+    width: 2px;
+    background-color: #cbd5e1;
 }
 
-.location-tree ul li {
+/* Einzelne Standort-Einträge */
+.location-tree li.location-node {
     position: relative;
+    list-style: none;
 }
 
-/* Horizontale Verbindungslinien zu den einzelnen Elementen */
-.location-tree ul li::before {
+/* Die waagerechte Verbindungslinie von der Mutterlinie zum Standort */
+.location-tree ul.location-children > li.location-node::before {
     content: '';
     position: absolute;
-    top: 1rem;
-    left: -1rem;
-    width: 0.8rem;
-    height: 1px;
-    background-color: #e0e0e0;
+    top: 1.1rem;      /* Höhe anpassen an die Höhe des Standort-Titels */
+    left: -0.75rem;   /* Verbindet sich exakt mit left: 0.75rem der Mutterlinie */
+    width: 0.75rem;
+    height: 2px;
+    background-color: #cbd5e1;
 }
 
-/* Interaktions-Container */
-.location-tree .list-group-item > .d-flex {
-    transition: all 0.2s ease-in-out;
-    border-radius: 6px;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+/* --- EXPLICIT RESET FÜR DROPZONES UND ITEMS --- */
+/* Dropzones und Items dürfen NIEMALS Baumlinien erben */
+.location-tree .item-dropzone,
+.location-tree .item-dropzone * {
+    position: static;
 }
 
-/* Destruktive/Löschen-Vorschau: Roter Glow bei Hover über den Lösch-Button */
-.location-tree .list-group-item > .d-flex:has(.location-delete-btn:hover) {
-    background-color: rgba(220, 53, 69, 0.08);
-    box-shadow: 0 0 10px rgba(220, 53, 69, 0.25);
+.location-tree .item-dropzone::before,
+.location-tree .item-dropzone::after,
+.location-tree .item-dropzone li::before,
+.location-tree .item-dropzone li::after {
+    display: none !important;
+    content: none !important;
 }
 
-.location-tree .list-group-item > .d-flex:has(.location-delete-btn:hover) div {
-    color: #dc3545;
-    font-weight: 500;
+/* Optische Trennung der Dropzone */
+.item-dropzone {
+    border: 1px dashed #cbd5e1 !important;
+    background-color: #f8fafc !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
+.item-dropzone.drag-over {
+    background-color: rgba(85, 0, 7, 0.05) !important;
+    border-color: #550007 !important;
+}
 
 /* ==========================================================================
    06. FLOATING ACTION BUTTON (FAB)

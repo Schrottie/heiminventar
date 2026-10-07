@@ -27,7 +27,7 @@ function renderDragLocationTree(array $locations, ?int $parentId = null, array $
     );
 
     if (empty($children) && $parentId === null) {
-        echo '<p class="text-muted">Keine Standorte vorhanden.</p>';
+        echo '<p class="text-muted p-3 mb-0">Keine Standorte vorhanden.</p>';
         return;
     }
 
@@ -35,42 +35,39 @@ function renderDragLocationTree(array $locations, ?int $parentId = null, array $
         return;
     }
 
-    $ulClass = ($parentId === null) 
-        ? 'list-group list-group-flush location-tree' 
-        : 'list-group list-group-flush';
+    // Unterscheidung: Root-Liste oder Verschachtelung
+    $ulClass = ($parentId === null)
+        ? 'location-tree'
+        : 'location-children';
 
     echo '<ul class="' . $ulClass . '">';
 
     foreach ($children as $location) {
         $locationId = (int)$location['id'];
-        
-        echo '<li class="list-group-item border-0 px-2 py-2">';
-        
+       
+        echo '<li class="location-node py-1">';
+       
         // Standort-Header
-        echo '<div class="d-flex justify-content-between align-items-center mb-1">';
+        echo '<div class="d-flex justify-content-between align-items-center py-1 px-2 rounded bg-white border-sm shadow-xs">';
         echo '  <div class="fw-bold text-primary">';
-        echo '    <i class="fa-solid fa-folder-tree me-2"></i>' . htmlspecialchars($location['name']);
+        echo '    <i class="fa-solid fa-folder-tree me-2 darkred"></i>' . htmlspecialchars($location['name']);
         echo '  </div>';
         echo '</div>';
 
-        // Dropzone & Item-Liste für diesen Lagerort
+        // Dropzone & Item-Liste für diesen Lagerort (Isoliert von der Baumstruktur)
         $items = $itemsByLocation[$locationId] ?? [];
-        echo '<ul class="list-group list-group-flush item-dropzone my-1 ms-3 p-1 rounded bg-light border" data-location-id="' . $locationId . '" style="min-height: 38px;">';
-        
+        echo '<ul class="item-dropzone list-unstyled my-2 ms-3 p-2 rounded" data-location-id="' . $locationId . '" style="min-height: 42px;">';
+       
         foreach ($items as $item) {
-            echo '<li class="list-group-item border-0 py-1 px-2 d-flex justify-content-between align-items-center bg-white mb-1 rounded border-sm item-drag-node" data-item-id="' . (int)$item['id'] . '">';
+            echo '<li class="item-drag-node border-0 py-1 px-2 d-flex justify-content-between align-items-center bg-white mb-1 rounded shadow-sm" data-item-id="' . (int)$item['id'] . '">';
             echo '  <div class="d-flex align-items-center">';
-            // Greifer-Icon (Grip)
             echo '    <i class="fa-solid fa-grip-vertical text-muted drag-handle me-2" style="cursor: grab;"></i>';
             echo '    <i class="fa-solid fa-box text-secondary me-2"></i>';
             echo '    <span>' . htmlspecialchars($item['name']) . '</span>';
             echo '  </div>';
-            // echo '  <a href="item.php?id=' . (int)$item['id'] . '" class="btn btn-xs btn-sm btn-outline-secondary" title="Bearbeiten">';
-            // echo '    <i class="fa-solid fa-pen-to-square"></i>';
-            // echo '  </a>';
             echo '</li>';
         }
-        
+       
         echo '</ul>';
 
         // Rekursiver Aufruf für untergeordnete Standorte
@@ -81,6 +78,7 @@ function renderDragLocationTree(array $locations, ?int $parentId = null, array $
 
     echo '</ul>';
 }
+
 ?>
 
 <div class="row">

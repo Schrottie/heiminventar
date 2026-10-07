@@ -188,9 +188,30 @@ a {
     font-size: 1rem;
 }
 
+/* ==========================================================================
+   04. CARD HEADER - MINIMAL AKZENT
+   ========================================================================== */
+.card-header {
+    background-color: rgba(85, 0, 7, 0.05);
+    color: #550007;
+    font-weight: 700;
+    font-size: 1.05rem;
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid rgba(85, 0, 7, 0.12);
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+    display: flex;
+    align-items: center;
+}
+
+.card-header i {
+    color: #550007;
+    font-size: 1.1rem;
+}
+
 
 /* ==========================================================================
-   04. LOCATION TREE (BAUMSTRUKTUR)
+   05. LOCATION TREE (BAUMSTRUKTUR)
    ========================================================================== */
 
 /* Basis-Anpassungen für die Baumansicht */
@@ -258,7 +279,7 @@ a {
 
 
 /* ==========================================================================
-   05. FLOATING ACTION BUTTON (FAB)
+   06. FLOATING ACTION BUTTON (FAB)
    ========================================================================== */
 
 #fabContainer {
@@ -318,7 +339,7 @@ a {
 
 
 /* ==========================================================================
-   06. HELP LINK COMPONENT
+   07. HELP LINK COMPONENT
    ========================================================================== */
 
 .help-link {
@@ -347,7 +368,7 @@ a {
 }
 
 /* ==========================================================================
-   07. HELP MODAL - RESPONSIVE & MOBILE OPTIMIZATIONS
+   08. HELP MODAL - RESPONSIVE & MOBILE OPTIMIZATIONS
    ========================================================================== */
 
 /* Fullscreen-Modus auf mobilen Geräten (unter 576px Viewport-Breite) */
@@ -401,7 +422,7 @@ a {
 
 
 /* ==========================================================================
-   08. RESPONSIVE BREAKPOINTS
+   09. RESPONSIVE BREAKPOINTS
    ========================================================================== */
 
 /* Tablets & kleinere Bildschirme */

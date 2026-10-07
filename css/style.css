@@ -38,10 +38,6 @@ a {
     text-decoration: none;
 }
 
-.darkred {
-    color: #550007 !important;
-}
-
 :root {
     --bs-primary: #550007;
     --bs-primary-rgb: 85, 0, 7;
@@ -471,10 +467,6 @@ body.theme-dark {
     color: #e2e8f0;
 }
 
-body.theme-dark .darkred {
-    color: #ff4d5a !important;
-}
-
 /* Hero-Header im Dark Mode (Tieferer, edlerer Verlauf) */
 body.theme-dark .hero-section {
     background: linear-gradient(135deg, #2b0004 0%, #4a0006 60%, #6e000a 100%);
@@ -609,18 +601,6 @@ body.theme-dark .btn-close {
     right: 15px;
     width: 34px;
     height: 34px;
-}
-
-
-/* Bootstrap Primary-Variablen für den Dark Mode überschreiben */
-:root {
-    --bs-primary: #ff5563;
-    --bs-primary-rgb: 255, 85, 99;
-}
-
-/* Text-Farbe für die .darkred Hilfsklasse im Dark Mode */
-body.theme-dark .darkred {
-    color: #ff6b75 !important;
 }
 
 /* Button (BS-Primary) */

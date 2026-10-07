@@ -196,3 +196,39 @@
         </div>
     </div>
 </div>
+
+<!-- Modal für Sicherheitsabfrage beim Aktivieren des Passwortschutzes -->
+<div class="modal fade" id="enableAuthModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i>Achtung: Passwortschutz aktivieren</h5>
+                <button type="button" class="btn-close" id="cancelAuthModalBtn" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Sie aktivieren den Passwortschutz. Da aktuell <strong>keine weiteren Benutzer</strong> angelegt sind, verwenden Sie bitte das Standard-Konto zum Anmelden:</p>
+                
+                <div class="card bg-light border-warning mb-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-5 fw-bold">Benutzername:</div>
+                            <div class="col-7"><code class="fs-6">admin</code></div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-5 fw-bold">Standard-Passwort:</div>
+                            <div class="col-7"><code class="fs-6">admin123</code></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info small mb-0">
+                    <i class="fa-solid fa-lightbulb me-1"></i> <strong>Empfehlung:</strong> Ändern Sie nach dem Login das Passwort des Standard-Admins oder legen Sie einen eigenen Benutzer an.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="confirmCancelAuth" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-warning fw-bold" id="confirmEnableAuth">Verstanden & Aktivieren</button>
+            </div>
+        </div>
+    </div>
+</div>

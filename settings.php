@@ -13,7 +13,7 @@ $msgError = '';
 // --- FORMULAR VERARBEITUNG ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    
-    // 1. Theme & Auth-Status (wird jetzt direkt bei Radio-Klick ausgelöst)
+    // 1. Theme & Auth-Status
     if (isset($_POST['action_save_settings'])) {
         $theme = $_POST['theme'] ?? $settings['theme'] ?? 'light';
         $authEnabledVal = $_POST['auth_enabled'] ?? $settings['auth_enabled'] ?? '0';
@@ -47,12 +47,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 3. Benutzer Status ändern (Aktivieren / Deaktivieren)
     if (isset($_POST['action_toggle_user'])) {
         $userId = (int)$_POST['user_id'];
-        $newStatus = (int)$_POST['target_status']; // 1 = aktivieren, 0 = deaktivieren
+        $newStatus = (int)$_POST['target_status'];
 
-        // Zählen, wie viele andere AKTIVE Benutzer existieren
         $activeOtherUsers = $pdo->query("SELECT COUNT(*) FROM users WHERE is_active = 1 AND id != $userId")->fetchColumn();
 
-        // Schutz-Logik für Deaktivierung
         if ($newStatus === 0 && $activeOtherUsers == 0) {
             $msgError = "Aktion abgebrochen! Es muss mindestens ein aktiver Benutzer im System verbleiben.";
         } else {
@@ -62,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // 4. Benutzer löschen (Default-User ist davon ausgeschlossen)
+    // 4. Benutzer löschen
     if (isset($_POST['action_delete_user'])) {
         $deleteId = (int)$_POST['delete_user_id'];
         $stmt = $pdo->prepare("DELETE FROM users WHERE id = ? AND is_default = 0");
@@ -70,17 +68,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $msgSuccess = "Benutzer gelöscht.";
     }
 
-    // 5. Benutzer bearbeiten (Rolle ändern / Passwort zurücksetzen)
+    // 5. Benutzer bearbeiten
     if (isset($_POST['action_edit_user'])) {
         $editUserId = (int)$_POST['edit_user_id'];
         $newRole = $_POST['edit_role'] ?? 'user';
         $newPassword = $_POST['edit_password'] ?? '';
 
-        // Rolle aktualisieren
         $stmt = $pdo->prepare("UPDATE users SET role = ? WHERE id = ?");
         $stmt->execute([$newRole, $editUserId]);
 
-        // Passwort optional aktualisieren (nur wenn ein neues eingegeben wurde)
         if (!empty($newPassword)) {
             $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
             $stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
@@ -89,11 +85,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $msgSuccess = "Benutzerkonto erfolgreich aktualisiert.";
     }
-
 }
 
 // Benutzerliste abrufen
 $users = $pdo->query("SELECT * FROM users ORDER BY is_default DESC, id ASC")->fetchAll();
+
+// Prüfen, ob NUR der Default-User existiert / aktiv ist
+$totalUsersCount = count($users);
+$onlyDefaultUser = ($totalUsersCount === 1 && $users[0]['is_default'] == 1);
 ?>
 
 <div class="row justify-content-center">
@@ -145,7 +144,7 @@ $users = $pdo->query("SELECT * FROM users ORDER BY is_default DESC, id ASC")->fe
                                 </label>
                             </div>
                             <div class="col-6">
-                                <input type="radio" class="btn-check auto-submit" name="auth_enabled" id="authEnabled" value="1" <?= (($settings['auth_enabled'] ?? '0') === '1') ? 'checked' : '' ?>>
+                                <input type="radio" class="btn-check" name="auth_enabled" id="authEnabled" value="1" <?= (($settings['auth_enabled'] ?? '0') === '1') ? 'checked' : '' ?>>
                                 <label class="btn btn-outline-secondary w-100 p-3 text-center" for="authEnabled">
                                     <i class="fa-solid fa-shield-halved fa-2x mb-2 text-danger d-block"></i>Aktiviert
                                 </label>
@@ -180,19 +179,10 @@ $users = $pdo->query("SELECT * FROM users ORDER BY is_default DESC, id ASC")->fe
                             </div>
 
                             <div class="d-flex gap-1">
-                                <!-- Bearbeiten Button (öffnet Modal) -->
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-primary"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editUserModal"
-                                        data-userid="<?= $u['id'] ?>"
-                                        data-username="<?= htmlspecialchars($u['username']) ?>"
-                                        data-role="<?= $u['role'] ?>"
-                                        title="Benutzer bearbeiten">
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editUserModal" data-userid="<?= $u['id'] ?>" data-username="<?= htmlspecialchars($u['username']) ?>" data-role="<?= $u['role'] ?>" title="Benutzer bearbeiten">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
 
-                                <!-- Status An/Aus Schalter -->
                                 <form method="POST" action="settings.php">
                                     <input type="hidden" name="action_toggle_user" value="1">
                                     <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
@@ -202,7 +192,6 @@ $users = $pdo->query("SELECT * FROM users ORDER BY is_default DESC, id ASC")->fe
                                     </button>
                                 </form>
 
-                                <!-- Löschen (nur wenn kein Default-User) -->
                                 <?php if (!$u['is_default']): ?>
                                     <form method="POST" action="settings.php" onsubmit="return confirm('Benutzer unwiderruflich löschen?');">
                                         <input type="hidden" name="action_delete_user" value="1">
@@ -244,15 +233,58 @@ $users = $pdo->query("SELECT * FROM users ORDER BY is_default DESC, id ASC")->fe
     </div>
 </div>
 
-<!-- JavaScript für Sofort-Speichern beim Anklicken -->
+
+<!-- JavaScript für Sofort-Speichern und Modal-Sicherheitsabfrage -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const autoSubmitInputs = document.querySelectorAll('.auto-submit');
-    autoSubmitInputs.forEach(input => {
+    const isOnlyDefaultUser = <?= json_encode($onlyDefaultUser) ?>;
+    const settingsForm = document.getElementById('settingsForm');
+    const authDisabledRadio = document.getElementById('authDisabled');
+    const authEnabledRadio = document.getElementById('authEnabled');
+    
+    const enableAuthModalEl = document.getElementById('enableAuthModal');
+    const enableAuthModal = enableAuthModalEl ? new bootstrap.Modal(enableAuthModalEl) : null;
+    const confirmEnableAuthBtn = document.getElementById('confirmEnableAuth');
+
+    // 1. Theme-Radiobuttons (schicken immer sofort ab)
+    document.querySelectorAll('.auto-submit').forEach(input => {
         input.addEventListener('change', function() {
-            document.getElementById('settingsForm').submit();
+            settingsForm.submit();
         });
     });
+
+    // 2. Passwortschutz Deaktivieren -> Sofort abschicken
+    if (authDisabledRadio) {
+        authDisabledRadio.addEventListener('change', function() {
+            settingsForm.submit();
+        });
+    }
+
+    // 3. Passwortschutz Aktivieren -> Mit Prüfung auf Only-Default-User
+    if (authEnabledRadio) {
+        authEnabledRadio.addEventListener('change', function() {
+            if (isOnlyDefaultUser) {
+                // Radio-Auswahl vorübergehend optisch zurücksetzen, bis bestätigt wurde
+                authDisabledRadio.checked = true;
+                
+                // Sicherheits-Modal anzeigen
+                if (enableAuthModal) {
+                    enableAuthModal.show();
+                }
+            } else {
+                // Es gibt noch andere User -> direkt speichern
+                settingsForm.submit();
+            }
+        });
+    }
+
+    // Modal Bestätigungs-Button
+    if (confirmEnableAuthBtn) {
+        confirmEnableAuthBtn.addEventListener('click', function() {
+            authEnabledRadio.checked = true;
+            settingsForm.submit();
+        });
+    }
 });
 </script>
 

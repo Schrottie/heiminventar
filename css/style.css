@@ -1,32 +1,265 @@
+/* ==========================================================================
+   CSS STYLESHEET - INVENTORY MANAGEMENT SYSTEM
+   ==========================================================================
+   Inhaltsverzeichnis:
+   01. Base & Layout
+   02. Hero Header
+   03. Cards & Inventory Items
+   04. Location Tree (Baumstruktur)
+   05. Floating Action Button (FAB)
+   06. Help Link Component
+   07. Responsive Breakpoints
+   ========================================================================== */
+
+
+/* ==========================================================================
+   01. BASE & LAYOUT
+   ========================================================================== */
+
+html,
 body {
-    background: #f5f7fa;
+    min-height: 100%;
 }
 
-.inventory-item {
-    transition: .15s ease;
+body {
+    /* Abstände schaffen Platz für den fixierten Hero-Header und FAB */
+    padding-top: 180px;
+    padding-bottom: 90px;
+    background-color: #f4f6f9;
+    color: #212529;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
 }
 
-.inventory-item:hover {
-    transform: translateY(-1px);
+main {
+    margin-top: 25px;
 }
+
+a {
+    text-decoration: none;
+}
+
+.darkred {
+    color: #550007 !important;
+}
+
+:root {
+    --bs-primary: #550007;
+    --bs-primary-rgb: 85, 0, 7;
+}
+
+.btn-primary {
+    --bs-btn-bg: #550007;
+    --bs-btn-border-color: #550007;
+
+    --bs-btn-hover-bg: #700009;
+    --bs-btn-hover-border-color: #700009;
+
+    --bs-btn-active-bg: #3d0005;
+    --bs-btn-active-border-color: #3d0005;
+}
+
+.btn-outline-primary {
+    --bs-btn-color: #550007;
+    --bs-btn-border-color: #550007;
+
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #550007;
+    --bs-btn-hover-border-color: #550007;
+
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #550007;
+    --bs-btn-active-border-color: #550007;
+}
+
+/* ==========================================================================
+   02. HERO HEADER
+   ========================================================================== */
+
+/* Fixierter Haupt-Header im oberen Bereich */
+.hero-section {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    height: 180px;
+    background: linear-gradient(135deg, #550007 0%, #8f0000 60%, #c90000 100%);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    transition: height 0.35s ease, box-shadow 0.35s ease;
+}
+
+.hero-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+/* Titel-Styling mit dynamischer Typografie (clamp) */
+.hero-title {
+    margin: 0;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.title-prefix {
+    font-size: clamp(2.6rem, 5vw, 5rem);
+    color: #ffffff;
+    letter-spacing: 0.08rem;
+    text-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+}
+
+.title-middle {
+    font-size: clamp(2.6rem, 5vw, 5rem);
+    color: #ffc107;
+    text-shadow: 0 0 10px rgba(255, 193, 7, 0.5), 0 0 20px rgba(255, 193, 7, 0.25);
+}
+
+.title-suffix {
+    font-size: clamp(2.6rem, 5vw, 5rem);
+    color: rgba(255, 255, 255, 0.5);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.hero-subtitle {
+    margin-top: 25px;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 1rem;
+}
+
+/* Kompakter / Eingeklappter Zustand beim Scrollen */
+.hero-small {
+    height: 45px;
+}
+
+.hero-small .hero-content {
+    justify-content: center;
+    align-items: flex-start;
+    padding-left: 20px;
+}
+
+.hero-small .hero-title {
+    font-size: 1rem;
+}
+
+.hero-small .title-prefix,
+.hero-small .title-middle,
+.hero-small .title-suffix {
+    font-size: 1.1rem;
+}
+
+.hero-small .hero-subtitle,
+.hero-small #userInfo {
+    display: none;
+}
+
+
+/* ==========================================================================
+   03. CARDS & INVENTORY ITEMS
+   ========================================================================== */
 
 .card {
     border: none;
     border-radius: 12px;
 }
 
+.inventory-item {
+    transition: transform 0.15s ease;
+}
+
+.inventory-item:hover {
+    transform: translateY(-1px);
+}
+
+.item-pic {
+    max-height: 200px;
+    object-fit: contain;
+}
+
 #quickFilter {
     font-size: 1rem;
 }
 
-.item-pic {
-    max-height: 200px; 
-    object-fit: contain;
+
+/* ==========================================================================
+   04. LOCATION TREE (BAUMSTRUKTUR)
+   ========================================================================== */
+
+/* Basis-Anpassungen für die Baumansicht */
+.location-tree {
+    padding-left: 0;
 }
 
-/* =========================================
-   Floating Action Button
-   ========================================= */
+.location-tree .list-group-item {
+    border: none;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    padding-right: 0;
+}
+
+/* Verschachtelte Listen & vertikale Verbindungslinien */
+.location-tree ul {
+    list-style: none;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.location-tree ul::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0.8rem;
+    left: 0.5rem;
+    width: 1px;
+    background-color: #e0e0e0;
+}
+
+.location-tree ul li {
+    position: relative;
+}
+
+/* Horizontale Verbindungslinien zu den einzelnen Elementen */
+.location-tree ul li::before {
+    content: '';
+    position: absolute;
+    top: 1rem;
+    left: -1rem;
+    width: 0.8rem;
+    height: 1px;
+    background-color: #e0e0e0;
+}
+
+/* Interaktions-Container */
+.location-tree .list-group-item > .d-flex {
+    transition: all 0.2s ease-in-out;
+    border-radius: 6px;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+/* Destruktive/Löschen-Vorschau: Roter Glow bei Hover über den Lösch-Button */
+.location-tree .list-group-item > .d-flex:has(.location-delete-btn:hover) {
+    background-color: rgba(220, 53, 69, 0.08);
+    box-shadow: 0 0 10px rgba(220, 53, 69, 0.25);
+}
+
+.location-tree .list-group-item > .d-flex:has(.location-delete-btn:hover) div {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+
+/* ==========================================================================
+   05. FLOATING ACTION BUTTON (FAB)
+   ========================================================================== */
 
 #fabContainer {
     position: fixed;
@@ -35,38 +268,33 @@ body {
     z-index: 1050;
 }
 
+/* Haupt-Auslöser-Button */
 .fab-main {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    box-shadow: 0 .5rem 1rem rgba(0,0,0,.25);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.25);
+    background-color: #550007;
 }
 
+/* Versteckte Unter-Aktionen im Grundzustand */
 .fab-action {
     position: absolute;
     right: 0;
-
     display: flex;
     align-items: center;
-    gap: .5rem;
-
+    gap: 0.5rem;
     white-space: nowrap;
-
     height: 44px;
     padding: 0 14px;
-
     border-radius: 22px;
-
     opacity: 0;
     pointer-events: none;
-
     transform: translateY(0);
-
-    transition:
-        opacity .2s ease,
-        transform .2s ease;
+    transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
+/* Geöffneter Zustand: Buttons werden eingeblendet und nach oben geschoben */
 #fabContainer.open .fab-action {
     opacity: 1;
     pointer-events: auto;
@@ -89,72 +317,112 @@ body {
 }
 
 
-/* =========================================
-   Locationtree
-   ========================================= */
+/* ==========================================================================
+   06. HELP LINK COMPONENT
+   ========================================================================== */
 
-/* Container-Korrekturen für den Baum */
-.location-tree {
-    padding-left: 0;
+.help-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    margin-left: 8px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 0.65);
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
 }
 
-/* Entfernt ungewollte Innenabstände bei verschachtelten Listen */
-.location-tree .list-group-item {
-    border: none;
-    padding-right: 0;
-    padding-top: 0.25rem;
-    padding-bottom: 0.25rem;
+.help-link:hover {
+    color: #ffc107;
+    border-color: rgba(255, 193, 7, 0.5);
+    background: rgba(255, 193, 7, 0.08);
+    transform: translateY(-1px);
+    box-shadow: 0 0 12px rgba(255, 193, 7, 0.25);
 }
 
-/* Einrückung nur für den Namen/Inhalt, nicht für die ganze Zeile */
-.location-tree ul {
-    list-style: none;
-    padding-left: 1.5rem; /* Tiefe der Einrückung */
-    position: relative;
+.help-link i {
+    font-size: 0.85rem;
 }
 
-/* Feine Verbindungslinien (Baum-Optik) */
-.location-tree ul::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0.8rem;
-    left: 0.5rem;
-    width: 1px;
-    background-color: #e0e0e0; /* Sehr feine graue Linie */
+/* ==========================================================================
+   07. HELP MODAL - RESPONSIVE & MOBILE OPTIMIZATIONS
+   ========================================================================== */
+
+/* Fullscreen-Modus auf mobilen Geräten (unter 576px Viewport-Breite) */
+@media (max-width: 575.98px) {
+    #helpModal .modal-dialog {
+        margin: 0;
+        max-width: 100%;
+        height: 100%;
+    }
+
+    #helpModal .modal-content {
+        height: 100%;
+        border-radius: 0 !important;
+    }
+
+    #helpModal .modal-body {
+        padding: 1rem !important;
+    }
+
+    /* Button nimmt auf Mobilgeräten die volle Breite ein */
+    .w-sm-auto {
+        width: 100% !important;
+    }
 }
 
-.location-tree ul li {
-    position: relative;
+/* Ab Small Breakpoint (ab 576px) zurück zur Button-Eigenbreite */
+@media (min-width: 576px) {
+    .w-sm-auto {
+        width: auto !important;
+    }
 }
 
-/* Waagerechte feine Linie zum Ort */
-.location-tree ul li::before {
-    content: '';
-    position: absolute;
-    top: 1rem;
-    left: -1rem;
-    width: 0.8rem;
-    height: 1px;
-    background-color: #e0e0e0; /* Sehr feine graue Linie */
+/* Styling für Kbd-Tags (Tastatur-Shortcuts im Hilfe-Modal) */
+#helpModal kbd {
+    display: inline-block;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    color: #ffffff;
+    background-color: #212529;
+    border-radius: 0.25rem;
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
 
-/* Weicher Übergang für den Glow-Effekt */
-.location-tree .list-group-item > .d-flex {
-    transition: all 0.2s ease-in-out;
-    border-radius: 6px;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+/* Dezente Abhebung der Schnellaktions-Cards im Body */
+#helpModal .bg-light {
+    background-color: #f8f9fa !important;
+    border: 1px solid #e9ecef;
 }
 
-/* Glow- & Hervorhebungseffekt bei Hover über den Lösch-Button */
-.location-tree .list-group-item > .d-flex:has(.location-delete-btn:hover) {
-    background-color: rgba(220, 53, 69, 0.08); /* Zartes Rot als Hintergrund */
-    box-shadow: 0 0 10px rgba(220, 53, 69, 0.25); /* Sanfter roter Glow-Effekt */
+
+/* ==========================================================================
+   08. RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+
+/* Tablets & kleinere Bildschirme */
+@media (max-width: 992px) {
+    .hero-title {
+        line-height: 1.1;
+        white-space: normal;
+    }
 }
 
-/* Text des Ortes bei Button-Hover leicht anpassen */
-.location-tree .list-group-item > .d-flex:has(.location-delete-btn:hover) div {
-    color: #dc3545;
-    font-weight: 500;
+/* Mobile Geräte */
+@media (max-width: 768px) {
+    .hero-section {
+        height: 180px;
+    }
+
+    .hero-subtitle {
+        display: none;
+    }
+
+    .hero-small .hero-title {
+        line-height: 1;
+    }
 }

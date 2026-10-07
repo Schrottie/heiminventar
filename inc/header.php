@@ -17,13 +17,23 @@
 
 <body>
 
-    <nav class="navbar navbar-dark bg-primary shadow-sm">
-        <div class="container-fluid">
-            <span class="navbar-brand mb-0">
-                <a href="index.php" class="text-decoration-none text-white"><i class="fa-solid fa-boxes-stacked me-2"></i>
-                Was ist wo?</a>
-            </span>
+    <header id="heroHeader" class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="title-prefix">
+                    <i class="fa-solid fa-boxes-stacked"></i> WAS
+                </span>
+                <span class="title-middle">
+                    IST
+                </span>
+                <span class="title-suffix">
+                    WO?
+                </span>
+            </h1>
+            <div class="hero-subtitle">
+                    Die smarte Lösung für Deine Inventarverwaltung <a href="#" class="help-link" data-bs-toggle="modal" data-bs-target="#helpModal"><i class="fa-solid fa-circle-question"></i></a>
+            </div>
         </div>
-    </nav>
+    </header>
 
     <div class="container py-3">

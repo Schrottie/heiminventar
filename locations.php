@@ -176,4 +176,5 @@ require_once __DIR__ . '/inc/header.php';
 
 </script>
 
+<?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>

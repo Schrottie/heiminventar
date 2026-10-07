@@ -97,4 +97,5 @@ function renderDragLocationTree(array $locations, ?int $parentId = null, array $
     </div>
 </div>
 
+<?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>

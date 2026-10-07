@@ -317,3 +317,57 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+
+// Referenz auf das Header-Element und Status-Tracker für die Hysterese
+const hero = document.getElementById("heroHeader");
+let isCollapsed = false;
+
+/**
+ * Steuert das Verkleinern und Vergrößern des Hero-Headers beim Scrollen.
+ * Verhindert Flackern durch unterschiedliche Schwellenwerte für Ein- und Ausklappen.
+ */
+window.addEventListener("scroll", () => {
+    const scrollY = window.scrollY;
+
+    // Header verkleinern, wenn mehr als 80px nach unten gescrollt wurde
+    if (!isCollapsed && scrollY > 80) {
+        hero?.classList.add("hero-small");
+        isCollapsed = true;
+    } 
+    // Header wieder vergrößern, wenn fast ganz nach oben gescrollt wurde (< 40px)
+    else if (isCollapsed && scrollY < 40) {
+        hero?.classList.remove("hero-small");
+        isCollapsed = false;
+    }
+});
+
+/**
+ * Hilfemodal öffnen
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    // Bootstrap Modal Instanz initialisieren
+    const helpModalElement = document.getElementById('helpModal');
+    if (!helpModalElement) return;
+    
+    const helpModal = new bootstrap.Modal(helpModalElement);
+
+    // Event Listener für Tastatureingaben
+    document.addEventListener('keydown', (event) => {
+        // 1. F1-Taste
+        if (event.key === 'F1') {
+            event.preventDefault(); // Verhindert die Standard-Browserhilfe
+            helpModal.toggle();
+        }
+
+        // 2. Shift + ? (bzw. '?' Taste)
+        // Reagiert nur, wenn der Fokus nicht in einem Eingabefeld (Input/Textarea) liegt
+        const isInputField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) 
+                             || document.activeElement.isContentEditable;
+
+        if (event.key === '?' && !isInputField) {
+            event.preventDefault();
+            helpModal.toggle();
+        }
+    });
+});

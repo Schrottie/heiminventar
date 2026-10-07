@@ -452,3 +452,205 @@ a {
         line-height: 1;
     }
 }
+
+/* ==========================================================================
+   10. DARK THEME OVERRIDES (.theme-dark)
+   ========================================================================== */
+
+/* Layout & Basis */
+body.theme-dark {
+    background-color: #0f1115;
+    color: #e2e8f0;
+}
+
+body.theme-dark .darkred {
+    color: #ff4d5a !important;
+}
+
+/* Hero-Header im Dark Mode (Tieferer, edlerer Verlauf) */
+body.theme-dark .hero-section {
+    background: linear-gradient(135deg, #2b0004 0%, #4a0006 60%, #6e000a 100%);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* Cards & Container */
+body.theme-dark .card {
+    background-color: #1a1d24;
+    color: #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.theme-dark .card-header {
+    background-color: rgba(255, 77, 90, 0.08);
+    color: #ff6b75;
+    border-bottom-color: rgba(255, 77, 90, 0.15);
+}
+
+body.theme-dark .card-header i {
+    color: #ff4d5a;
+}
+
+/* Standorte-Baumstruktur & Drag-Zones */
+body.theme-dark .location-tree ul.location-children::before,
+body.theme-dark .location-tree ul.location-children > li.location-node::before {
+    background-color: #334155; /* Dunklere Führungslinien */
+}
+
+body.theme-dark .item-dropzone {
+    border-color: #334155 !important;
+    background-color: #121418 !important;
+}
+
+body.theme-dark .item-dropzone.drag-over {
+    background-color: rgba(255, 77, 90, 0.12) !important;
+    border-color: #ff4d5a !important;
+}
+
+/* Unterdrückung von hellem Bootstrap-Hintergrund in Kärtchen/Items */
+body.theme-dark .bg-white,
+body.theme-dark .bg-light,
+body.theme-dark .list-group-item {
+    background-color: #222630 !important;
+    color: #e2e8f0 !important;
+    border-color: #2e3440 !important;
+}
+
+body.theme-dark .text-muted,
+body.theme-dark .text-secondary {
+    color: #94a3b8 !important;
+}
+
+/* Formular-Elemente & QuickFilter */
+body.theme-dark .form-control,
+body.theme-dark .form-select {
+    background-color: #121418;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+body.theme-dark .form-control:focus,
+body.theme-dark .form-select:focus {
+    background-color: #121418;
+    border-color: #ff4d5a;
+    color: #ffffff;
+    box-shadow: 0 0 0 0.25rem rgba(255, 77, 90, 0.25);
+}
+
+/* Buttons */
+body.theme-dark .btn-primary {
+    --bs-btn-bg: #700009;
+    --bs-btn-border-color: #700009;
+    --bs-btn-hover-bg: #8f0000;
+    --bs-btn-hover-border-color: #8f0000;
+}
+
+body.theme-dark .btn-outline-secondary {
+    color: #cbd5e1;
+    border-color: #475569;
+}
+
+body.theme-dark .btn-outline-secondary:hover {
+    background-color: #334155;
+    color: #ffffff;
+}
+
+/* Modals & Dialoge */
+body.theme-dark .modal-content {
+    background-color: #1a1d24;
+    color: #e2e8f0;
+    border: 1px solid #2e3440;
+}
+
+body.theme-dark .modal-header,
+body.theme-dark .modal-footer {
+    border-color: #2e3440;
+}
+
+body.theme-dark .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Theme Toggle Button im Hero Header */
+.theme-toggle-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    z-index: 1060;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25 ease;
+}
+
+.theme-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffc107;
+    transform: scale(1.08);
+}
+
+/* Anpassung Toggle-Button bei eingeklapptem Header (.hero-small) */
+.hero-small .theme-toggle-btn {
+    top: 4px;
+    right: 15px;
+    width: 34px;
+    height: 34px;
+}
+
+
+/* Bootstrap Primary-Variablen für den Dark Mode überschreiben */
+:root {
+    --bs-primary: #ff5563;
+    --bs-primary-rgb: 255, 85, 99;
+}
+
+/* Text-Farbe für die .darkred Hilfsklasse im Dark Mode */
+body.theme-dark .darkred {
+    color: #ff6b75 !important;
+}
+
+/* Button (BS-Primary) */
+body.theme-dark .btn-primary {
+    --bs-btn-color: #ffffff;
+    --bs-btn-bg: #c9182b;                  /* Gut sichtbares, mittleres Rot */
+    --bs-btn-border-color: #c9182b;
+
+    --bs-btn-hover-color: #ffffff;
+    --bs-btn-hover-bg: #e02438;            /* Heller beim Drüberfahren */
+    --bs-btn-hover-border-color: #e02438;
+
+    --bs-btn-active-color: #ffffff;
+    --bs-btn-active-bg: #a30d1d;
+    --bs-btn-active-border-color: #a30d1d;
+}
+
+/* Outline-Button (BS-Primary) */
+body.theme-dark .btn-outline-primary {
+    --bs-btn-color: #ff6b75;               /* Hellrot für gute Lesbarkeit auf dunkel */
+    --bs-btn-border-color: #ff6b75;
+
+    --bs-btn-hover-color: #ffffff;
+    --bs-btn-hover-bg: #c9182b;
+    --bs-btn-hover-border-color: #c9182b;
+
+    --bs-btn-active-color: #ffffff;
+    --bs-btn-active-bg: #a30d1d;
+    --bs-btn-active-border-color: #a30d1d;
+}
+
+/* Main Floating Action Button*/
+body.theme-dark .fab-main {
+    background-color: #c9182b;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+}
+
+/* Standorttitel & Schriften */
+body.theme-dark .text-primary {
+    color: #ff6b75 !important;             /* Für Bootstrap .text-primary Klassen */
+}

@@ -1,3 +1,7 @@
+<?php
+// Theme aus Cookie auslesen (falls vorhanden)
+$isNight = isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'dark';
+?>
 <!doctype html>
 <html lang="de">
 
@@ -15,9 +19,14 @@
 
 </head>
 
-<body>
+<body class="<?= $isNight ? 'theme-dark' : '' ?>">
 
     <header id="heroHeader" class="hero-section">
+        <!-- Theme Toggle Button oben rechts -->
+        <button type="button" id="themeToggleBtn" class="theme-toggle-btn" title="Design wechseln (Tag/Nacht)">
+            <i class="fa-solid <?= $isNight ? 'fa-sun' : 'fa-moon' ?>"></i>
+        </button>
+        <!-- Titelsektion -->
         <div class="hero-content">
             <h1 class="hero-title">
                 <span class="title-prefix">

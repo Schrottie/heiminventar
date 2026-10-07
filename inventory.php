@@ -50,7 +50,7 @@ function renderDragLocationTree(array $locations, ?int $parentId = null, array $
         // Standort-Header
         echo '<div class="d-flex justify-content-between align-items-center py-1 px-2 rounded bg-white border-sm shadow-xs">';
         echo '  <div class="fw-bold text-primary">';
-        echo '    <i class="fa-solid fa-folder-tree me-2 darkred"></i>' . htmlspecialchars($location['name']);
+        echo '    <i class="fa-solid fa-folder-tree me-2"></i>' . htmlspecialchars($location['name']);
         echo '  </div>';
         echo '</div>';
 

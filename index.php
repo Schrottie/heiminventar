@@ -52,7 +52,7 @@ require_once __DIR__ . '/inc/header.php';
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <h6 class="mb-1">
-                            <i class="fa-solid fa-box text-primary me-1 darkred"></i>
+                            <i class="fa-solid fa-box text-primary me-1"></i>
                             <?= htmlspecialchars($item['name']) ?>
                         </h6>
 

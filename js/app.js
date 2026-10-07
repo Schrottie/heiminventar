@@ -371,3 +371,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (!themeBtn) return;
+
+    themeBtn.addEventListener('click', () => {
+        const body = document.body;
+        const icon = themeBtn.querySelector('i');
+        
+        // Klasse auf body toggeln
+        body.classList.toggle('theme-dark');
+        const isDark = body.classList.contains('theme-dark');
+
+        // Icon anpassen
+        if (isDark) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        } else {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
+
+        // Zustand per Cookie oder Session für PHP/Backend speichern
+        document.cookie = "theme=" + (isDark ? "dark" : "light") + ";path=/;max-age=31536000";
+    });
+});

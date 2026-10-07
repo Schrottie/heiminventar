@@ -440,16 +440,24 @@ a {
 
 /* Mobile Geräte */
 @media (max-width: 768px) {
-    .hero-section {
-        height: 180px;
-    }
+    /* 1. Entferne das erzwungene height: 180px für .hero-section!
+          Die Standard-Höhe greift automatisch, lässt aber .hero-small zu. */
 
+    /* 2. Untertitel auf Mobilgeräten im großen Zustand kleiner anzeigen statt komplett auszublenden */
     .hero-subtitle {
-        display: none;
+        display: block;        /* Wieder sichtbar machen */
+        margin-top: 10px;      /* Kleinerer Abstand */
+        font-size: 0.85rem;    /* Etwas kleinere Schrift auf Handys */
     }
 
-    .hero-small .hero-title {
-        line-height: 1;
+    /* 3. Wenn der Header eingeklappt ist (.hero-small), Untertitel ausblenden */
+    .hero-small .hero-subtitle {
+        display: none !important;
+    }
+
+    /* 4. Sicherstellen, dass .hero-small auf Mobilgeräten korrekt eingeklappt wird */
+    .hero-section.hero-small {
+        height: 45px !important;
     }
 }
 

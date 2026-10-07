@@ -36,6 +36,7 @@ Eine leichte, responsive Webanwendung zur Verwaltung von Lagerorten und Gegenst�
 
 ### 5. Systemeinstellungen & Theme-Wahl 🎨
 * **Erscheinungsbild (Light/Dark Mode):** Visuelle Auswahl zwischen hellem und dunklem Design per modernem UI-Button-System.
+* **Vorschaubilder:** In der Übersicht lassen sich auf Wunsch, sofern vorhanden, Vorschaubilder zu den gelisteten Gegenständen anzeigen. Dazu wird jeweils das erste zum Gegenstand abgelegte Bild verwendet.
 * **Automatisches Datenbank-Migrationssystem:** Schema-Updates der Datenbank werden über ein zentrales Skript (`migrations.php`) vollautomatisch im Hintergrund ausgeführt.
 
 ### 6. Komfortables Installations-Script

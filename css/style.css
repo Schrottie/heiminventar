@@ -8,7 +8,9 @@
    04. Location Tree (Baumstruktur)
    05. Floating Action Button (FAB)
    06. Help Link Component
-   07. Responsive Breakpoints
+   07. Help Modal - Responsive & Mobile Optimizations
+   08. Responsive Breakpoints
+   09. Dark Theme Overrides
    ========================================================================== */
 
 
@@ -184,9 +186,7 @@ a {
     font-size: 1rem;
 }
 
-/* ==========================================================================
-   04. CARD HEADER - MINIMAL AKZENT
-   ========================================================================== */
+/* Card Header - Minimal Akzent */
 .card-header {
     background-color: rgba(85, 0, 7, 0.05);
     color: #550007;
@@ -280,7 +280,7 @@ a {
 }
 
 /* ==========================================================================
-   06. FLOATING ACTION BUTTON (FAB)
+   05. FLOATING ACTION BUTTON (FAB)
    ========================================================================== */
 
 #fabContainer {
@@ -340,7 +340,7 @@ a {
 
 
 /* ==========================================================================
-   07. HELP LINK COMPONENT
+   06. HELP LINK COMPONENT
    ========================================================================== */
 
 .help-link {
@@ -369,7 +369,7 @@ a {
 }
 
 /* ==========================================================================
-   08. HELP MODAL - RESPONSIVE & MOBILE OPTIMIZATIONS
+   07. HELP MODAL - RESPONSIVE & MOBILE OPTIMIZATIONS
    ========================================================================== */
 
 /* Fullscreen-Modus auf mobilen Geräten (unter 576px Viewport-Breite) */
@@ -423,7 +423,7 @@ a {
 
 
 /* ==========================================================================
-   09. RESPONSIVE BREAKPOINTS
+   08. RESPONSIVE BREAKPOINTS
    ========================================================================== */
 
 /* Tablets & kleinere Bildschirme */
@@ -436,29 +436,30 @@ a {
 
 /* Mobile Geräte */
 @media (max-width: 768px) {
-    /* 1. Entferne das erzwungene height: 180px für .hero-section!
-          Die Standard-Höhe greift automatisch, lässt aber .hero-small zu. */
-
-    /* 2. Untertitel auf Mobilgeräten im großen Zustand kleiner anzeigen statt komplett auszublenden */
-    .hero-subtitle {
-        display: block;        /* Wieder sichtbar machen */
-        margin-top: 10px;      /* Kleinerer Abstand */
-        font-size: 0.85rem;    /* Etwas kleinere Schrift auf Handys */
+    /* 1. Flacherer Header auf Smartphones im Ursprungszustand */
+    .hero-section {
+        height: 100px;
     }
 
-    /* 3. Wenn der Header eingeklappt ist (.hero-small), Untertitel ausblenden */
+    /* 2. Untertitel dezent anpassen */
+    .hero-subtitle {
+        display: block;
+        margin-top: 6px;       /* Abstand etwas reduziert für 100px Höhe */
+        font-size: 0.8rem;
+    }
+
+    /* 3. Im eingeklappten Zustand Untertitel ausblenden */
     .hero-small .hero-subtitle {
         display: none !important;
     }
 
-    /* 4. Sicherstellen, dass .hero-small auf Mobilgeräten korrekt eingeklappt wird */
+    /* 4. Einklapp-Höhe bleibt garantiert bei 45px */
     .hero-section.hero-small {
         height: 45px !important;
     }
 }
-
 /* ==========================================================================
-   10. DARK THEME OVERRIDES (.theme-dark)
+   09. DARK THEME OVERRIDES (.theme-dark)
    ========================================================================== */
 
 /* Layout & Basis */

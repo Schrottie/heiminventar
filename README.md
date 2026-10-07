@@ -85,16 +85,11 @@ sudo chmod -R 775 /var/www/html/inventory
 
 Um das Verzeichnis `/var/www/html/inventory` automatisch mit diesem Repository synchron zu halten:
 
-1. **SSH-Schlüssel erstellen & Deploy Key in GitHub hinterlegen:**
-   ```bash
-   ssh-keygen -t ed25519 -C "raspberrypi-inventory"
-   cat ~/.ssh/id_ed25519.pub
-   ```
-2. **Cronjob für automatischen Abgleich (alle 5 Minuten) anlegen:**
+1. **Cronjob für automatischen Abgleich (alle 5 Minuten) anlegen:**
    ```bash
    crontab -e
    ```
-   Folgende Zeile einfügen:
+2. **Folgende Zeile einfügen:**
    ```bash
    */5 * * * * cd /var/www/html/inventory && git pull origin main > /dev/null 2>&1
    ```

@@ -647,3 +647,7 @@ body.theme-dark .fab-main {
 body.theme-dark .text-primary {
     color: #ff6b75 !important;             /* Für Bootstrap .text-primary Klassen */
 }
+
+body.theme-dark .form-text {
+    color: #c2bcbc;
+}

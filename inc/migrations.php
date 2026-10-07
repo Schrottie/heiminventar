@@ -1,23 +1,10 @@
 <?php
 /**
- * Automatische Schema-Migration für das Inventarsystem
+ * Automatische Schema-Migration mit File-Cache Check
  */
-
 function runDatabaseMigrations(PDO $pdo): void
 {
-    // 1. Sicherheitstabelle für Migrationsstand erstellen
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS schema_migrations (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            migration_name VARCHAR(255) NOT NULL UNIQUE,
-            executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    ");
-
-    // Bereits ausgeführte Migrationen laden
-    $executed = $pdo->query("SELECT migration_name FROM schema_migrations")->fetchAll(PDO::FETCH_COLUMN);
-
-    // 2. Definition aller Datenbank-Migrationen (erweiterbar für die Zukunft)
+    // 1. Definition aller Migrationen
     $migrations = [
         '001_create_base_tables' => "
             CREATE TABLE IF NOT EXISTS locations (
@@ -59,10 +46,45 @@ function runDatabaseMigrations(PDO $pdo): void
             VALUES ('theme', 'light');
         ",
 
-        // Hier kann später '003_create_categories_table' usw. einfach angefügt werden!
+        '003_create_auth_system' => "
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(50) NOT NULL UNIQUE,
+                password_hash VARCHAR(255) NOT NULL,
+                role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
+                is_active TINYINT(1) NOT NULL DEFAULT 1,
+                is_default TINYINT(1) NOT NULL DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+            INSERT IGNORE INTO settings (setting_key, setting_value) VALUES ('auth_enabled', '0');
+
+            -- Default Admin anlegen (Passwort: admin123)
+            INSERT IGNORE INTO users (id, username, password_hash, role, is_active, is_default) 
+            VALUES (1, 'admin', '$2y$10$8k9.aX1xN4U5hYV/Xg/3eO5aA1P3n.l7gY8R1f5k8U9z0q2W4e6yS', 'admin', 1, 1);
+        "
     ];
 
-    // 3. Migrationen der Reihe nach ausführen
+    // 2. Cache-Check: Wurde das Migration-Array verändert?
+    $cacheFile = __DIR__ . '/../cfg/.migration_cache';
+    $currentHash = md5(serialize(array_keys($migrations)));
+
+    // Falls die Datei existiert und der Hash übereinstimmt -> SOFORT ABBRECHEN (0ms DB-Last)
+    if (file_exists($cacheFile) && file_get_contents($cacheFile) === $currentHash) {
+        return;
+    }
+
+    // 3. Nur wenn ein Unterschied erkannt wurde, DB-Migration durchführen
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS schema_migrations (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            migration_name VARCHAR(255) NOT NULL UNIQUE,
+            executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+
+    $executed = $pdo->query("SELECT migration_name FROM schema_migrations")->fetchAll(PDO::FETCH_COLUMN);
+
     foreach ($migrations as $name => $sql) {
         if (!in_array($name, $executed, true)) {
             try {
@@ -70,9 +92,11 @@ function runDatabaseMigrations(PDO $pdo): void
                 $stmt = $pdo->prepare("INSERT INTO schema_migrations (migration_name) VALUES (?)");
                 $stmt->execute([$name]);
             } catch (PDOException $e) {
-                // Bei Fehlern Migration abbrechen
                 die("Fehler bei Datenbank-Migration '{$name}': " . $e->getMessage());
             }
         }
     }
+
+    // 4. Cache-Datei nach erfolgreicher Migration aktualisieren
+    file_put_contents($cacheFile, $currentHash);
 }

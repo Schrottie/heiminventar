@@ -405,3 +405,20 @@ document.addEventListener('DOMContentLoaded', () => {
         document.cookie = "theme=" + (isDark ? "dark" : "light") + ";path=/;max-age=31536000";
     });
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    const editModal = document.getElementById('editUserModal');
+    if (editModal) {
+        editModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            
+            const userId = button.getAttribute('data-userid');
+            const username = button.getAttribute('data-username');
+            const role = button.getAttribute('data-role');
+
+            document.getElementById('modalUserId').value = userId;
+            document.getElementById('modalUsername').value = username;
+            document.getElementById('modalRole').value = role;
+        });
+    }
+});

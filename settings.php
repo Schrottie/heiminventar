@@ -1,58 +1,132 @@
-
 <?php
 require_once __DIR__ . '/cfg/db.php';
+require_once __DIR__ . '/inc/header.php';
 
-$message = '';
-
-// Formular-Verarbeitung
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $theme = $_POST['theme'] ?? 'light';
-
-    // Theme in der DB speichern
-    $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) 
-                            VALUES ('theme', ?) 
-                            ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-    $stmt->execute([$theme]);
-
-    $message = 'Einstellungen erfolgreich gespeichert!';
+// Rechte-Prüfung: Nur Admins dürfen die Settings aufrufen
+if (isset($_SESSION['role']) && $_SESSION['role'] !== 'admin' && $authEnabled) {
+    die('<div class="container mt-4"><div class="alert alert-danger">Zugriff verweigert. Nur Administratoren haben Zugriff auf die Einstellungen.</div></div>');
 }
 
-require_once __DIR__ . '/inc/header.php';
+$msgSuccess = '';
+$msgError = '';
+
+// --- FORMULAR VERARBEITUNG ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+   
+    // 1. Theme & Auth-Status (wird jetzt direkt bei Radio-Klick ausgelöst)
+    if (isset($_POST['action_save_settings'])) {
+        $theme = $_POST['theme'] ?? $settings['theme'] ?? 'light';
+        $authEnabledVal = $_POST['auth_enabled'] ?? $settings['auth_enabled'] ?? '0';
+
+        $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+        $stmt->execute(['theme', $theme]);
+        $stmt->execute(['auth_enabled', $authEnabledVal]);
+
+        header("Location: settings.php?success=1");
+        exit;
+    }
+
+    // 2. Neuen Benutzer anlegen
+    if (isset($_POST['action_create_user'])) {
+        $newUsername = trim($_POST['new_username'] ?? '');
+        $newPassword = $_POST['new_password'] ?? '';
+        $role = $_POST['role'] ?? 'user';
+
+        if (!empty($newUsername) && !empty($newPassword)) {
+            $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+            try {
+                $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)");
+                $stmt->execute([$newUsername, $hash, $role]);
+                $msgSuccess = "Benutzer '{$newUsername}' als '{$role}' angelegt.";
+            } catch (PDOException $e) {
+                $msgError = "Benutzername bereits vergeben!";
+            }
+        }
+    }
+
+    // 3. Benutzer Status ändern (Aktivieren / Deaktivieren)
+    if (isset($_POST['action_toggle_user'])) {
+        $userId = (int)$_POST['user_id'];
+        $newStatus = (int)$_POST['target_status']; // 1 = aktivieren, 0 = deaktivieren
+
+        // Zählen, wie viele andere AKTIVE Benutzer existieren
+        $activeOtherUsers = $pdo->query("SELECT COUNT(*) FROM users WHERE is_active = 1 AND id != $userId")->fetchColumn();
+
+        // Schutz-Logik für Deaktivierung
+        if ($newStatus === 0 && $activeOtherUsers == 0) {
+            $msgError = "Aktion abgebrochen! Es muss mindestens ein aktiver Benutzer im System verbleiben.";
+        } else {
+            $stmt = $pdo->prepare("UPDATE users SET is_active = ? WHERE id = ?");
+            $stmt->execute([$newStatus, $userId]);
+            $msgSuccess = "Benutzerstatus aktualisiert.";
+        }
+    }
+
+    // 4. Benutzer löschen (Default-User ist davon ausgeschlossen)
+    if (isset($_POST['action_delete_user'])) {
+        $deleteId = (int)$_POST['delete_user_id'];
+        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ? AND is_default = 0");
+        $stmt->execute([$deleteId]);
+        $msgSuccess = "Benutzer gelöscht.";
+    }
+
+    // 5. Benutzer bearbeiten (Rolle ändern / Passwort zurücksetzen)
+    if (isset($_POST['action_edit_user'])) {
+        $editUserId = (int)$_POST['edit_user_id'];
+        $newRole = $_POST['edit_role'] ?? 'user';
+        $newPassword = $_POST['edit_password'] ?? '';
+
+        // Rolle aktualisieren
+        $stmt = $pdo->prepare("UPDATE users SET role = ? WHERE id = ?");
+        $stmt->execute([$newRole, $editUserId]);
+
+        // Passwort optional aktualisieren (nur wenn ein neues eingegeben wurde)
+        if (!empty($newPassword)) {
+            $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
+            $stmt->execute([$newHash, $editUserId]);
+        }
+
+        $msgSuccess = "Benutzerkonto erfolgreich aktualisiert.";
+    }
+
+}
+
+// Benutzerliste abrufen
+$users = $pdo->query("SELECT * FROM users ORDER BY is_default DESC, id ASC")->fetchAll();
 ?>
 
 <div class="row justify-content-center">
-    <div class="col-12 col-md-8 col-lg-6">
-        
-        <?php if ($message): ?>
-            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-                <i class="fa-solid fa-check-circle me-2"></i><?= htmlspecialchars($message) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+    <div class="col-12 col-md-10 col-lg-8">
+       
+        <?php if (isset($_GET['success']) || $msgSuccess): ?>
+            <div class="alert alert-success alert-dismissible fade show"><i class="fa-solid fa-check-circle me-2"></i><?= htmlspecialchars($msgSuccess ?: 'Einstellungen gespeichert!') ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        <?php endif; ?>
+        <?php if ($msgError): ?>
+            <div class="alert alert-danger alert-dismissible fade show"><i class="fa-solid fa-triangle-exclamation me-2"></i><?= htmlspecialchars($msgError) ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
         <?php endif; ?>
 
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <i class="fa-solid fa-sliders me-2"></i>Systemeinstellungen
-            </div>
+        <!-- Karte 1: Einstellungen -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><i class="fa-solid fa-sliders me-2"></i>Systemeinstellungen</div>
             <div class="card-body p-4">
-                <form action="settings.php" method="POST">
-                    
-                    <!-- Theme Auswahl -->
+                <form action="settings.php" method="POST" id="settingsForm">
+                    <input type="hidden" name="action_save_settings" value="1">
+               
+                    <!-- Theme Einstellung -->
                     <div class="mb-4">
-                        <label class="form-label fw-bold">Erscheinungsbild (Theme)</label>
+                        <label class="form-label fw-bold">Erscheinungsbild</label>
                         <div class="row g-3">
                             <div class="col-6">
-                                <input type="radio" class="btn-check" name="theme" id="themeLight" value="light" <?= ($currentTheme === 'light') ? 'checked' : '' ?>>
+                                <input type="radio" class="btn-check auto-submit" name="theme" id="themeLight" value="light" <?= (($settings['theme'] ?? 'light') === 'light') ? 'checked' : '' ?>>
                                 <label class="btn btn-outline-secondary w-100 p-3 text-center" for="themeLight">
-                                    <i class="fa-solid fa-sun fa-2x mb-2 d-block text-warning"></i>
-                                    Hell
+                                    <i class="fa-solid fa-sun fa-2x mb-2 text-warning d-block"></i>Hell
                                 </label>
                             </div>
                             <div class="col-6">
-                                <input type="radio" class="btn-check" name="theme" id="themeDark" value="dark" <?= ($currentTheme === 'dark') ? 'checked' : '' ?>>
+                                <input type="radio" class="btn-check auto-submit" name="theme" id="themeDark" value="dark" <?= (($settings['theme'] ?? 'light') === 'dark') ? 'checked' : '' ?>>
                                 <label class="btn btn-outline-secondary w-100 p-3 text-center" for="themeDark">
-                                    <i class="fa-solid fa-moon fa-2x mb-2 d-block text-primary"></i>
-                                    Dunkel
+                                    <i class="fa-solid fa-moon fa-2x mb-2 text-primary d-block"></i>Dunkel
                                 </label>
                             </div>
                         </div>
@@ -60,18 +134,127 @@ require_once __DIR__ . '/inc/header.php';
 
                     <hr class="my-4">
 
-                    <!-- Button für Speichern -->
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fa-solid fa-floppy-disk me-2"></i>Speichern
-                        </button>
+                    <!-- Passwortschutz Einstellung -->
+                    <div class="mb-2">
+                        <label class="form-label fw-bold">Passwortschutz / Zugriffsbeschränkung</label>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <input type="radio" class="btn-check auto-submit" name="auth_enabled" id="authDisabled" value="0" <?= (($settings['auth_enabled'] ?? '0') === '0') ? 'checked' : '' ?>>
+                                <label class="btn btn-outline-secondary w-100 p-3 text-center" for="authDisabled">
+                                    <i class="fa-solid fa-lock-open fa-2x mb-2 text-secondary d-block"></i>Deaktiviert
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <input type="radio" class="btn-check auto-submit" name="auth_enabled" id="authEnabled" value="1" <?= (($settings['auth_enabled'] ?? '0') === '1') ? 'checked' : '' ?>>
+                                <label class="btn btn-outline-secondary w-100 p-3 text-center" for="authEnabled">
+                                    <i class="fa-solid fa-shield-halved fa-2x mb-2 text-danger d-block"></i>Aktiviert
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-text mt-2">
+                            <i class="fa-solid fa-circle-info me-1"></i> Änderungen an Theme oder Passwortschutz werden beim Anklicken sofort übernommen.
+                        </div>
                     </div>
-
                 </form>
+            </div>
+        </div>
+
+        <!-- Karte 2: Benutzerverwaltung -->
+        <div class="card shadow-sm">
+            <div class="card-header"><i class="fa-solid fa-users me-2"></i>Benutzerverwaltung</div>
+            <div class="card-body p-4">
+               
+                <h6 class="fw-bold mb-3">Registrierte Benutzer</h6>
+                <div class="list-group mb-4">
+                    <?php foreach ($users as $u): ?>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong><?= htmlspecialchars($u['username']) ?></strong>
+                                <span class="badge bg-<?= $u['role'] === 'admin' ? 'danger' : 'secondary' ?> ms-1"><?= ucfirst($u['role']) ?></span>
+                                <?php if ($u['is_default']): ?>
+                                    <span class="badge bg-warning text-dark ms-1">Default</span>
+                                <?php endif; ?>
+                                <?php if (!$u['is_active']): ?>
+                                    <span class="badge bg-outline-danger text-danger border ms-1">Deaktiviert</span>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="d-flex gap-1">
+                                <!-- Bearbeiten Button (öffnet Modal) -->
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editUserModal"
+                                        data-userid="<?= $u['id'] ?>"
+                                        data-username="<?= htmlspecialchars($u['username']) ?>"
+                                        data-role="<?= $u['role'] ?>"
+                                        title="Benutzer bearbeiten">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+
+                                <!-- Status An/Aus Schalter -->
+                                <form method="POST" action="settings.php">
+                                    <input type="hidden" name="action_toggle_user" value="1">
+                                    <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                    <input type="hidden" name="target_status" value="<?= $u['is_active'] ? '0' : '1' ?>">
+                                    <button type="submit" class="btn btn-sm btn-<?= $u['is_active'] ? 'outline-warning' : 'outline-success' ?>" title="<?= $u['is_active'] ? 'Deaktivieren' : 'Aktivieren' ?>">
+                                        <i class="fa-solid fa-power-off"></i>
+                                    </button>
+                                </form>
+
+                                <!-- Löschen (nur wenn kein Default-User) -->
+                                <?php if (!$u['is_default']): ?>
+                                    <form method="POST" action="settings.php" onsubmit="return confirm('Benutzer unwiderruflich löschen?');">
+                                        <input type="hidden" name="action_delete_user" value="1">
+                                        <input type="hidden" name="delete_user_id" value="<?= $u['id'] ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <hr>
+
+                <!-- Neuen Benutzer anlegen -->
+                <h6 class="fw-bold mb-3">Neuen Benutzer anlegen</h6>
+                <form method="POST" action="settings.php" class="row g-2">
+                    <input type="hidden" name="action_create_user" value="1">
+                    <div class="col-12 col-md-4">
+                        <input type="text" class="form-control" name="new_username" placeholder="Benutzername" required>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <input type="password" class="form-control" name="new_password" placeholder="Passwort" required>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <select class="form-select" name="role">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <button type="submit" class="btn btn-success w-100"><i class="fa-solid fa-plus me-1"></i>Anlegen</button>
+                    </div>
+                </form>
+
             </div>
         </div>
 
     </div>
 </div>
 
+<!-- JavaScript für Sofort-Speichern beim Anklicken -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const autoSubmitInputs = document.querySelectorAll('.auto-submit');
+    autoSubmitInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            document.getElementById('settingsForm').submit();
+        });
+    });
+});
+</script>
+
+<?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>

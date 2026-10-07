@@ -3,7 +3,7 @@
     <!-- Floating Action Button (FAB) Menü -->
     <div id="fabContainer">
         <!-- Unteraktionen (Aktionen beim Ausklappen) -->
-        <button id="settingsFabBtn" class="btn btn-info fab-action" title="Einstellungen anpassen">
+        <button id="settingsFabBtn" class="btn btn-dark fab-action" title="Einstellungen anpassen">
             <i class="fa-solid fa-gear"></i> Einstellungen
         </button>
 

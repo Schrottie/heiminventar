@@ -1,9 +1,14 @@
 <?php
-// Settings aus der Datenbank laden
+require_once __DIR__ . '/../cfg/db.php';
+
+// 1. Settings aus der DB laden
 $settingsStmt = $pdo->query("SELECT setting_key, setting_value FROM settings");
 $settings = $settingsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
-// Theme-Einstellung abfragen (Fallback: 'light')
+// 2. Auth & Logout Logik ausführen
+require_once __DIR__ . '/auth.php';
+
+// 3. Theme-Einstellungen
 $currentTheme = $settings['theme'] ?? 'light';
 $isNight = ($currentTheme === 'dark');
 ?>
@@ -43,6 +48,14 @@ $isNight = ($currentTheme === 'dark');
                     Die smarte Lösung für Deine Inventarverwaltung <a href="#" class="help-link" data-bs-toggle="modal" data-bs-target="#helpModal"><i class="fa-solid fa-circle-question"></i></a>
             </div>
         </div>
+
+            <!-- Abmelden-Button im Header (nur sichtbar, wenn Auth aktiv & eingeloggt) -->
+    <?php if ($authEnabled && $isLoggedIn): ?>
+        <a href="?logout=1" class="btn btn-outline-light btn-sm position-absolute top-0 end-0 m-3 d-flex align-items-center gap-2 shadow-sm" title="Abmelden">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span class="d-none d-md-inline">abmelden</span>
+        </a>
+    <?php endif; ?>
     </header>
 
     <div class="container py-3">

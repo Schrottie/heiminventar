@@ -1,6 +1,6 @@
 # Heiminventar (Inventory Management System)
 
-Eine leichte, responsive Webanwendung zur Verwaltung von Lagerorten und Gegenständen im eigenen Haushalt oder Lager. Das System wurde primär für den Betrieb auf einem Raspberry Pi optimiert und bietet eine übersichtliche Visualisierung von Standortstrukturen sowie bequeme Drag-and-Drop-Funktionen.
+Eine leichte, responsive Webanwendung zur Verwaltung von Lagerorten und Gegenständen im eigenen Haushalt oder Lager. Das System wurde primär für den Betrieb auf einem Raspberry Pi optimiert und bietet eine übersichtliche Visualisierung von Standortstrukturen, bequeme Drag-and-Drop-Funktionen sowie eine flexible Benutzerverwaltung.
 
 ---
 
@@ -10,14 +10,14 @@ Eine leichte, responsive Webanwendung zur Verwaltung von Lagerorten und Gegenst�
 * **Hierarchische Baumanzeige:** Beliebig tief verschachtelbare Lagerorte (z. B. *Keller -> Regal 1 -> Box A*).
 * **Schnelles Anlegen:** Neue Standorte und Unterlagerorte direkt über das Frontend erstellen.
 * **Standortinhalte einblenden:** Per Umschalter (Toggle Switch) lassen sich die darin gelagerten Gegenstände direkt in der Baumansicht anzeigen.
-* **Umlager-Assistent:** 
+* **Umlager-Assistent:**
   * Vollständiges Umlagern von Quell- zu Ziel-Lagerort per Formular.
   * **Smarte Optionen bei Unterlagerorten:** Wahlweise nur Inhalte verschieben, Inhalte inklusive aller Unterlagerorte verschieben oder die gesamte Standortstruktur mitverschieben.
 
 ### 2. Gegenstandsverwaltung (Inventory Items)
-* **Detaillierte Erfassung:** Anlegen von Artikeln mit Bezeichnung, Beschreibung, Menge, Foto(s) und zugewiesenem Lagerort.
+* **Detaillierte Erfassung:** Anlegen von Artikeln mit Bezeichnung, Beschreibung, Menge, Foto(s) und zugewiesem Lagerort.
 * **Schneller Erfassungsmodus:** Funktion *"Speichern und nächster Gegenstand"*, um mehrere Artikel nacheinander ohne Unterbrechung anzulegen.
-* **Bearbeiten:** Direktes Editieren aller Gegenstände über einen verknüpften Bearbeiten-Button.
+* **Bearbeiten & Verwalten:** Direktes Editieren und Löschen aller Gegenstände über Schnellzugriffe.
 
 ### 3. Drag & Drop Modus
 * **Visuelles Verschieben:** Eigenes Interface mit direkter Darstellung aller Orte und Items.
@@ -25,7 +25,20 @@ Eine leichte, responsive Webanwendung zur Verwaltung von Lagerorten und Gegenst�
 * **Mobil-Optimiert:** Touch-Unterstützung mit leichtem Delay zur Verhinderung ungewollten Auslösens beim Scrollen auf Smartphones und Tablets.
 * **Echtzeit-Anpassung:** Sofortiges Speichern der Standortänderung im Hintergrund via AJAX.
 
-### 4. Komfortables Installations-Script
+### 4. Authentifizierung & Benutzerverwaltung 🔒
+* **Schaltbarer Passwortschutz:** Kann in den Systemeinstellungen mit einem Klick global aktiviert oder deaktiviert werden.
+* **Rollenbasiertes Rechtesystem:**
+  * **Admin:** Vollzugriff inklusive Systemeinstellungen, Migrationsverwaltung und Benutzersteuerung.
+  * **User:** Zugriff auf Inventar, Standorte und Umbuchungen.
+* **Benutzerverwaltung:** Anlegen neuer Accounts, Rollenzuweisung (`admin` / `user`), Kennwort-Resets und temporäres Deaktivieren von Konten.
+* **Sichere Passwort-Hashes:** Automatische Erzeugung und Verifikation mittels BCRYPT (`password_hash` / `password_verify`).
+* **Modernes Login-Interface:** Besserer Komfort mit Passwort-Sichtbarkeits-Toggle ("Auge"-Icon) und integriertem Dark-Mode-Support.
+
+### 5. Systemeinstellungen & Theme-Wahl 🎨
+* **Erscheinungsbild (Light/Dark Mode):** Visuelle Auswahl zwischen hellem und dunklem Design per modernem UI-Button-System.
+* **Automatisches Datenbank-Migrationssystem:** Schema-Updates der Datenbank werden über ein zentrales Skript (`migrations.php`) vollautomatisch im Hintergrund ausgeführt.
+
+### 6. Komfortables Installations-Script
 * **Geführte Installation:** Automatische Prüfung aller Systemanforderungen (PDO MySQL, GD-Bibliothek, Dateirechte).
 * **Geführtes DB-Setup:** Automatische Erstellung der Datenbank, der Tabellenstruktur und des Datenbank-Benutzers im geführten Dialog (inklusive Support für frische MariaDB-Installationen auf Raspberry Pi OS).
 
@@ -50,7 +63,7 @@ Eine leichte, responsive Webanwendung zur Verwaltung von Lagerorten und Gegenst�
 ### 1. Repository klonen / herunterladen
 ```bash
 cd /var/www/html
-git clone https://github.com/Schrottie/heiminventar.git inventory
+git clone [https://github.com/Schrottie/heiminventar.git](https://github.com/Schrottie/heiminventar.git) inventory
 ```
 
 ### 2. Verzeichnisrechte setzen

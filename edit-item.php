@@ -19,7 +19,8 @@ require_once __DIR__ . '/inc/header.php';
     </div>
 
     <div class="card-body">
-        <form action="api/item-save.php" method="post">
+        <!-- WICHTIG: enctype="multipart/form-data" für Datei-Uploads -->
+        <form action="api/item-save.php" method="post" enctype="multipart/form-data">
             <div class="mb-3">
                 <label class="form-label">Bezeichnung</label>
                 <input type="text" name="name" class="form-control" required>
@@ -41,6 +42,12 @@ require_once __DIR__ . '/inc/header.php';
                     <option value="">Bitte auswählen...</option>
                     <?php renderLocationOptions($locations); ?>
                 </select>
+            </div>
+
+            <!-- Bilder-Upload-Feld -->
+            <div class="mb-3">
+                <label class="form-label">Bilder hinzufügen</label>
+                <input type="file" name="images[]" class="form-control" accept="image/*" multiple>
             </div>
 
             <!-- Schaltflächen zum Speichern -->

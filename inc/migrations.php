@@ -62,6 +62,11 @@ function runDatabaseMigrations(PDO $pdo): void
             -- Default Admin anlegen (Passwort: admin123)
             INSERT IGNORE INTO users (id, username, password_hash, role, is_active, is_default) 
             VALUES (1, 'admin', '$2y$10$8k9.aX1xN4U5hYV/Xg/3eO5aA1P3n.l7gY8R1f5k8U9z0q2W4e6yS', 'admin', 1, 1);
+        ",
+
+        '004_create_image_setting' => "
+            INSERT IGNORE INTO settings (setting_key, setting_value) 
+            VALUES ('show_images', '1');
         "
     ];
 

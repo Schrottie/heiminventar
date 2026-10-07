@@ -37,33 +37,49 @@
                     </p>
                     <div class="d-flex flex-column gap-2">
                         <div class="d-flex align-items-center bg-light p-2 rounded">
-                            <span class="badge bg-primary me-2"><i class="fa-solid fa-plus"></i></span>
-                            <span class="small"><strong>Neuer Artikel:</strong> Erfasst einen neuen Gegenstand inklusive Foto und Daten.</span>
+                            <span class="badge bg-warning text-dark me-2"><i class="fa-solid fa-boxes-stacked"></i></span>
+                            <span class="small darktheme-darker"><strong>Übersicht:</strong> Ruft die Startseite auf.</span>
                         </div>
                         <div class="d-flex align-items-center bg-light p-2 rounded">
-                            <span class="badge bg-secondary me-2"><i class="fa-solid fa-sitemap"></i></span>
-                            <span class="small"><strong>Standorte:</strong> Verwaltet Räume, Regale und Unter-Standorte.</span>
+                            <span class="badge bg-success me-2"><i class="fa-solid fa-plus"></i></span>
+                            <span class="small darktheme-darker"><strong>Gegenstand anlegen:</strong> Erfasst einen neuen Gegenstand inklusive Foto und Daten.</span>
                         </div>
                         <div class="d-flex align-items-center bg-light p-2 rounded">
-                            <span class="badge bg-info me-2"><i class="fa-solid fa-boxes-stacked"></i></span>
-                            <span class="small"><strong>Umlagern:</strong> Verschiebt Gegenstände schnell an einen neuen Ort.</span>
+                            <span class="badge bg-secondary me-2"><i class="fa-solid fa-location-dot"></i></span>
+                            <span class="small darktheme-darker"><strong>Lagerorte verwalten:</strong> Verwaltet Räume, Regale und Unter-Standorte.</span>
+                        </div>
+                        <div class="d-flex align-items-center bg-light p-2 rounded">
+                            <span class="badge bg-danger me-2"><i class="fa-solid fa-shuffle"></i></span>
+                            <span class="small darktheme-darker"><strong>Verschiebebahnhof:</strong> Verschiebt Gegenstände schnell an einen neuen Ort.</span>
                         </div>
                         <div class="d-flex align-items-center bg-light p-2 rounded">
                             <span class="badge bg-dark me-2"><i class="fa-solid fa-gear"></i></span>
-                            <span class="small"><strong>Einstellungen:</strong> Anpassen von Theme, Passwortschutz und Benutzern.</span>
+                            <span class="small darktheme-darker"><strong>Einstellungen:</strong> Anpassen von Theme, Passwortschutz und Benutzern.</span>
                         </div>
                     </div>
                 </section>
 
                 <hr class="my-3 text-black-50">
 
-                <!-- 3. Design & Einstellungen (NEU) -->
+                <!-- 3a. Designeinstellungen -->
                 <section class="mb-4">
                     <h6 class="text-danger d-flex align-items-center fw-bold">
-                        <i class="fa-solid fa-palette me-2"></i> Erscheinungsbild &amp; Themes
+                        <i class="fa-solid fa-palette me-2"></i> Erscheinungsbild/Theme
                     </h6>
                     <p class="small text-muted mb-0">
-                        In den <strong>Einstellungen</strong> kann zwischen einem hellen Tag-Design und einem augenschonenden <strong>Dark Mode</strong> umgestellt werden. Die Wahl wird serverseitig gespeichert und auf allen Geräten angewendet.
+                        In den <strong>Einstellungen</strong> kann zwischen einem hellen Tag-Design und einem augenschonenden <strong>Dark Mode</strong> umgestellt werden. Die Wahl wird sofort (ohne weiteren Klick) serverseitig gespeichert und auf allen Geräten angewendet.>
+                    </p>
+                </section>
+
+                <hr class="my-3 text-black-50">
+
+                <!-- 3b. Bildeinstellungen -->
+                <section class="mb-4">
+                    <h6 class="text-danger d-flex align-items-center fw-bold">
+                        <i class="fa-solid fa-image me-2"></i> Vorschaubilder in der Übersicht
+                    </h6>
+                    <p class="small text-muted mb-0">
+                        In den <strong>Einstellungen</strong> kann ebenfalls eingestellt werden, ob in der Übersicht Vorschaubilder angezeigt werden sollen. Ist diese Option aktiv, zeigt die Übersicht das erste zum jeweiligen gegenstand gespeicherte Bild (sofern eines vorhanden ist). Ist die Option deaktiviert, werden nur die Artikelkarten ohne Bild angezeigt.
                     </p>
                 </section>
 

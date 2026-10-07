@@ -651,3 +651,7 @@ body.theme-dark .text-primary {
 body.theme-dark .form-text {
     color: #c2bcbc;
 }
+
+body.theme-dark .darktheme-darker {
+    color: #3b3a3a !important;
+}

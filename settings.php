@@ -13,13 +13,15 @@ $msgError = '';
 // --- FORMULAR VERARBEITUNG ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    
-    // 1. Theme & Auth-Status
+    // 1. Theme, Bilder-Anzeige & Auth-Status
     if (isset($_POST['action_save_settings'])) {
         $theme = $_POST['theme'] ?? $settings['theme'] ?? 'light';
+        $showImagesVal = $_POST['show_images'] ?? $settings['show_images'] ?? '1';
         $authEnabledVal = $_POST['auth_enabled'] ?? $settings['auth_enabled'] ?? '0';
 
         $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
         $stmt->execute(['theme', $theme]);
+        $stmt->execute(['show_images', $showImagesVal]);
         $stmt->execute(['auth_enabled', $authEnabledVal]);
 
         header("Location: settings.php?success=1");
@@ -133,6 +135,30 @@ $onlyDefaultUser = ($totalUsersCount === 1 && $users[0]['is_default'] == 1);
 
                     <hr class="my-4">
 
+                    <!-- Bilder-Anzeige Einstellung (zwei große Schaltflächen) -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Bilder & Medien</label>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <input type="radio" class="btn-check auto-submit" name="show_images" id="imagesDisabled" value="0" <?= (($settings['show_images'] ?? '1') === '0') ? 'checked' : '' ?>>
+                                <label class="btn btn-outline-secondary w-100 p-3 text-center" for="imagesDisabled">
+                                    <i class="fa-solid fa-image-portrait fa-2x mb-2 text-secondary d-block"></i>Deaktiviert
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <input type="radio" class="btn-check auto-submit" name="show_images" id="imagesEnabled" value="1" <?= (($settings['show_images'] ?? '1') === '1') ? 'checked' : '' ?>>
+                                <label class="btn btn-outline-secondary w-100 p-3 text-center" for="imagesEnabled">
+                                    <i class="fa-solid fa-image fa-2x mb-2 text-success d-block"></i>Aktiviert
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-text mt-2">
+                            <i class="fa-solid fa-circle-info me-1"></i> Wenn diese Option aktiviert ist, werden Vorschaubilder (sofern vorhanden) in der Übersicht angezeigt.
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
                     <!-- Passwortschutz Einstellung -->
                     <div class="mb-2">
                         <label class="form-label fw-bold">Passwortschutz / Zugriffsbeschränkung</label>
@@ -151,7 +177,7 @@ $onlyDefaultUser = ($totalUsersCount === 1 && $users[0]['is_default'] == 1);
                             </div>
                         </div>
                         <div class="form-text mt-2">
-                            <i class="fa-solid fa-circle-info me-1"></i> Änderungen an Theme oder Passwortschutz werden beim Anklicken sofort übernommen.
+                            <i class="fa-solid fa-circle-info me-1"></i> Wenn das System öffentlich zugänglich ist (z.B. im Internet), sollte der Passwortschutz aktiviert werden, um unbefugten Zugriff zu verhindern.
                         </div>
                     </div>
                 </form>
@@ -241,12 +267,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const settingsForm = document.getElementById('settingsForm');
     const authDisabledRadio = document.getElementById('authDisabled');
     const authEnabledRadio = document.getElementById('authEnabled');
-    
+   
     const enableAuthModalEl = document.getElementById('enableAuthModal');
     const enableAuthModal = enableAuthModalEl ? new bootstrap.Modal(enableAuthModalEl) : null;
     const confirmEnableAuthBtn = document.getElementById('confirmEnableAuth');
 
-    // 1. Theme-Radiobuttons (schicken immer sofort ab)
+    // 1. Radiobuttons mit Klasse auto-submit schicken sofort ab
     document.querySelectorAll('.auto-submit').forEach(input => {
         input.addEventListener('change', function() {
             settingsForm.submit();
@@ -266,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isOnlyDefaultUser) {
                 // Radio-Auswahl vorübergehend optisch zurücksetzen, bis bestätigt wurde
                 authDisabledRadio.checked = true;
-                
+               
                 // Sicherheits-Modal anzeigen
                 if (enableAuthModal) {
                     enableAuthModal.show();

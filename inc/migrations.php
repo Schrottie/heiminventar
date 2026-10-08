@@ -42,7 +42,7 @@ function runDatabaseMigrations(PDO $pdo): void
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-            INSERT IGNORE INTO settings (setting_key, setting_value) 
+            INSERT IGNORE INTO settings (setting_key, setting_value)
             VALUES ('theme', 'light');
         ",
 
@@ -60,12 +60,12 @@ function runDatabaseMigrations(PDO $pdo): void
             INSERT IGNORE INTO settings (setting_key, setting_value) VALUES ('auth_enabled', '0');
 
             -- Default Admin anlegen (Passwort: admin123)
-            INSERT IGNORE INTO users (id, username, password_hash, role, is_active, is_default) 
+            INSERT IGNORE INTO users (id, username, password_hash, role, is_active, is_default)
             VALUES (1, 'admin', '$2y$10$8k9.aX1xN4U5hYV/Xg/3eO5aA1P3n.l7gY8R1f5k8U9z0q2W4e6yS', 'admin', 1, 1);
         ",
 
         '004_create_image_setting' => "
-            INSERT IGNORE INTO settings (setting_key, setting_value) 
+            INSERT IGNORE INTO settings (setting_key, setting_value)
             VALUES ('show_images', '1');
         ",
 
@@ -89,34 +89,82 @@ function runDatabaseMigrations(PDO $pdo): void
         ",
 
         '008_create_history_function' => "
-            CREATE TABLE `inventory_logs` (
-                `id` int(11) NOT NULL,
-                `item_id` int(11) DEFAULT NULL,
-                `item_name` varchar(255) NOT NULL,
-                `action` varchar(50) NOT NULL,
-                `qty_change` int(11) DEFAULT 0,
-                `new_qty` int(11) DEFAULT 0,
-                `from_location_id` int(11) DEFAULT NULL,
-                `to_location_id` int(11) DEFAULT NULL,
-                `old_value` varchar(255) DEFAULT NULL,
-                `new_value` varchar(255) DEFAULT NULL,
-                `details` text DEFAULT NULL,
-                `user_name` varchar(100) DEFAULT NULL,
-                `created_at` datetime DEFAULT current_timestamp()
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            CREATE TABLE IF NOT EXISTS `inventory_logs` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `item_id` INT DEFAULT NULL,
+                `item_name` VARCHAR(255) NOT NULL,
+                `action` VARCHAR(50) NOT NULL,
+                `field_changed` VARCHAR(50) DEFAULT NULL,
+                `qty_change` INT DEFAULT 0,
+                `new_qty` INT DEFAULT 0,
+                `from_location_id` INT DEFAULT NULL,
+                `to_location_id` INT DEFAULT NULL,
+                `old_value` VARCHAR(255) DEFAULT NULL,
+                `new_value` VARCHAR(255) DEFAULT NULL,
+                `details` TEXT DEFAULT NULL,
+                `user_name` VARCHAR(100) DEFAULT NULL,
+                `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                KEY `item_id` (`item_id`),
+                KEY `from_location_id` (`from_location_id`),
+                KEY `to_location_id` (`to_location_id`),
+                CONSTRAINT `inventory_logs_ibfk_1` FOREIGN KEY (`item_id`) REFERENCES `inventory_items` (`id`) ON DELETE SET NULL,
+                CONSTRAINT `inventory_logs_ibfk_2` FOREIGN KEY (`from_location_id`) REFERENCES `locations` (`id`) ON DELETE SET NULL,
+                CONSTRAINT `inventory_logs_ibfk_3` FOREIGN KEY (`to_location_id`) REFERENCES `locations` (`id`) ON DELETE SET NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        ",
+
+        '009_create_release_notes_system' => "
+            -- Tabelle für die Release-Texte
+            CREATE TABLE IF NOT EXISTS app_releases (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                version VARCHAR(20) NOT NULL UNIQUE,
+                title VARCHAR(255) NOT NULL,
+                content TEXT NOT NULL,
+                is_active TINYINT(1) NOT NULL DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+            -- Zuletzt gesehene Version direkt beim User protokollieren
+            ALTER TABLE users ADD COLUMN last_seen_version VARCHAR(20) NULL AFTER role;
+
+            -- Aktuelle App-Version in den Einstellungen hinterlegen
+            INSERT IGNORE INTO settings (setting_key, setting_value) 
+            VALUES ('app_version', '1.0.0');
+        ",
+
+        '010_relerase_notes' => "
+            INSERT INTO `app_releases` (`id`, `version`, `title`, `content`, `is_active`, `created_at`) VALUES
+                (1, '1.0.1', 'Großes Herbstupdate', 'Das ganze System wurde einmal komplett aufgebohrt:\r\n\r\n* Änderungshistorie (inkl. Wiederherstellungsfunktion)\r\n* Releasenotes - nie mehr verpassen, wenn es neue Funktionen gibt.\r\n\r\nUnd jede Menge mehr!', 1, '2026-10-08 08:41:53'),
+                (2, '1.0.2', 'Versionshinweise', 'Ab sofort werden neue Versionen angekündigt und auf einen Blick schnelle Infos dazu gegeben, was alles neu ist.', 1, '2026-10-08 08:56:36');
+        ",
+
+        '011_release_1_0_2' => "
+            INSERT INTO app_releases (version, title, content, is_active)
+            VALUES (
+                '1.0.2',
+                'Herbst-Update & Changelog-System 🚀',
+                'Das ist neu in dieser Version:
+
+                * **Changelog-System:** Alle Neuerungen werden nun beim ersten Aufruf angezeigt.
+                * **Release-Übersicht:** Eine neue Historie-Seite zeigt alle vergangenen Updates.
+                * **Bugfixes:** Stabilität bei Datenbank-Migrationen verbessert.',
+                        1
+                    )
+                    ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
         "
+
     ];
 
-    // 2. Cache-Check: Wurde das Migration-Array verändert?
+    // 2. Cache-Check: Wurde das komplette Array (Inhalte + Schlüssel) verändert?
     $cacheFile = __DIR__ . '/../cfg/.migration_cache';
-    $currentHash = md5(serialize(array_keys($migrations)));
+    $currentHash = md5(serialize($migrations));
 
-    // Falls die Datei existiert und der Hash übereinstimmt -> SOFORT ABBRECHEN (0ms DB-Last)
-    if (file_exists($cacheFile) && file_get_contents($cacheFile) === $currentHash) {
+    // Falls die Cache-Datei existiert und der Hash exakt übereinstimmt -> Abbruch
+    if (file_exists($cacheFile) && file_get_contents($cacheFile) ===$currentHash) {
         return;
     }
 
-    // 3. Nur wenn ein Unterschied erkannt wurde, DB-Migration durchführen
+    // 3. Migrationen ausführen
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS schema_migrations (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -125,20 +173,30 @@ function runDatabaseMigrations(PDO $pdo): void
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    $executed = $pdo->query("SELECT migration_name FROM schema_migrations")->fetchAll(PDO::FETCH_COLUMN);
+    $executed =$pdo->query("SELECT migration_name FROM schema_migrations")->fetchAll(PDO::FETCH_COLUMN);
 
-    foreach ($migrations as $name => $sql) {
-        if (!in_array($name, $executed, true)) {
+    foreach ($migrations as $name =>$sql) {
+        if (!in_array($name,$executed, true)) {
             try {
+                // Transaktion zur Sicherheit (DDL-Statements führen in MySQL implizit ein COMMIT aus,
+                // fängt aber Fehler bei Mehrfach-INSERTs ab)
                 $pdo->exec($sql);
-                $stmt = $pdo->prepare("INSERT INTO schema_migrations (migration_name) VALUES (?)");
+
+                $stmt =$pdo->prepare("INSERT INTO schema_migrations (migration_name) VALUES (?)");
                 $stmt->execute([$name]);
             } catch (PDOException $e) {
+                // Falls Fehler bei ALTER TABLE auftreten weil Spalte existiert, abfangen
+                if (str_contains($e->getMessage(), 'Duplicate column name')) {
+                    $stmt =$pdo->prepare("INSERT INTO schema_migrations (migration_name) VALUES (?)");
+                    $stmt->execute([$name]);
+                    continue;
+                }
+
                 die("Fehler bei Datenbank-Migration '{$name}': " . $e->getMessage());
             }
         }
     }
 
-    // 4. Cache-Datei nach erfolgreicher Migration aktualisieren
-    file_put_contents($cacheFile, $currentHash);
+    // 4. Cache-Datei erst schreiben, wenn ALLE Migrationen erfolgreich durchliefen
+    @file_put_contents($cacheFile,$currentHash);
 }

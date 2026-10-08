@@ -350,3 +350,70 @@
         </div>
     </div>
 </div>
+
+<?php if ($unseenRelease): ?>
+<!-- AUTOMATISCHES RELEASE-MODAL -->
+<div class="modal fade" id="autoReleaseModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">✨ Was ist neu in v<?= htmlspecialchars($unseenRelease['version']) ?>?</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="markReleaseAsSeen('<?= htmlspecialchars($unseenRelease['version']) ?>')"></button>
+      </div>
+      <div class="modal-body">
+        <h4 class="fw-bold text-primary"><?= htmlspecialchars($unseenRelease['title']) ?></h4>
+        <hr>
+        <div id="autoReleaseContent" class="markdown-body"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="markReleaseAsSeen('<?= htmlspecialchars($unseenRelease['version']) ?>')">
+          Verstanden & Schließen
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Marked.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const rawContent = <?= json_encode($unseenRelease['content']) ?>;
+    const contentContainer = document.getElementById('autoReleaseContent');
+
+    // Marked options konfigurieren (behandelt \n als <br>)
+    if (typeof marked !== 'undefined') {
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+        contentContainer.innerHTML = marked.parse(rawContent);
+    } else {
+        contentContainer.innerText = rawContent;
+    }
+
+    // Modal automatisch anzeigen
+    const autoModal = new bootstrap.Modal(document.getElementById('autoReleaseModal'));
+    autoModal.show();
+});
+
+function markReleaseAsSeen(version) {
+    fetch('api/mark-release-seen.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ version: version })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Release v' + version + ' als gesehen markiert.');
+        } else {
+            console.error('API-Fehler:', data.error);
+        }
+    })
+    .catch(err => console.error('Fehler beim Aktualisieren:', err));
+}
+</script>
+<?php endif; ?>

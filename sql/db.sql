@@ -14,6 +14,7 @@ CREATE TABLE inventory_items (
     description TEXT NULL,
     location_id INT NULL,
     quantity INT NOT NULL DEFAULT 1,
+    min_quantity INT DEFAULT 0,
     created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_inventory_location
     FOREIGN KEY(location_id)
@@ -37,6 +38,7 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(50) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
+    last_seen_version VARCHAR(20) NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     is_default TINYINT(1) NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -58,6 +60,14 @@ CREATE TABLE  IF NOT EXISTS inventory_logs (
     created_at datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS item_documents (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    item_id INT NOT NULL,
+    filename VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /* ---------------------------
    INSERT CONFIG & SAMPLE DATA
    --------------------------- */
@@ -81,3 +91,8 @@ INSERT INTO `locations` (`id`, `parent_id`, `name`) VALUES
 -- Beispielgegenstand anlegen
 INSERT INTO `inventory_items` (`id`, `name`, `description`, `location_id`, `quantity`, `created`) VALUES
 (1, 'Kinderfahrrad', 'Gelbes Puky', 1, 1, '2026-09-30 04:42:03');
+
+-- Releases
+INSERT INTO `app_releases` (`id`, `version`, `title`, `content`, `is_active`, `created_at`) VALUES
+(1, '1.0.1', 'Großes Herbstupdate', 'Das ganze System wurde einmal komplett aufgebohrt:\r\n\r\n* Änderungshistorie (inkl. Wiederherstellungsfunktion)\r\n* Releasenotes - nie mehr verpassen, wenn es neue Funktionen gibt.\r\n\r\nUnd jede Menge mehr!', 1, '2026-10-08 06:41:53'),
+(2, '1.0.2', 'Herbst-Update & Changelog-System 🚀', 'Das ist neu in dieser Version:\r\n\r\n                * **Changelog-System:** Alle Neuerungen werden nun beim ersten Aufruf angezeigt.\r\n                * **Release-Übersicht:** Eine neue Historie-Seite zeigt alle vergangenen Updates.\r\n                * **Bugfixes:** Stabilität bei Datenbank-Migrationen verbessert.', 1, '2026-10-08 06:56:36');

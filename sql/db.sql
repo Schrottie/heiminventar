@@ -42,6 +42,22 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE  IF NOT EXISTS inventory_logs (
+    id int(11) NOT NULL,
+    item_id int(11) DEFAULT NULL,
+    item_name varchar(255) NOT NULL,
+    action varchar(50) NOT NULL,
+    qty_change int(11) DEFAULT 0,
+    new_qty int(11) DEFAULT 0,
+    from_location_id int(11) DEFAULT NULL,
+    to_location_id int(11) DEFAULT NULL,
+    old_value varchar(255) DEFAULT NULL,
+    new_value varchar(255) DEFAULT NULL,
+    details text DEFAULT NULL,
+    user_name varchar(100) DEFAULT NULL,
+    created_at datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 /* ---------------------------
    INSERT CONFIG & SAMPLE DATA
    --------------------------- */

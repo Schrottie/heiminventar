@@ -37,7 +37,7 @@ try {
 
     // 2. Gegenstand inkl. altem Standortnamen und aktuellem Bestand abfragen
     $stmtItem = $pdo->prepare("
-        SELECT i.id, i.name, i.quantity, i.location_id, l.name AS old_location_name 
+        SELECT i.id, i.name, i.quantity, i.location_id, l.name AS old_location_name
         FROM inventory_items i
         LEFT JOIN locations l ON l.id = i.location_id
         WHERE i.id = ?
@@ -56,13 +56,16 @@ try {
         exit;
     }
 
+    $oldLocationId = $item['location_id'] !== null ? (string)$item['location_id'] : null;
+    $newLocationIdStr = (string)$locationId;
+
     // 3. Standort des Gegenstands aktualisieren
     $stmt = $pdo->prepare("UPDATE inventory_items SET location_id = ? WHERE id = ?");
     $stmt->execute([$locationId, $itemId]);
 
     if ($stmt->rowCount() > 0) {
-        // 4. Protokolleintrag schreiben
-        $oldLocName = $item['old_location_name'] ?? 'Unbekannt';
+        // 4. Strukturierter Protokolleintrag (An neue Signatur angepasst)
+        $oldLocName = $item['old_location_name'] ?? 'Kein Standort';
         $newLocName = $newLoc['name'];
         $detailText = "Umgelagert von \"{$oldLocName}\" nach \"{$newLocName}\"";
 
@@ -70,10 +73,13 @@ try {
             $pdo,
             $itemId,
             $item['name'],
-            'updated',
-            0,                           // Bestandsänderung = 0
-            (int)$item['quantity'],      // Aktueller Bestand bleibt gleich
-            $detailText
+            'relocated',
+            0,
+            (int)$item['quantity'],
+            $detailText,
+            'location_id',       // 8. Param: field_changed
+            $oldLocationId,      // 9. Param: old_value (Alte Standort-ID als String/Null)
+            $newLocationIdStr    // 10. Param: new_value (Neue Standort-ID als String)
         );
 
         echo json_encode(['success' => true]);

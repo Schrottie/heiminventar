@@ -127,26 +127,36 @@ function ensureDirectoryExists(string $path): void {
 /**
  * Protokolliert Aktionen und Bestandsänderungen im Inventar inkl. Benutzer
  */
-function logInventoryAction(PDO $pdo, ?int $itemId, string $itemName, string $action, int $qtyChange = 0, int $newQty = 0, ?string $details = null): bool {
-    try {
-        // Angemeldeten Benutzer aus der Session auslesen (falls vorhanden)
-        $userName = $_SESSION['username'] ?? $_SESSION['user_name'] ?? $_SESSION['user'] ?? 'System / Gast';
+function logInventoryAction(
+    PDO $pdo,
+    int $itemId,
+    string $itemName,
+    string $action,
+    int $qtyChange = 0,
+    int $newQty = 0,
+    ?string $details = null,
+    ?string $fieldChanged = null,
+    ?string $oldValue = null,
+    ?string $newValue = null,
+    ?string $userName = 'System'
+): bool {
+    $stmt = $pdo->prepare("
+        INSERT INTO inventory_logs 
+        (item_id, item_name, action, field_changed, old_value, new_value, qty_change, new_qty, details, user_name, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+    ");
 
-        $stmt = $pdo->prepare("
-            INSERT INTO inventory_logs (item_id, item_name, action, qty_change, new_qty, details, user_name)
-            VALUES (:item_id, :item_name, :action, :qty_change, :new_qty, :details, :user_name)
-        ");
-        return $stmt->execute([
-            ':item_id'    => $itemId,
-            ':item_name'  => $itemName,
-            ':action'     => $action,
-            ':qty_change' => $qtyChange,
-            ':new_qty'    => $newQty,
-            ':details'    => $details,
-            ':user_name'  => $userName
-        ]);
-    } catch (PDOException $e) {
-        error_log("Logging-Fehler: " . $e->getMessage());
-        return false;
-    }
+    return $stmt->execute([
+        $itemId,
+        $itemName,
+        $action,
+        $fieldChanged,
+        $oldValue,
+        $newValue,
+        $qtyChange,
+        $newQty,
+        $details,
+        $userName
+    ]);
 }
+

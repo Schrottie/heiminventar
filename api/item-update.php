@@ -58,9 +58,9 @@ if ($hasNameField) {
     $stmt = $pdo->prepare("UPDATE inventory_items SET name = ?, description = ?, quantity = ?, min_quantity = ?, location_id = ? WHERE id = ?");
     $stmt->execute([$name, $description, $quantity, $minQuantity, $locationId, $itemId]);
 
-    // --- PROTOKOLLIERUNG DER STAMMDATEN-ÄNDERUNGEN ---
+    // --- PROTOKOLLIERUNG DER STAMMDATEN-ÄNDERUNGEN (EINZELN UND ENTKOPPELT) ---
 
-    // A) Bestandsänderung separat loggen
+    // A) Bestandsänderung
     $oldQty = (int)$oldItem['quantity'];
     if ($oldQty !== $quantity) {
         $qtyChange = $quantity - $oldQty;
@@ -71,26 +71,15 @@ if ($hasNameField) {
             'quantity_changed',
             $qtyChange,
             $quantity,
-            'Bestand über Formular angepasst'
+            'Bestand über Formular angepasst',
+            'quantity',
+            (string)$oldQty,
+            (string)$quantity
         );
     }
 
-    // B) Sonstige Datenänderungen erfassen
-    $changes = [];
+    // B) Namensänderung
     if ($oldItem['name'] !== $name) {
-        $changes[] = 'Name geändert';
-    }
-    if ($oldItem['description'] !== $description) {
-        $changes[] = 'Beschreibung angepasst';
-    }
-    if ((int)$oldItem['min_quantity'] !== $minQuantity) {
-        $changes[] = 'Mindestbestand angepasst';
-    }
-    if ((int)$oldItem['location_id'] !== (int)$locationId) {
-        $changes[] = 'Standort geändert';
-    }
-
-    if (!empty($changes)) {
         logInventoryAction(
             $pdo,
             $itemId,
@@ -98,7 +87,58 @@ if ($hasNameField) {
             'updated',
             0,
             $quantity,
-            implode(', ', $changes)
+            'Name geändert',
+            'name',
+            $oldItem['name'],
+            $name
+        );
+    }
+
+    // C) Beschreibungsänderung
+    if ($oldItem['description'] !== $description) {
+        logInventoryAction(
+            $pdo,
+            $itemId,
+            $name,
+            'updated',
+            0,
+            $quantity,
+            'Beschreibung angepasst',
+            'description',
+            $oldItem['description'],
+            $description
+        );
+    }
+
+    // D) Mindestbestand
+    if ((int)$oldItem['min_quantity'] !== $minQuantity) {
+        logInventoryAction(
+            $pdo,
+            $itemId,
+            $name,
+            'updated',
+            0,
+            $quantity,
+            'Mindestbestand angepasst',
+            'min_quantity',
+            (string)$oldItem['min_quantity'],
+            (string)$minQuantity
+        );
+    }
+
+    // E) Haupt-Lagerort / Standort geändert (Verwendet action='relocated' & field_changed='location_id')
+    if ((int)$oldItem['location_id'] !== (int)$locationId) {
+        logInventoryAction(
+            $pdo,
+            $itemId,
+            $name,
+            'relocated',
+            0,
+            $quantity,
+            'Hauptstandort geändert',
+            'location_id',
+            $oldItem['location_id'] !== null ? (string)$oldItem['location_id'] : null,
+            $locationId !== null ? (string)$locationId : null
         );
     }
 }

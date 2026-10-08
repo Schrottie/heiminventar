@@ -89,17 +89,20 @@ function runDatabaseMigrations(PDO $pdo): void
         ",
 
         '008_create_history_function' => "
-            CREATE TABLE IF NOT EXISTS `inventory_logs` (
-                `id` INT AUTO_INCREMENT PRIMARY KEY,
-                `item_id` INT NULL,
-                `item_name` VARCHAR(255) NOT NULL,
-                `action` VARCHAR(50) NOT NULL, -- z.B. 'created', 'updated', 'quantity_changed', 'deleted'
-                `qty_change` INT DEFAULT 0,    -- z.B. +2 oder -1 (0 bei reiner Namens/Ort-Änderung)
-                `new_qty` INT DEFAULT 0,       -- Neuer Gesamtbestand nach der Änderung
-                `details` TEXT NULL,           -- Zusatzinfos (z.B. 'Standort geändert von Regal 1 zu Regal 2')
-                `user_name` VARCHAR(100) NULL, -- Optional: Wer hat die Aktion durchgeführt
-                `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (`item_id`) REFERENCES `inventory_items`(`id`) ON DELETE SET NULL
+            CREATE TABLE `inventory_logs` (
+                `id` int(11) NOT NULL,
+                `item_id` int(11) DEFAULT NULL,
+                `item_name` varchar(255) NOT NULL,
+                `action` varchar(50) NOT NULL,
+                `qty_change` int(11) DEFAULT 0,
+                `new_qty` int(11) DEFAULT 0,
+                `from_location_id` int(11) DEFAULT NULL,
+                `to_location_id` int(11) DEFAULT NULL,
+                `old_value` varchar(255) DEFAULT NULL,
+                `new_value` varchar(255) DEFAULT NULL,
+                `details` text DEFAULT NULL,
+                `user_name` varchar(100) DEFAULT NULL,
+                `created_at` datetime DEFAULT current_timestamp()
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         "
     ];

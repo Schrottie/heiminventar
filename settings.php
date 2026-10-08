@@ -2,9 +2,19 @@
 require_once __DIR__ . '/cfg/db.php';
 require_once __DIR__ . '/inc/header.php';
 
-// Rechte-Prüfung: Nur Admins dürfen die Settings aufrufen
-if (isset($_SESSION['role']) && $_SESSION['role'] !== 'admin' && $authEnabled) {
-    die('<div class="container mt-4"><div class="alert alert-danger">Zugriff verweigert. Nur Administratoren haben Zugriff auf die Einstellungen.</div></div>');
+// Access Control: Falls Login aktiv ist, dürfen nur Admins die Seite aufrufen
+if (function_exists('isLoginEnabled') && isLoginEnabled()) {
+    if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
+        // Option A: Weiterleitung zur Startseite oder Login
+        header('Location: index.php');
+        exit;
+        
+        /* 
+        // Option B: Alternativ Abbruch mit Fehlermeldung:
+        http_response_code(403);
+        die('Zugriff verweigert. Diese Funktion steht nur Administratoren zur Verfügung.');
+        */
+    }
 }
 
 $msgSuccess = '';

@@ -3,9 +3,24 @@
     <!-- Floating Action Button (FAB) Menü -->
     <div id="fabContainer">
         <!-- Unteraktionen (Aktionen beim Ausklappen) -->
-        <button id="settingsFabBtn" class="btn btn-dark fab-action" title="Einstellungen anpassen">
-            <i class="fa-solid fa-gear"></i> Einstellungen
+         <?php
+        // Prüfen, ob der Button sichtbar sein darf
+        $canSeeFab = true;
+
+        if (function_exists('isLoginEnabled') && isLoginEnabled()) {
+            $canSeeFab = isset($_SESSION['user']) && $_SESSION['user']['role'] === 'admin';
+        }
+        ?>
+
+        <?php if ($canSeeFab): ?>
+        <button id="historyFabBtn" class="btn btn-dark fab-action" title="Änderungsprotokoll aufrufen">
+            <i class="fa-solid fa-gear"></i> Protokoll
         </button>
+
+        <button id="settingsFabBtn" class="btn btn-light fab-action" title="Einstellungen anpassen">
+            <i class="fa-solid fa-clock-rotate-left"></i> Einstellungen
+        </button>
+        <?php endif; ?>
 
         <button id="changeFabBtn" class="btn btn-danger fab-action" title="Gegenstände einfach verschieben">
             <i class="fa-solid fa-shuffle"></i> Verschiebebahnhof

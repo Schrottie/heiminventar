@@ -343,6 +343,9 @@ a {
     transform: translateY(-280px);
 }
 
+#fabContainer.open #historyFabBtn {
+    transform: translateY(-335px);
+}
 
 /* ==========================================================================
    06. HELP LINK COMPONENT

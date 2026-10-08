@@ -319,3 +319,34 @@
         </div>
     </div>
 </div>
+
+<!-- Rollback Bestätigungs-Modal -->
+<div class="modal fade" id="rollbackModal" tabindex="-1" aria-labelledby="rollbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning-subtle text-warning-emphasis">
+                <h5 class="modal-title" id="rollbackModalLabel">
+                    <i class="fa-solid fa-rotate-left me-2"></i>Aktion rückgängig machen
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body py-3">
+                <p class="mb-2">Möchtest du folgende Änderung für <strong id="rollbackItemName"></strong> wirklich rückgängig machen?</p>
+                
+                <div class="card bg-body-tertiary border-0 p-3 mb-3">
+                    <div id="rollbackDetailsText" class="fw-bold text-body"></div>
+                </div>
+
+                <div class="text-muted small">
+                    <i class="fa-solid fa-circle-info me-1"></i> Der Zustand des Gegenstands wird auf den Wert vor dieser Änderung zurückgesetzt.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" id="btnConfirmRollback" class="btn btn-sm btn-warning">
+                    <i class="fa-solid fa-check me-1"></i> Ja, Rollback ausführen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -44,10 +44,18 @@ require_once __DIR__ . '/inc/header.php';
                 </select>
             </div>
 
+            <div class="mb-3">
+                <label class="form-label"><i class="fa-solid fa-paperclip me-1"></i>Dokumente / Anleitungen hinzufügen (PDF, DOCX)</label>
+                <input type="file" name="documents[]" class="form-control" accept=".pdf,.doc,.docx,.txt" multiple>
+            </div>
+
             <!-- Bilder-Upload-Feld -->
             <div class="mb-3">
                 <label class="form-label">Bilder hinzufügen</label>
                 <input type="file" name="images[]" class="form-control" accept="image/*" multiple>
+                <div class="form-text">
+                    <i class="fa-solid fa-circle-info me-1"></i> Das erste ausgewählte Bild wird automatisch als Hauptbild für die Übersicht verwendet.
+                </div>
             </div>
 
             <!-- Schaltflächen zum Speichern -->

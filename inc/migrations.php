@@ -67,6 +67,21 @@ function runDatabaseMigrations(PDO $pdo): void
         '004_create_image_setting' => "
             INSERT IGNORE INTO settings (setting_key, setting_value) 
             VALUES ('show_images', '1');
+        ",
+
+        '005_create_main_image_function' => "
+            ALTER TABLE item_images ADD COLUMN is_main TINYINT(1) DEFAULT 0;
+        ",
+
+        '006_create_documents_table' => "
+            CREATE TABLE IF NOT EXISTS item_documents (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                item_id INT NOT NULL,
+                filename VARCHAR(255) NOT NULL,
+                title VARCHAR(255) NOT NULL,
+                uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         "
     ];
 

@@ -1,2 +1,4 @@
 cfg/.env
 img/items/Thumbs.db
+img/items/*
+docs/items*

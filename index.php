@@ -20,23 +20,27 @@ if (!isset($settings)) {
 $rawShowImages = $settings['show_images'] ?? '1';
 $showImages = ($rawShowImages === '1' || $rawShowImages === 1);
 
-// Gegenstände inkl. zugewiesenem Lagerort-Namen und ERSTEM Bild abfragen
+// Gegenstände inkl. zugewiesenem Lagerort-Namen und HAUPTBILD (Fallback: Erstes Bild) abfragen
 $sql = "
-    SELECT 
-        i.id, 
-        i.name, 
-        i.quantity, 
-        i.location_id, 
+    SELECT
+        i.id,
+        i.name,
+        i.quantity,
+        i.location_id,
         l.name AS location_name,
         img.filename AS image_filename
     FROM inventory_items i
     LEFT JOIN locations l ON l.id = i.location_id
     LEFT JOIN (
-        SELECT item_id, MIN(id) AS min_id
+        SELECT item_id, 
+               COALESCE(
+                   MIN(CASE WHEN is_main = 1 THEN id END), 
+                   MIN(id)
+               ) AS main_id
         FROM item_images
         GROUP BY item_id
-    ) first_img ON first_img.item_id = i.id
-    LEFT JOIN item_images img ON img.id = first_img.min_id
+    ) main_img ON main_img.item_id = i.id
+    LEFT JOIN item_images img ON img.id = main_img.main_id
     ORDER BY i.name
 ";
 $items = $pdo->query($sql)->fetchAll();
@@ -66,21 +70,20 @@ require_once __DIR__ . '/inc/header.php';
         $itemId = (int)$item['id'];
         $path = getLocationPath($allLocations, (int)$item['location_id']);
         $searchTerms = mb_strtolower($item['name'] . ' ' . ($item['location_name'] ?? ''));
-        // Hier greift die korrigierte Variable:
         $hasImage = $showImages && !empty($item['image_filename']);
         ?>
 
         <div class="card shadow-sm mb-2 inventory-item" data-search="<?= htmlspecialchars($searchTerms) ?>">
             <div class="card-body p-3">
                 <div class="d-flex align-items-center justify-content-between">
-                    
+                   
                     <div class="d-flex align-items-center me-3 flex-grow-1 min-w-0">
                         <!-- Miniatur-Vorschau nur wenn $showImages TRUE ist UND ein Bild existiert -->
                         <?php if ($hasImage): ?>
                             <div class="me-3 flex-shrink-0">
-                                <img src="img/items/<?= htmlspecialchars($item['image_filename']) ?>" 
-                                     alt="<?= htmlspecialchars($item['name']) ?>" 
-                                     class="rounded object-fit-cover" 
+                                <img src="img/items/<?= htmlspecialchars($item['image_filename']) ?>"
+                                     alt="<?= htmlspecialchars($item['name']) ?>"
+                                     class="rounded object-fit-cover"
                                      style="width: 50px; height: 50px;">
                             </div>
                         <?php endif; ?>

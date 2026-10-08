@@ -2,7 +2,7 @@
  * Link-Ziele für Floating Action Buttons zentral definieren
  */
 const ROUTES = {
-    ADD_ITEM: 'edit-item.php',
+    ADD_ITEM: 'new-item.php',
     LOCATIONS: 'locations.php',
     INVENTORY: 'inventory.php',
     SETTINGS: 'settings.php',

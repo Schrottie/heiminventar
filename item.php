@@ -19,8 +19,8 @@ if (!$item) {
 // Alle Lagerorte für das Dropdown-Menü abfragen
 $locations = $pdo->query("SELECT id, parent_id, name FROM locations ORDER BY name")->fetchAll();
 
-// Zughörige Bilder des Gegenstands abfragen
-$stmt = $pdo->prepare("SELECT id, filename FROM item_images WHERE item_id = ? ORDER BY id");
+// Zugehörige Bilder des Gegenstands abfragen (inkl. is_main, Hauptbild zuerst)
+$stmt = $pdo->prepare("SELECT id, filename, is_main FROM item_images WHERE item_id = ? ORDER BY is_main DESC, id ASC");
 $stmt->execute([$id]);
 $images = $stmt->fetchAll();
 
@@ -34,30 +34,49 @@ require_once __DIR__ . '/inc/header.php';
     </div>
 
     <div class="card-body">
+        
+        <!-- Bildergalerie mit Hauptbild-Auswahl & Löschen-Funktion -->
+        <?php if (!empty($images)): ?>
+            <div class="row mb-3">
+                <?php foreach ($images as $image): ?>
+                    <?php $isMain = !empty($image['is_main']); ?>
+                    <div class="col-6 col-md-4 mb-3">
+                        <div class="card h-100 <?= $isMain ? 'border-warning shadow-sm' : '' ?>">
+                            <img src="img/items/<?= htmlspecialchars($image['filename']) ?>" class="card-img-top img-fluid item-pic object-fit-cover" style="height: 140px;" alt="Bild">
+                            <div class="card-body p-2 d-flex gap-1">
+                                
+                                <!-- Button: Als Hauptbild festlegen -->
+                                <form action="api/item-update.php" method="post" class="flex-grow-1">
+                                    <input type="hidden" name="action_set_main_image" value="1">
+                                    <input type="hidden" name="image_id" value="<?= (int)$image['id'] ?>">
+                                    <input type="hidden" name="item_id" value="<?= (int)$item['id'] ?>">
+                                    <button type="submit" 
+                                            class="btn btn-sm w-100 <?= $isMain ? 'btn-warning text-white' : 'btn-outline-warning' ?>" 
+                                            title="<?= $isMain ? 'Aktuelles Hauptbild' : 'Als Hauptbild festlegen' ?>">
+                                        <i class="fa-solid fa-star"></i>
+                                    </button>
+                                </form>
+
+                                <!-- Button: Bild löschen -->
+                                <a href="api/image-delete.php?id=<?= (int)$image['id'] ?>&item_id=<?= (int)$item['id'] ?>"
+                                   class="btn btn-sm btn-outline-danger"
+                                   onclick="return confirm('Bild löschen?');"
+                                   title="Bild löschen">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <hr class="mb-4">
+        <?php endif; ?>
+
+        <!-- Formular für Gegenstandsdaten -->
         <form action="api/item-update.php" method="post" enctype="multipart/form-data">
             <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
 
-            <!-- Bildergalerie mit Löschen-Funktion -->
-            <?php if (!empty($images)): ?>
-                <div class="row mb-3">
-                    <?php foreach ($images as $image): ?>
-                        <div class="col-6 col-md-4 mb-3">
-                            <div class="card">
-                                <img src="img/items/<?= htmlspecialchars($image['filename']) ?>" class="card-img-top img-fluid item-pic" alt="Bild">
-                                <div class="card-body p-2">
-                                    <a href="api/image-delete.php?id=<?= (int)$image['id'] ?>&item_id=<?= (int)$item['id'] ?>" 
-                                       class="btn btn-sm btn-danger w-100" 
-                                       onclick="return confirm('Bild löschen?');">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-
-            <!-- Formularfelder -->
             <div class="mb-3">
                 <label class="form-label">Bezeichnung</label>
                 <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($item['name']) ?>" required>
@@ -82,7 +101,12 @@ require_once __DIR__ . '/inc/header.php';
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Bilder hinzufügen</label>
+                <label class="form-label"><i class="fa-solid fa-paperclip me-1"></i>Dokumente / Anleitungen hinzufügen (PDF, DOCX)</label>
+                <input type="file" name="documents[]" class="form-control" accept=".pdf,.doc,.docx,.txt" multiple>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Weitere Bilder hinzufügen</label>
                 <input type="file" name="images[]" class="form-control" accept="image/*" multiple>
             </div>
 

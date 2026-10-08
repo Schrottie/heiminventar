@@ -101,3 +101,12 @@ function getLocationPath(array $locations, int $locationId): string
 
     return implode(' → ', $path);
 }
+
+/**
+ * Stellt sicher, dass ein Verzeichnis existiert und Schreibrechte besitzt.
+ */
+function ensureDirectoryExists(string $path): void {
+    if (!is_dir($path)) {
+        mkdir($path, 0755, true);
+    }
+}

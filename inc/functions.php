@@ -122,3 +122,31 @@ function ensureDirectoryExists(string $path): void {
         mkdir($path, 0755, true);
     }
 }
+
+
+/**
+ * Protokolliert Aktionen und Bestandsänderungen im Inventar inkl. Benutzer
+ */
+function logInventoryAction(PDO $pdo, ?int $itemId, string $itemName, string $action, int $qtyChange = 0, int $newQty = 0, ?string $details = null): bool {
+    try {
+        // Angemeldeten Benutzer aus der Session auslesen (falls vorhanden)
+        $userName = $_SESSION['username'] ?? $_SESSION['user_name'] ?? $_SESSION['user'] ?? 'System / Gast';
+
+        $stmt = $pdo->prepare("
+            INSERT INTO inventory_logs (item_id, item_name, action, qty_change, new_qty, details, user_name)
+            VALUES (:item_id, :item_name, :action, :qty_change, :new_qty, :details, :user_name)
+        ");
+        return $stmt->execute([
+            ':item_id'    => $itemId,
+            ':item_name'  => $itemName,
+            ':action'     => $action,
+            ':qty_change' => $qtyChange,
+            ':new_qty'    => $newQty,
+            ':details'    => $details,
+            ':user_name'  => $userName
+        ]);
+    } catch (PDOException $e) {
+        error_log("Logging-Fehler: " . $e->getMessage());
+        return false;
+    }
+}

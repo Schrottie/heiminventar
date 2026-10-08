@@ -18,6 +18,19 @@ if (empty($name)) {
 $stmt = $pdo->prepare("INSERT INTO inventory_items (name, description, quantity, min_quantity, location_id) VALUES (?, ?, ?, ?, ?)");
 $stmt->execute([$name, $description, $quantity, $minQuantity, $locationId]);
 
+$newItemId = (int)$pdo->lastInsertId();
+
+// Logging für die Erstellung ausführen
+logInventoryAction(
+    $pdo,
+    $newItemId,
+    $name,
+    'created',
+    $quantity,
+    $quantity,
+    'Gegenstand neu angelegt'
+);
+
 // 2. Bilder-Upload verarbeiten
 if (!empty($_FILES['images']['name'][0])) {
     $imgDir = __DIR__ . '/../img/items/';

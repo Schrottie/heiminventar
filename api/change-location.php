@@ -3,6 +3,7 @@
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../cfg/db.php';
+require_once __DIR__ . '/../inc/functions.php'; // Für logInventoryAction()
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -24,22 +25,59 @@ if ($itemId <= 0 || $locationId <= 0) {
 }
 
 try {
-    // Prüfen, ob Standort existiert
-    $stmtLoc = $pdo->prepare("SELECT id FROM locations WHERE id = ?");
+    // 1. Prüfen, ob Ziel-Standort existiert & Name holen
+    $stmtLoc = $pdo->prepare("SELECT id, name FROM locations WHERE id = ?");
     $stmtLoc->execute([$locationId]);
-    if (!$stmtLoc->fetch()) {
+    $newLoc = $stmtLoc->fetch();
+
+    if (!$newLoc) {
         echo json_encode(['success' => false, 'error' => 'Ziel-Lagerort existiert nicht']);
         exit;
     }
 
-    // Standort des Gegenstands aktualisieren
+    // 2. Gegenstand inkl. altem Standortnamen und aktuellem Bestand abfragen
+    $stmtItem = $pdo->prepare("
+        SELECT i.id, i.name, i.quantity, i.location_id, l.name AS old_location_name 
+        FROM inventory_items i
+        LEFT JOIN locations l ON l.id = i.location_id
+        WHERE i.id = ?
+    ");
+    $stmtItem->execute([$itemId]);
+    $item = $stmtItem->fetch();
+
+    if (!$item) {
+        echo json_encode(['success' => false, 'error' => 'Gegenstand nicht gefunden']);
+        exit;
+    }
+
+    // Prüfen, ob sich der Standort überhaupt geändert hat
+    if ((int)$item['location_id'] === $locationId) {
+        echo json_encode(['success' => true, 'message' => 'Keine Änderung erforderlich']);
+        exit;
+    }
+
+    // 3. Standort des Gegenstands aktualisieren
     $stmt = $pdo->prepare("UPDATE inventory_items SET location_id = ? WHERE id = ?");
     $stmt->execute([$locationId, $itemId]);
 
     if ($stmt->rowCount() > 0) {
+        // 4. Protokolleintrag schreiben
+        $oldLocName = $item['old_location_name'] ?? 'Unbekannt';
+        $newLocName = $newLoc['name'];
+        $detailText = "Umgelagert von \"{$oldLocName}\" nach \"{$newLocName}\"";
+
+        logInventoryAction(
+            $pdo,
+            $itemId,
+            $item['name'],
+            'updated',
+            0,                           // Bestandsänderung = 0
+            (int)$item['quantity'],      // Aktueller Bestand bleibt gleich
+            $detailText
+        );
+
         echo json_encode(['success' => true]);
     } else {
-        // Falls itemId nicht existiert oder sich die location_id gar nicht geändert hat
         echo json_encode(['success' => true, 'message' => 'Keine Änderung erforderlich']);
     }
 

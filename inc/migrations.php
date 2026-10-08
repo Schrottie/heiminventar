@@ -86,6 +86,21 @@ function runDatabaseMigrations(PDO $pdo): void
 
         '007_create_min_quantity_function' => "
             ALTER TABLE inventory_items ADD COLUMN min_quantity INT DEFAULT 0 AFTER quantity;
+        ",
+
+        '008_create_history_function' => "
+            CREATE TABLE IF NOT EXISTS `inventory_logs` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `item_id` INT NULL,
+                `item_name` VARCHAR(255) NOT NULL,
+                `action` VARCHAR(50) NOT NULL, -- z.B. 'created', 'updated', 'quantity_changed', 'deleted'
+                `qty_change` INT DEFAULT 0,    -- z.B. +2 oder -1 (0 bei reiner Namens/Ort-Änderung)
+                `new_qty` INT DEFAULT 0,       -- Neuer Gesamtbestand nach der Änderung
+                `details` TEXT NULL,           -- Zusatzinfos (z.B. 'Standort geändert von Regal 1 zu Regal 2')
+                `user_name` VARCHAR(100) NULL, -- Optional: Wer hat die Aktion durchgeführt
+                `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (`item_id`) REFERENCES `inventory_items`(`id`) ON DELETE SET NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         "
     ];
 

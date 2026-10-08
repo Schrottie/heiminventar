@@ -169,7 +169,7 @@ require_once __DIR__ . '/inc/header.php';
                         <?php endif; ?>
 
                         <div class="text-truncate">
-                            <h6 class="mb-1 text-truncate <?= $isLowStock ? 'text-dark' : '' ?>">
+                            <h6 class="mb-1 text-truncate ">
                                 <i class="fa-solid fa-box text-primary me-1"></i>
                                 <?= htmlspecialchars($item['name']) ?>
                                
@@ -185,7 +185,7 @@ require_once __DIR__ . '/inc/header.php';
                                 <?php endif; ?>
                             </h6>
 
-                            <small class="d-block text-truncate <?= $isLowStock ? 'text-dark' : '' ?>">
+                            <small class="d-block text-truncate">
                                 <a class="text-decoration-none text-muted" role="button" data-bs-toggle="collapse" href="#locationPath<?= $itemId ?>">
                                     <i class="fa-solid fa-location-dot me-1"></i>
                                     <?= htmlspecialchars($item['location_name'] ?? 'Kein Lagerort') ?>

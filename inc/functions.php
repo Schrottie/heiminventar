@@ -48,14 +48,26 @@ function renderLocationTree(array $locations, ?int $parentId = null, array $item
         
         // Standort-Zeile
         echo '<div class="d-flex justify-content-between align-items-center py-1">';
-        echo '<div>';
-        echo '<i class="fa-solid fa-folder-tree text-primary me-2"></i>';
-        echo htmlspecialchars($location['name']);
-        echo '</div>';
+        echo '  <div class="text-truncate me-2">';
+        echo '      <i class="fa-solid fa-folder-tree text-primary me-2"></i>';
+        echo        htmlspecialchars($location['name']);
+        echo '  </div>';
 
-        echo '<a href="#" class="btn btn-sm btn-outline-danger location-delete-btn ms-2" data-id="' . $locationId . '" data-name="' . htmlspecialchars($location['name']) . '">';
-        echo '<i class="fa-solid fa-trash"></i>';
-        echo '</a>';
+        // Gruppe für Aktions-Buttons (rechtsbündig durch ms-auto)
+        echo '  <div class="btn-group btn-group-sm ms-auto" role="group">';
+        echo '      <button type="button" class="btn btn-outline-secondary location-qr-btn" ';
+        echo '          data-id="' . (int)$location['id'] . '" ';
+        echo '          data-name="' . htmlspecialchars($location['name'], ENT_QUOTES, 'UTF-8') . '" ';
+        echo '          title="QR-Code anzeigen & drucken">';
+        echo '          <i class="fa-solid fa-qrcode"></i>';
+        echo '      </button>';
+        echo '      <a href="#" class="btn btn-outline-danger location-delete-btn" ';
+        echo '          data-id="' . $locationId . '" ';
+        echo '          data-name="' . htmlspecialchars($location['name'], ENT_QUOTES, 'UTF-8') . '" ';
+        echo '          title="Lagerort löschen">';
+        echo '          <i class="fa-solid fa-trash"></i>';
+        echo '      </a>';
+        echo '  </div>';
         echo '</div>';
 
         // Anzeige der Items an diesem Standort (standardmäßig versteckt via 'd-none')

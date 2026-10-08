@@ -416,6 +416,62 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ---------------------------------------------------------------------
+    // 11. QR-Code Generator an Lagerorten
+    // ---------------------------------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+        // Event-Listener für QR-Code Buttons an den Lagerorten (per Event Delegation)
+        document.addEventListener('click', (e) => {
+            const qrBtn = e.target.closest('.location-qr-btn');
+            if (!qrBtn) return;
+
+            e.preventDefault();
+
+            const locId = qrBtn.dataset.id;
+            const locName = qrBtn.dataset.name;
+
+            // Erzeuge die Ziel-URL für die gefilterte Hauptübersicht
+            const origin = window.location.origin;
+            const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+            const targetUrl = `${origin}${basePath}index.php?location_id=${locId}`;
+
+            // Titel und Info im bestehenden QR-Modal setzen
+            const modalTitle = document.getElementById('qrModalTitle') || document.getElementById('locationQrTitle');
+            const modalInfo = document.getElementById('qrModalInfo') || document.getElementById('locationQrInfo');
+            
+            if (modalTitle) modalTitle.textContent = locName;
+            if (modalInfo) modalInfo.textContent = `Lagerort-ID: ${locId}`;
+
+            // QR-Code Container leeren und neu rendern
+            const qrContainer = document.getElementById('qrModalCode') || document.getElementById('locationQrContainer');
+            if (qrContainer) {
+                qrContainer.innerHTML = '';
+
+                if (typeof qrcode !== 'undefined') {
+                    const qr = qrcode(0, 'M');
+                    qr.addData(targetUrl);
+                    qr.make();
+                    qrContainer.innerHTML = qr.createImgTag(5, 10);
+                } else if (typeof QRCode !== 'undefined') {
+                    new QRCode(qrContainer, {
+                        text: targetUrl,
+                        width: 180,
+                        height: 180
+                    });
+                } else {
+                    qrContainer.textContent = 'QR-Bibliothek nicht geladen.';
+                }
+            }
+
+            // Modal öffnen (unterstützt Bootstrap 5 Modal-Instanzen)
+            const modalEl = document.getElementById('locationQrModal') || document.getElementById('qrModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            }
+        });
+    });
+
 });
 
 // =========================================================================
@@ -435,4 +491,80 @@ window.addEventListener("scroll", () => {
         hero.classList.remove("hero-small");
         isCollapsed = false;
     }
+});
+
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    // ---------------------------------------------------------------
+    // 1. QR-Code für Lagerorte anzeigen (per Event-Delegation)
+    // ---------------------------------------------------------------
+    document.addEventListener('click', (e) => {
+        const qrBtn = e.target.closest('.location-qr-btn');
+        if (!qrBtn) return;
+
+        e.preventDefault();
+
+        const locId = qrBtn.dataset.id;
+        const locName = qrBtn.dataset.name;
+
+        // Erzeuge die Ziel-URL für die gefilterte Hauptübersicht (index.php)
+        const origin = window.location.origin;
+        const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+        const targetUrl = `${origin}${basePath}index.php?location_id=${locId}`;
+
+        // Elemente im QR-Modal befüllen (prüft verschiedene Standard-IDs)
+        const modalTitle = document.getElementById('locationQrTitle') || document.getElementById('qrModalTitle');
+        const modalInfo = document.getElementById('locationQrInfo') || document.getElementById('qrModalInfo');
+        
+        if (modalTitle) modalTitle.textContent = locName;
+        if (modalInfo) modalInfo.textContent = `Lagerort-ID: ${locId}`;
+
+        // QR-Code Container leeren und neu rendern
+        const qrContainer = document.getElementById('locationQrContainer') || document.getElementById('qrModalCode');
+        if (qrContainer) {
+            qrContainer.innerHTML = '';
+
+            if (typeof qrcode !== 'undefined') {
+                const qr = qrcode(0, 'M');
+                qr.addData(targetUrl);
+                qr.make();
+                qrContainer.innerHTML = qr.createImgTag(5, 10);
+            } else if (typeof QRCode !== 'undefined') {
+                new QRCode(qrContainer, {
+                    text: targetUrl,
+                    width: 180,
+                    height: 180
+                });
+            } else {
+                qrContainer.textContent = 'QR-Bibliothek nicht geladen.';
+            }
+        }
+
+        // Modal öffnen
+        const modalEl = document.getElementById('locationQrModal') || document.getElementById('qrModal');
+        if (modalEl && typeof bootstrap !== 'undefined') {
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+    });
+
+    // ---------------------------------------------------------------
+    // 2. Automated Filter auf index.php ausführen, wenn location_id in URL
+    // ---------------------------------------------------------------
+    const urlParams = new URLSearchParams(window.location.search);
+    const locationIdParam = urlParams.get('location_id');
+
+    if (locationIdParam) {
+        // Falls du ein Filter-Dropdown für Lagerorte hast (z.B. #locationFilterSelect):
+        const locationSelect = document.getElementById('locationFilterSelect');
+        if (locationSelect) {
+            locationSelect.value = locationIdParam;
+            locationSelect.dispatchEvent(new Event('change'));
+        }
+
+        // Falls du den QuickFilter / Such-Input nutzt (z.B. #quickFilter):
+        // Oder eine eigene JS-Funktion zum Filtern hast, kannst du sie hier aufrufen.
+    }
+
 });

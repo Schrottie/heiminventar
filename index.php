@@ -12,17 +12,47 @@ require_once __DIR__ . '/inc/functions.php';
 
 // Einstellungen explizit aus der DB holen
 if (!isset($settings)) {
-    $stmtSettings =$pdo->query("SELECT setting_key, setting_value FROM settings");
-    $settings =$stmtSettings->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
+    $stmtSettings = $pdo->query("SELECT setting_key, setting_value FROM settings");
+    $settings = $stmtSettings->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
 }
 
 // Einstellung 'show_images' auslesen
-$rawShowImages = $settings['show_images'] ?? '1';$showImages = ($rawShowImages === '1');
+$rawShowImages = $settings['show_images'] ?? '1';
+$showImages = ($rawShowImages === '1');
 
-// Alle Lagerorte für den Rekursionspfad (getLocationPath) abfragen
-$allLocations =$pdo->query("SELECT id, parent_id, name FROM locations")->fetchAll();
+// Alle Lagerorte für den Rekursionspfad (getLocationPath) und Filterung abfragen
+$allLocations = $pdo->query("SELECT id, parent_id, name FROM locations")->fetchAll();
+
+// location_id aus URL auslesen
+$filterLocationId = isset($_GET['location_id']) && is_numeric($_GET['location_id']) ? (int)$_GET['location_id'] : null;
+
+// Falls nach Standort gefiltert wird: Alle untergeordneten Lagerort-IDs ermitteln (Rekursion)
+$targetLocationIds = [];
+if ($filterLocationId !== null) {
+    // Hilfsfunktion zum Aufsammeln aller Kind-IDs
+    function getSubLocationIds(array $locations, int $parentId): array {
+        $ids = [$parentId];
+        foreach ($locations as $loc) {
+            if ((int)$loc['parent_id'] === $parentId) {
+                $ids = array_merge($ids, getSubLocationIds($locations, (int)$loc['id']));
+            }
+        }
+        return $ids;
+    }
+    $targetLocationIds = getSubLocationIds($allLocations, $filterLocationId);
+}
 
 // Gegenstände inkl. Lagerort-Name, Hauptbild & min_quantity abfragen
+$params = [];
+$whereClause = '';
+
+if (!empty($targetLocationIds)) {
+    // Dynamische Platzhalter für IN(...) erzeugen
+    $placeholders = implode(',', array_fill(0, count($targetLocationIds), '?'));
+    $whereClause = " WHERE i.location_id IN ($placeholders) ";
+    $params = $targetLocationIds;
+}
+
 $sql = "
     SELECT
         i.id,
@@ -44,20 +74,45 @@ $sql = "
         GROUP BY item_id
     ) main_img ON main_img.item_id = i.id
     LEFT JOIN item_images img ON img.id = main_img.main_id
+    {$whereClause}
     ORDER BY i.name
 ";
-$items = $pdo->query($sql)->fetchAll();
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$items = $stmt->fetchAll();
 
 // Zählen, wie viele Artikel den Mindestbestand unterschreiten
 $lowStockCount = 0;
-foreach ($items as$chk) {
-    if ((int)$chk['min_quantity'] > 0 && (int)$chk['quantity'] <= (int)$chk['min_quantity']) {$lowStockCount++;
+foreach ($items as $chk) {
+    if ((int)$chk['min_quantity'] > 0 && (int)$chk['quantity'] <= (int)$chk['min_quantity']) {
+        $lowStockCount++;
     }
 }
 
 require_once __DIR__ . '/inc/header.php';
 ?>
 
+<?php if ($filterLocationId !== null): ?>
+    <?php 
+        // Name des aktiven Lagerorts ermitteln
+        $activeLocName = 'Unbekannt';
+        foreach ($allLocations as $loc) {
+            if ((int)$loc['id'] === $filterLocationId) {
+                $activeLocName = $loc['name'];
+                break;
+            }
+        }
+    ?>
+    <div class="alert alert-info d-flex justify-content-between align-items-center py-2 mb-3">
+        <span>
+            <i class="fa-solid fa-filter me-2"></i>Gefiltert nach Standort: <strong><?= htmlspecialchars($activeLocName) ?></strong> (inkl. Unterstandorte)
+        </span>
+        <a href="index.php" class="btn btn-sm btn-outline-dark ms-2">
+            <i class="fa-solid fa-xmark me-1"></i>Aufheben
+        </a>
+    </div>
+<?php endif; ?>
 <!-- Schnellfilter / Suchleiste & Low-Stock-Warnung -->
 <div class="row mb-3 g-2 align-items-center">
     <div class="col">
@@ -71,6 +126,7 @@ require_once __DIR__ . '/inc/header.php';
             <i class="fa-solid fa-camera me-1"></i> QR Scannen
         </button>
     </div>
+
     <?php if ($lowStockCount > 0): ?>
         <div class="col-auto">
             <button type="button" id="toggleLowStock" class="btn btn-outline-danger position-relative">
@@ -82,6 +138,7 @@ require_once __DIR__ . '/inc/header.php';
         </div>
     <?php endif; ?>
 </div>
+
 
 <!-- Inventarliste -->
 <div id="inventoryList">

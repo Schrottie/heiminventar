@@ -19,13 +19,23 @@ Eine leichte, responsive Webanwendung zur Verwaltung von Lagerorten und Gegenst�
 * **Schneller Erfassungsmodus:** Funktion *"Speichern und nächster Gegenstand"*, um mehrere Artikel nacheinander ohne Unterbrechung anzulegen.
 * **Bearbeiten & Verwalten:** Direktes Editieren und Löschen aller Gegenstände über Schnellzugriffe.
 
-### 3. Drag & Drop Modus
+### 3. QR-Code & Scanner
+* **Kamera-Scanner nutzen:** Über das Kamera-Symbol in der Kopfzeile wird der QR-Scanner geöffnet. Sobald ein QR-Code eines Gegenstands oder Lagerorts gescannt wird, springt die Anwendung direkt zum Ziel.
+* **QR-Codes generieren & drucken:** Für jeden Artikel sowie jeden Lagerort wird automatisch ein individueller QR-Code erzeugt. Dieser kann auf Etiketten ausgedruckt und an Kisten, Regalen oder Geräten angebracht werden.
+* **Direkter Aufruf:** Das Scannen eines QR-Codes mit der regulären Smartphone-Kamera öffnet direkt die passende Detailseite im Browser.
+
+### 4. Artikel bearbeiten, Anleitungen, Fotos & Hauptbild
+* **Hauptbild festlegen (Stern-Symbol):** Bei Gegenständen mit mehreren Bildern kann durch Klick auf das Stern-Symbol ein Bild als Hauptbild definiert werden. Dieses erscheint als Titelbild in der Übersicht und in Kachelansichten.
+* **Fotos per Smartphone-Kamera:** Beim Hinzufügen von Bildern auf mobilen Geräten öffnet sich auf Wunsch direkt die Kamera für Schnappschüsse.
+* **Dokumente & Anleitungen:** Neben Bildern können auch Dokumente (PDF, DOCX, TXT) hochgeladen werden, z. B. Rechnungen, Garantiescheine oder Handbücher.
+
+### 5. Drag & Drop Modus
 * **Visuelles Verschieben:** Eigenes Interface mit direkter Darstellung aller Orte und Items.
 * **Greifer-Icons:** Gegenstände können bequem per Drag & Drop zwischen verschiedenen Lagerorten verschoben werden.
 * **Mobil-Optimiert:** Touch-Unterstützung mit leichtem Delay zur Verhinderung ungewollten Auslösens beim Scrollen auf Smartphones und Tablets.
 * **Echtzeit-Anpassung:** Sofortiges Speichern der Standortänderung im Hintergrund via AJAX.
 
-### 4. Authentifizierung & Benutzerverwaltung 🔒
+### 6. Authentifizierung & Benutzerverwaltung 🔒
 * **Schaltbarer Passwortschutz:** Kann in den Systemeinstellungen mit einem Klick global aktiviert oder deaktiviert werden.
 * **Rollenbasiertes Rechtesystem:**
   * **Admin:** Vollzugriff inklusive Systemeinstellungen, Migrationsverwaltung und Benutzersteuerung.
@@ -34,12 +44,12 @@ Eine leichte, responsive Webanwendung zur Verwaltung von Lagerorten und Gegenst�
 * **Sichere Passwort-Hashes:** Automatische Erzeugung und Verifikation mittels BCRYPT (`password_hash` / `password_verify`).
 * **Modernes Login-Interface:** Besserer Komfort mit Passwort-Sichtbarkeits-Toggle ("Auge"-Icon) und integriertem Dark-Mode-Support.
 
-### 5. Systemeinstellungen & Theme-Wahl 🎨
+### 7. Systemeinstellungen & Theme-Wahl 🎨
 * **Erscheinungsbild (Light/Dark Mode):** Visuelle Auswahl zwischen hellem und dunklem Design per modernem UI-Button-System.
 * **Vorschaubilder:** In der Übersicht lassen sich auf Wunsch, sofern vorhanden, Vorschaubilder zu den gelisteten Gegenständen anzeigen. Dazu wird jeweils das erste zum Gegenstand abgelegte Bild verwendet.
 * **Automatisches Datenbank-Migrationssystem:** Schema-Updates der Datenbank werden über ein zentrales Skript (`migrations.php`) vollautomatisch im Hintergrund ausgeführt.
 
-### 6. Komfortables Installations-Script
+### 8. Komfortables Installations-Script
 * **Geführte Installation:** Automatische Prüfung aller Systemanforderungen (PDO MySQL, GD-Bibliothek, Dateirechte).
 * **Geführtes DB-Setup:** Automatische Erstellung der Datenbank, der Tabellenstruktur und des Datenbank-Benutzers im geführten Dialog (inklusive Support für frische MariaDB-Installationen auf Raspberry Pi OS).
 

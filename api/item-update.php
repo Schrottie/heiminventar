@@ -23,10 +23,12 @@ if (isset($_POST['action_set_main_image'])) {
 $name = trim($_POST['name'] ?? '');
 $description = trim($_POST['description'] ?? '');
 $quantity = (int)($_POST['quantity'] ?? 1);
+$minQuantity = (int)($_POST['min_quantity'] ?? 0);
 $locationId = !empty($_POST['location_id']) ? (int)$_POST['location_id'] : null;
 
-$stmt = $pdo->prepare("UPDATE inventory_items SET name = ?, description = ?, quantity = ?, location_id = ? WHERE id = ?");
-$stmt->execute([$name, $description, $quantity, $locationId, $itemId]);
+$stmt = $pdo->prepare("UPDATE inventory_items SET name = ?, description = ?, quantity = ?, min_quantity = ?, location_id = ? WHERE id = ?");
+$stmt->execute([$name, $description, $quantity, $minQuantity, $locationId, $itemId]);
+
 
 // 3. Bilder-Upload verarbeiten
 if (!empty($_FILES['images']['name'][0])) {
@@ -81,6 +83,14 @@ if (!empty($_FILES['documents']['name'][0])) {
     }
 }
 
-header("Location: ../item.php?id=" . $itemId . "&success=1");
+$action = $_POST['action'] ?? 'save';
+
+if ($action === 'save_and_close') {
+    // Zurück zur Hauptübersicht
+    header("Location: ../index.php?success=1");
+} else {
+    // Auf der Bearbeitungsseite des Gegenstands bleiben
+    header("Location: ../item.php?id=" . $itemId . "&success=1");
+}
 exit;
 

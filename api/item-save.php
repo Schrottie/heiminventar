@@ -7,6 +7,7 @@ $action = $_POST['action'] ?? 'save';
 $name = trim($_POST['name'] ?? '');
 $description = trim($_POST['description'] ?? '');
 $quantity = (int)($_POST['quantity'] ?? 1);
+$minQuantity = (int)($_POST['min_quantity'] ?? 0);
 $locationId = !empty($_POST['location_id']) ? (int)$_POST['location_id'] : null;
 
 if (empty($name)) {
@@ -14,9 +15,8 @@ if (empty($name)) {
 }
 
 // 1. Gegenstand in DB anlegen
-$stmt = $pdo->prepare("INSERT INTO inventory_items (name, description, quantity, location_id) VALUES (?, ?, ?, ?)");
-$stmt->execute([$name, $description, $quantity, $locationId]);
-$newItemId = $pdo->lastInsertId();
+$stmt = $pdo->prepare("INSERT INTO inventory_items (name, description, quantity, min_quantity, location_id) VALUES (?, ?, ?, ?, ?)");
+$stmt->execute([$name, $description, $quantity, $minQuantity, $locationId]);
 
 // 2. Bilder-Upload verarbeiten
 if (!empty($_FILES['images']['name'][0])) {

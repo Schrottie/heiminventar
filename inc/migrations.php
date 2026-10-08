@@ -82,6 +82,10 @@ function runDatabaseMigrations(PDO $pdo): void
                 uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ",
+
+        '007_create_min_quantity_function' => "
+            ALTER TABLE inventory_items ADD COLUMN min_quantity INT DEFAULT 0 AFTER quantity;
         "
     ];
 

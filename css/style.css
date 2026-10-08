@@ -11,6 +11,7 @@
    07. Help Modal - Responsive & Mobile Optimizations
    08. Responsive Breakpoints
    09. Dark Theme Overrides
+   10. Drucksettings
    ========================================================================== */
 
 
@@ -462,6 +463,7 @@ a {
         height: 45px !important;
     }
 }
+
 /* ==========================================================================
    09. DARK THEME OVERRIDES (.theme-dark)
    ========================================================================== */
@@ -654,4 +656,23 @@ body.theme-dark .form-text {
 
 body.theme-dark .darktheme-darker {
     color: #3b3a3a !important;
+}
+
+/* ==========================================================================
+   10. Drucksettings
+   ========================================================================== */
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #printableLabel, #printableLabel * {
+        visibility: visible;
+    }
+    #printableLabel {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
 }

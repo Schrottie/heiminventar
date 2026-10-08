@@ -31,9 +31,16 @@ require_once __DIR__ . '/inc/header.php';
                 <textarea name="description" class="form-control" rows="4"></textarea>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Menge</label>
-                <input type="number" name="quantity" class="form-control" min="1" value="1">
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">Menge</label>
+                    <input type="number" name="quantity" class="form-control" min="0" value="1">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Mindestbestand</label>
+                    <input type="number" name="min_quantity" class="form-control" min="0" value="0">
+                    <div class="form-text">0 = Keine Warnung</div>
+                </div>
             </div>
 
             <div class="mb-3">

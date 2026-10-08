@@ -29,8 +29,13 @@ require_once __DIR__ . '/inc/header.php';
 
 <!-- Formular-Karte: Gegenstand bearbeiten -->
 <div class="card shadow-sm">
-    <div class="card-header">
-        <i class="fa-solid fa-box me-2"></i>Gegenstand bearbeiten
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fa-solid fa-box me-2"></i>Gegenstand bearbeiten
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#qrModal">
+            <i class="fa-solid fa-qrcode me-1"></i> QR-Code & Etikett
+        </button>
     </div>
 
     <div class="card-body">
@@ -87,9 +92,16 @@ require_once __DIR__ . '/inc/header.php';
                 <textarea name="description" class="form-control" rows="4"><?= htmlspecialchars($item['description']) ?></textarea>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Menge</label>
-                <input type="number" name="quantity" class="form-control" min="1" value="<?= (int)$item['quantity'] ?>">
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">Aktuelle Menge</label>
+                    <input type="number" name="quantity" class="form-control" min="0" value="<?= (int)$item['quantity'] ?>">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Mindestbestand</label>
+                    <input type="number" name="min_quantity" class="form-control" min="0" value="<?= (int)($item['min_quantity'] ?? 0) ?>">
+                    <div class="form-text">0 = Kein Mindestbestand erforderlich</div>
+                </div>
             </div>
 
             <div class="mb-3">
@@ -109,10 +121,13 @@ require_once __DIR__ . '/inc/header.php';
                 <label class="form-label">Weitere Bilder hinzufügen</label>
                 <input type="file" name="images[]" class="form-control" accept="image/*" multiple>
             </div>
-
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-success">
+            <!-- Schaltflächen zum Speichern -->
+            <div class="d-flex gap-2">
+                <button type="submit" name="action" value="save" class="btn btn-success flex-fill">
                     <i class="fa-solid fa-floppy-disk me-2"></i>Speichern
+                </button>
+                <button type="submit" name="action" value="save_and_close" class="btn btn-primary flex-fill">
+                    <i class="fa-solid fa-check me-2"></i>Speichern & zur Übersicht
                 </button>
             </div>
         </form>

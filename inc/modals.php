@@ -122,7 +122,7 @@
                         <i class="fa-solid fa-pen-to-square me-2"></i> Artikel bearbeiten &amp; Fotos
                     </h6>
                     <p class="small text-muted mb-1">
-                        <strong>Karten-Details:</strong> Ein Klick auf eine Artikelkarte öffnet die Detailansicht zum Ändern von Menge, Zustand oder Bildern.
+                        <strong>Karten-Details:</strong> Ein Klick auf eine Artikelkarte öffnet die Detailansicht zum Ändern von Menge, Zustand oder Bildern. Dabei kann ein hauptbild festgelegt werden, das in der Übersicht angezeigt wird. Alle weiteren Bilder dienen nur der Detailansicht. Ebenso können Dokumente (PDF, DOCX, TXT) hochgeladen werden, z. B. Bedienungsanleitungen oder Rechnungen.
                     </p>
                     <p class="small text-muted mb-0">
                         <strong>Fotos am Smartphone:</strong> Beim Hochladen eines Bildes kann mobil direkt die Kamera genutzt werden, um Gegenstände sofort zu fotografieren.
@@ -170,7 +170,6 @@
         </div>
     </div>
 </div>
-
 
 <!-- Modal: Benutzer bearbeiten -->
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
@@ -244,6 +243,47 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="confirmCancelAuth" data-bs-dismiss="modal">Abbrechen</button>
                 <button type="button" class="btn btn-warning fw-bold" id="confirmEnableAuth">Verstanden & Aktivieren</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für QR-Code & Druck -->
+<div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-qrcode me-2"></i>QR-Code Etikett</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body text-center" id="printableLabel">
+                <div class="border p-3 d-inline-block rounded bg-white" style="max-width: 300px;">
+                    <h6 class="fw-bold mb-2 text-truncate"><?= htmlspecialchars($item['name']) ?></h6>
+                    <div id="qrcodeCanvas" class="d-flex justify-content-center my-2"></div>
+                    <small class="text-muted d-block" style="font-size: 0.75rem;">ID: #<?= (int)$item['id'] ?></small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                <button type="button" class="btn btn-primary" onclick="window.print()">
+                    <i class="fa-solid fa-print me-1"></i> Etikett drucken
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Kamera-QR-Scanner -->
+<div class="modal fade" id="scannerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-camera me-2"></i>QR-Code scannen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="qr-reader" style="width: 100%;"></div>
+                <div id="qr-reader-results" class="mt-2 text-muted small">Kamera wird gestartet...</div>
             </div>
         </div>
     </div>

@@ -21,7 +21,7 @@
                         <i class="fa-solid fa-magnifying-glass me-2"></i> Schnellsuche &amp; Filter
                     </h6>
                     <p class="small text-muted mb-0">
-                        Über das Suchfeld <strong>„QuickFilter“</strong> oben wird die Inventarliste in Echtzeit gefiltert. Es kann nach Name, Seriennummer, Kategorie oder Standort gesucht werden.
+                        Über das Suchfeld <strong>„QuickFilter“</strong> oben wird die Inventarliste in Echtzeit gefiltert. Es kann nach Name, Seriennummer, Kategorie oder Standort gesucht werden. Über die Schaltfläche <strong>„Nachbestellen“</strong> lassen sich mit einem Klick alle Artikel filtern, deren Mindestbestand unterschritten ist.
                     </p>
                 </section>
 
@@ -33,7 +33,7 @@
                         <i class="fa-solid fa-bars-staggered me-2"></i> Schnellaktionen (Aktions-Button)
                     </h6>
                     <p class="small text-muted mb-2">
-                        Unten rechts befindet sich der schwebende Plus-Button (FAB). Ein Tippen öffnet die Schnelloptionen:
+                        Unten rechts befindet sich der schwebende Aktions-Button (FAB). Ein Tippen öffnet die Schnelloptionen:
                     </p>
                     <div class="d-flex flex-column gap-2">
                         <div class="d-flex align-items-center bg-light p-2 rounded">
@@ -54,38 +54,94 @@
                         </div>
                         <div class="d-flex align-items-center bg-light p-2 rounded">
                             <span class="badge bg-dark me-2"><i class="fa-solid fa-gear"></i></span>
-                            <span class="small darktheme-darker"><strong>Einstellungen:</strong> Anpassen von Theme, Passwortschutz und Benutzern.</span>
+                            <span class="small darktheme-darker"><strong>Einstellungen:</strong> Anpassen von Theme, Vorschaubildern, Passwortschutz und Benutzern.</span>
                         </div>
                     </div>
                 </section>
 
                 <hr class="my-3 text-black-50">
 
-                <!-- 3a. Designeinstellungen -->
+                <!-- 3. QR-Code-Scanner & QR-Codes (NEU ERWEITERT) -->
                 <section class="mb-4">
                     <h6 class="text-danger d-flex align-items-center fw-bold">
-                        <i class="fa-solid fa-palette me-2"></i> Erscheinungsbild/Theme
+                        <i class="fa-solid fa-qrcode me-2"></i> QR-Code-Scanner &amp; Etiketten
                     </h6>
-                    <p class="small text-muted mb-0">
-                        In den <strong>Einstellungen</strong> kann zwischen einem hellen Tag-Design und einem augenschonenden <strong>Dark Mode</strong> umgestellt werden. Die Wahl wird sofort (ohne weiteren Klick) serverseitig gespeichert und auf allen Geräten angewendet.>
+                    <p class="small text-muted mb-2">
+                        Das System bietet eine vollständige QR-Integration zur schnellen Erfassung und Navigation:
                     </p>
+                    <ul class="small text-muted ps-3 mb-0">
+                        <li class="mb-1">
+                            <strong>Kamera-Scanner nutzen:</strong> Über das Kamera-Symbol in der Kopfzeile wird der QR-Scanner geöffnet. Sobald ein QR-Code eines Gegenstands oder Lagerorts gescannt wird, springt die Anwendung direkt zum Ziel.
+                        </li>
+                        <li class="mb-1">
+                            <strong>QR-Codes generieren &amp; drucken:</strong> Für jeden Artikel sowie jeden Lagerort wird automatisch ein individueller QR-Code erzeugt. Dieser kann auf Etiketten ausgedruckt und an Kisten, Regalen oder Geräten angebracht werden.
+                        </li>
+                        <li>
+                            <strong>Direkter Aufruf:</strong> Das Scannen eines QR-Codes mit der regulären Smartphone-Kamera öffnet direkt die passende Detailseite im Browser.
+                        </li>
+                    </ul>
                 </section>
 
                 <hr class="my-3 text-black-50">
 
-                <!-- 3b. Bildeinstellungen -->
+                <!-- 4. Design & Bildeinstellungen -->
                 <section class="mb-4">
                     <h6 class="text-danger d-flex align-items-center fw-bold">
-                        <i class="fa-solid fa-image me-2"></i> Vorschaubilder in der Übersicht
+                        <i class="fa-solid fa-palette me-2"></i> Design &amp; Vorschaubilder
                     </h6>
-                    <p class="small text-muted mb-0">
-                        In den <strong>Einstellungen</strong> kann ebenfalls eingestellt werden, ob in der Übersicht Vorschaubilder angezeigt werden sollen. Ist diese Option aktiv, zeigt die Übersicht das erste zum jeweiligen gegenstand gespeicherte Bild (sofern eines vorhanden ist). Ist die Option deaktiviert, werden nur die Artikelkarten ohne Bild angezeigt.
+                    <p class="small text-muted mb-2">
+                        In den <strong>Einstellungen</strong> kannst du das Erscheinungsbild anpassen:
                     </p>
+                    <ul class="small text-muted ps-3 mb-0">
+                        <li class="mb-1">
+                            <strong>Dark Mode:</strong> Wechsel zwischen hellem Tag-Design und augenschonendem dunklen Design. Die Wahl wird sofort serverseitig gespeichert.
+                        </li>
+                        <li>
+                            <strong>Vorschaubilder in der Übersicht:</strong> Legt fest, ob in der Inventarübersicht Miniaturbilder angezeigt werden. Bei Deaktivierung zeigt die Übersicht eine kompaktere Textkarten-Ansicht.
+                        </li>
+                    </ul>
                 </section>
 
                 <hr class="my-3 text-black-50">
 
-                <!-- 4. Sicherheit & Zugriffsschutz (NEU) -->
+                <!-- 5. Artikel bearbeiten, Dokumente & Hauptbild (NEU ERWEITERT) -->
+                <section class="mb-4">
+                    <h6 class="text-danger d-flex align-items-center fw-bold">
+                        <i class="fa-solid fa-pen-to-square me-2"></i> Artikel bearbeiten, Fotos &amp; Hauptbild
+                    </h6>
+                    <p class="small text-muted mb-2">
+                        Ein Klick auf eine Artikelkarte öffnet die Detailansicht zum Ändern aller Eigenschaften:
+                    </p>
+                    <ul class="small text-muted ps-3 mb-0">
+                        <li class="mb-1">
+                            <strong>Hauptbild festlegen (Stern-Symbol):</strong> Bei Gegenständen mit mehreren Bildern kann durch Klick auf das Stern-Symbol ein Bild als <em>Hauptbild</em> definiert werden. Dieses erscheint als Titelbild in der Übersicht und in Kachelansichten.
+                        </li>
+                        <li class="mb-1">
+                            <strong>Fotos per Smartphone-Kamera:</strong> Beim Hinzufügen von Bildern auf mobilen Geräten öffnet sich auf Wunsch direkt die Kamera für Schnappschüsse.
+                        </li>
+                        <li>
+                            <strong>Dokumente &amp; Anleitungen:</strong> Neben Bildern können auch Dokumente (PDF, DOCX, TXT) hochgeladen werden, z. B. Rechnungen, Garantiescheine oder Handbücher.
+                        </li>
+                    </ul>
+                </section>
+
+                <hr class="my-3 text-black-50">
+
+                <!-- 6. Standort-Baumansicht -->
+                <section class="mb-4">
+                    <h6 class="text-danger d-flex align-items-center fw-bold">
+                        <i class="fa-solid fa-folder-tree me-2"></i> Standortansicht (Baumstruktur)
+                    </h6>
+                    <ul class="small text-muted ps-3 mb-0">
+                        <li class="mb-1">Tippe auf Pfeile/Ordner, um Unter-Standorte auszuklappen.</li>
+                        <li class="mb-1">Ein Klick auf einen Standort filtert alle dort gelagerten Inventar-Artikel.</li>
+                        <li><strong>Achtung beim Löschen:</strong> Das Berühren oder Überfahren des Papierkorb-Symbols hebt den betroffenen Zweig <span class="text-danger fw-semibold">rot hervor (Glow-Effekt)</span>, um versehentliches Löschen zu verhindern.</li>
+                    </ul>
+                </section>
+
+                <hr class="my-3 text-black-50">
+
+                <!-- 7. Sicherheit & Zugriffsschutz -->
                 <section class="mb-4">
                     <h6 class="text-danger d-flex align-items-center fw-bold">
                         <i class="fa-solid fa-shield-halved me-2"></i> Sicherheit &amp; Zugriffsschutz
@@ -102,36 +158,7 @@
 
                 <hr class="my-3 text-black-50">
 
-                <!-- 5. Standort-Baumansicht -->
-                <section class="mb-4">
-                    <h6 class="text-danger d-flex align-items-center fw-bold">
-                        <i class="fa-solid fa-folder-tree me-2"></i> Standortansicht (Baumstruktur)
-                    </h6>
-                    <ul class="small text-muted ps-3 mb-0">
-                        <li class="mb-1">Tippe auf Pfeile/Ordner, um Unter-Standorte auszuklappen.</li>
-                        <li class="mb-1">Ein Klick auf einen Standort filtert alle zugewiesenen Inventar-Artikel.</li>
-                        <li><strong>Achtung beim Löschen:</strong> Das Wischen oder Fahren über das Papierkorb-Symbol hebt den betroffenen Zweig <span class="text-danger fw-semibold">rot hervor (Glow-Effekt)</span>, um versehentliches Löschen zu verhindern.</li>
-                    </ul>
-                </section>
-
-                <hr class="my-3 text-black-50">
-
-                <!-- 6. Artikel bearbeiten & Fotos -->
-                <section class="mb-4">
-                    <h6 class="text-danger d-flex align-items-center fw-bold">
-                        <i class="fa-solid fa-pen-to-square me-2"></i> Artikel bearbeiten &amp; Fotos
-                    </h6>
-                    <p class="small text-muted mb-1">
-                        <strong>Karten-Details:</strong> Ein Klick auf eine Artikelkarte öffnet die Detailansicht zum Ändern von Menge, Zustand oder Bildern. Dabei kann ein hauptbild festgelegt werden, das in der Übersicht angezeigt wird. Alle weiteren Bilder dienen nur der Detailansicht. Ebenso können Dokumente (PDF, DOCX, TXT) hochgeladen werden, z. B. Bedienungsanleitungen oder Rechnungen.
-                    </p>
-                    <p class="small text-muted mb-0">
-                        <strong>Fotos am Smartphone:</strong> Beim Hochladen eines Bildes kann mobil direkt die Kamera genutzt werden, um Gegenstände sofort zu fotografieren.
-                    </p>
-                </section>
-
-                <hr class="my-3 text-black-50">
-
-                <!-- 7. Tastenkombinationen (Desktop) -->
+                <!-- 8. Tastenkombinationen (Desktop) -->
                 <section class="mb-4 d-none d-md-block">
                     <h6 class="text-danger d-flex align-items-center fw-bold">
                         <i class="fa-solid fa-keyboard me-2"></i> Tastenkombinationen (Desktop)
@@ -143,18 +170,21 @@
                         <div class="col-6">
                             <kbd class="bg-dark">Esc</kbd> &ndash; Dialoge / Menüs schließen
                         </div>
+                        <div class="col-6">
+                            <kbd class="bg-dark">F1</kbd> oder <kbd class="bg-dark">?</kbd> &ndash; Diese Hilfe anzeigen
+                        </div>
                     </div>
                 </section>
 
                 <hr class="my-3 text-black-50 d-none d-md-block">
 
-                <!-- 8. Mehrbenutzer & Synchronisation -->
+                <!-- 9. Mehrbenutzer & Synchronisation -->
                 <section>
                     <h6 class="text-danger d-flex align-items-center fw-bold">
                         <i class="fa-solid fa-arrows-rotate me-2"></i> Synchronisation &amp; Multi-User
                     </h6>
                     <p class="small text-muted mb-0">
-                        Änderungen am Lagerbestand (z. B. Entnahmen oder Umlagerungen durch andere Benutzer) werden automatisch abgeglichen.
+                        Änderungen am Lagerbestand (z. B. Entnahmen oder Umlagerungen durch andere Benutzer) werden automatisch synchronisiert.
                     </p>
                 </section>
 
@@ -170,6 +200,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- Modal: Benutzer bearbeiten -->
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">

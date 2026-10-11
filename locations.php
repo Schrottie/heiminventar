@@ -102,12 +102,13 @@ require_once __DIR__ . '/inc/header.php';
                 $indent = $loc['depth'] > 0 ? str_repeat('— ', $loc['depth']) . ' ' : '';
             ?>
             <option value="<?= (int)$loc['id'] ?>" <?= $disabled ?> data-has-children="<?= isset($hasChildrenMap[$loc['id']]) ? '1' : '0' ?>">
-                <?= $indent ?><<?= htmlspecialchars($loc['name']) ?> <?= $itemCount > 0 ? "({$itemCount} Items)" : '(leer)' ?>
+                <?= $indent ?><?= htmlspecialchars($loc['name']) ?> <?= $itemCount > 0 ? "({$itemCount} Items)" : '(leer)' ?>
             </option>
         <?php endforeach; ?>
     </select>
     <div class="form-text">Leere Lagerorte sind deaktiviert.</div>
 </div>
+
 
                     <div class="mb-3">
                         <label class="form-label">Ziel-Lagerort</label>

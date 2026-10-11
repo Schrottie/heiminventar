@@ -82,7 +82,7 @@ if (!empty($_FILES['documents']['name'][0])) {
 
 // 4. Weiterleitung je nach gedrücktem Button
 if ($action === 'save_and_next') {
-    header("Location: ../edit-item.php?success=1");
+    header("Location: ../add-item.php?success=1");
 } else {
     // Direkt zur Detail-Bearbeitungsseite weiterleiten
     header("Location: ../item.php?id=" . $newItemId . "&success=1");

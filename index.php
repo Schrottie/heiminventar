@@ -140,26 +140,28 @@ require_once __DIR__ . '/inc/header.php';
     <?php endif; ?>
 </div>
 
-
 <!-- Inventarliste -->
 <div id="inventoryList">
-    <?php foreach ($items as$item): ?>
+    <?php foreach ($items as $item): ?>
         <?php
         $itemId = (int)$item['id'];
         $qty = (int)$item['quantity'];
         $minQty = (int)$item['min_quantity'];
-        $isLowStock = ($minQty > 0 && $qty <=$minQty);
+        $isLowStock = ($minQty > 0 && $qty <= $minQty);
 
-        $path = getLocationPath($allLocations, (int)$item['location_id']);$searchTerms = mb_strtolower($item['name'] . ' ' . ($item['location_name'] ?? '') . ' ' . $path);$hasImage = $showImages && !empty($item['image_filename']);
+        $path = getLocationPath($allLocations, (int)$item['location_id']);
+        $searchTerms = mb_strtolower($item['name'] . ' ' . ($item['location_name'] ?? '') . ' ' . $path);
+        $hasImage = $showImages && !empty($item['image_filename']);
         ?>
 
         <div class="card shadow-sm mb-2 inventory-item <?= $isLowStock ? 'border-danger-subtle bg-danger-subtle bg-opacity-10' : '' ?>"
              data-search="<?= htmlspecialchars($searchTerms) ?>"
              data-low-stock="<?= $isLowStock ? '1' : '0' ?>">
             <div class="card-body p-3">
-                <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-start justify-content-between">
                    
-                    <div class="d-flex align-items-center me-3 flex-grow-1 min-w-0">
+                    <!-- Wichtig: min-width: 0 (mw-0) zwingt den Container, sich an den Bildschirm anzupassen -->
+                    <div class="d-flex align-items-start me-3 flex-grow-1 mw-0">
                         <?php if ($hasImage): ?>
                             <div class="me-3 flex-shrink-0">
                                 <img src="img/items/<?= htmlspecialchars($item['image_filename']) ?>"
@@ -169,21 +171,23 @@ require_once __DIR__ . '/inc/header.php';
                             </div>
                         <?php endif; ?>
 
-                        <div class="text-truncate">
-                            <h6 class="mb-1 text-truncate ">
+                        <div class="flex-grow-1 mw-0">
+                            <!-- text-break bricht lange Wörter/Namen sauber um -->
+                            <h6 class="mb-1 text-break">
                                 <i class="fa-solid fa-box text-primary me-1"></i>
                                 <?= htmlspecialchars($item['name']) ?>
                                
-                                <!-- Mengen-Badges -->
-                                <span class="badge <?= $isLowStock ? 'bg-danger' : 'bg-secondary' ?> ms-1">
-                                    x<?= $qty ?>
-                                </span>
-
-                                <?php if ($isLowStock): ?>
-                                    <span class="badge bg-warning text-dark ms-1" title="Mindestbestand: <?= $minQty ?>">
-                                        <i class="fa-solid fa-triangle-exclamation me-1"></i>Min: <?= $minQty ?>
+                                <span class="d-inline-block">
+                                    <span class="badge <?= $isLowStock ? 'bg-danger' : 'bg-secondary' ?> ms-1">
+                                        x<?= $qty ?>
                                     </span>
-                                <?php endif; ?>
+
+                                    <?php if ($isLowStock): ?>
+                                        <span class="badge bg-warning text-dark ms-1" title="Mindestbestand: <?= $minQty ?>">
+                                            <i class="fa-solid fa-triangle-exclamation me-1"></i>Min: <?= $minQty ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </span>
                             </h6>
 
                             <small class="d-block text-truncate">
@@ -194,7 +198,7 @@ require_once __DIR__ . '/inc/header.php';
                             </small>
 
                             <div class="collapse mt-1" id="locationPath<?= $itemId ?>">
-                                <div class="small text-muted">
+                                <div class="small text-muted text-break">
                                     <?= htmlspecialchars($path) ?>
                                 </div>
                             </div>

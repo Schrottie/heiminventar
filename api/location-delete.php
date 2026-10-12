@@ -31,7 +31,7 @@ if (!$locationName) {
 $stmtItems = $pdo->prepare("
     SELECT id, name, quantity 
     FROM inventory_items 
-    WHERE location_id = ?
+    WHERE location_id = ? AND is_archived = '0'
 ");
 $stmtItems->execute([$id]);
 $affectedItems = $stmtItems->fetchAll();

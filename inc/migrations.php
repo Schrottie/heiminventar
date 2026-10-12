@@ -151,6 +151,23 @@ function runDatabaseMigrations(PDO $pdo): void
                         1
                     )
                     ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
+        ",
+
+        '012_add_archive_to_items' => "
+            ALTER TABLE inventory_items 
+            ADD COLUMN is_archived TINYINT(1) NOT NULL DEFAULT 0,
+            ADD COLUMN archived_at TIMESTAMP NULL DEFAULT NULL;
+        ",
+
+        '013_release_1_0_3' => "
+            INSERT INTO app_releases (version, title, content, is_active)
+            VALUES (
+                '1.0.3',
+                'Archivsystem integriert 🚀',
+                'Mit der vorliegenden Version 1.0.3 können Items nun archiviert werden. Archivierte Items werden in der Standardansicht nicht mehr angezeigt, können aber jederzeit wiederhergestellt werden. Dazu steht eine Archivseite (Papierkorb) zur Verfügung, auf der alle archivierten Items angezeigt und komfortabel gefiltert werden können.',
+                        1
+                    )
+                    ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
         "
 
     ];

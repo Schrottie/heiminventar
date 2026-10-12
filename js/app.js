@@ -7,6 +7,7 @@ const ROUTES = {
     INVENTORY: 'inventory.php',
     SETTINGS: 'settings.php',
     HISTORY: 'history.php',
+    ARCHIVE: 'archive.php',
     START: 'index.php'
 };
 
@@ -77,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     bindFabRoute('changeFabBtn', ROUTES.INVENTORY);
     bindFabRoute('indexFabBtn', ROUTES.START);
     bindFabRoute('settingsFabBtn', ROUTES.SETTINGS);
+    bindFabRoute('archiveFabBtn', ROUTES.ARCHIVE);
     bindFabRoute('historyFabBtn', ROUTES.HISTORY);
 
     // ---------------------------------------------------------------------
@@ -710,3 +712,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+function archiveItem(id) {
+    if (!confirm('Möchtest du diesen Gegenstand wirklich archivieren?')) return;
+    
+    fetch('api/item-archive.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = 'index.php'; // Zurück zur Übersicht
+        } else {
+            alert('Fehler beim Archivieren: ' + data.error);
+        }
+    });
+}

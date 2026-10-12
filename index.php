@@ -75,6 +75,7 @@ $sql = "
     ) main_img ON main_img.item_id = i.id
     LEFT JOIN item_images img ON img.id = main_img.main_id
     {$whereClause}
+    WHERE i.is_archived = '0'
     ORDER BY i.name
 ";
 

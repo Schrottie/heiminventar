@@ -8,7 +8,7 @@ require_once __DIR__ . '/inc/functions.php';
 $locations = $pdo->query("SELECT id, parent_id, name FROM locations ORDER BY name")->fetchAll();
 
 // Alle Items abfragen und nach location_id gruppieren
-$rawItems = $pdo->query("SELECT id, name, location_id FROM inventory_items ORDER BY name")->fetchAll();
+$rawItems = $pdo->query("SELECT id, name, location_id FROM inventory_items WHERE is_archived = '0' ORDER BY name")->fetchAll();
 $itemsByLocation = [];
 foreach ($rawItems as $item) {
     $itemsByLocation[$item['location_id']][] = $item;

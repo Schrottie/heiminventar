@@ -33,7 +33,7 @@ function sortLocationsHierarchically(array $locations,$parentId = null, int $dep
 $locations = sortLocationsHierarchically($locationsRaw);
 
 // Alle Items abfragen und nach location_id gruppieren
-$rawItems =$pdo->query("SELECT id, name, location_id FROM inventory_items ORDER BY name")->fetchAll();
+$rawItems =$pdo->query("SELECT id, name, location_id FROM inventory_items WHERE is_archived = '0' ORDER BY name")->fetchAll();
 $itemsByLocation = [];
 foreach ($rawItems as $item) {$itemsByLocation[$item['location_id']][] =$item;
 }
@@ -90,25 +90,24 @@ require_once __DIR__ . '/inc/header.php';
                     <!-- Verstecktes Feld für Modalauswahl (Sub-Locations einbeziehen) -->
                     <input type="hidden" name="include_sublocations" id="includeSublocationsInput" value="0">
 
-<div class="mb-3">
-    <label class="form-label">Quell-Lagerort</label>
-    <select name="source_id" id="sourceLocationSelect" class="form-select" required>
-        <option value="">Bitte auswählen...</option>
-        <?php foreach ($locations as $loc): ?>
-            <?php 
-                $itemCount = count($itemsByLocation[$loc['id']] ?? []);
-                $disabled = ($itemCount === 0) ? 'disabled' : '';
-                // Visuelle Einrückung basierend auf der Tiefe
-                $indent = $loc['depth'] > 0 ? str_repeat('— ', $loc['depth']) . ' ' : '';
-            ?>
-            <option value="<?= (int)$loc['id'] ?>" <?= $disabled ?> data-has-children="<?= isset($hasChildrenMap[$loc['id']]) ? '1' : '0' ?>">
-                <?= $indent ?><?= htmlspecialchars($loc['name']) ?> <?= $itemCount > 0 ? "({$itemCount} Items)" : '(leer)' ?>
-            </option>
-        <?php endforeach; ?>
-    </select>
-    <div class="form-text">Leere Lagerorte sind deaktiviert.</div>
-</div>
-
+                    <div class="mb-3">
+                        <label class="form-label">Quell-Lagerort</label>
+                        <select name="source_id" id="sourceLocationSelect" class="form-select" required>
+                            <option value="">Bitte auswählen...</option>
+                            <?php foreach ($locations as $loc): ?>
+                                <?php 
+                                    $itemCount = count($itemsByLocation[$loc['id']] ?? []);
+                                    $disabled = ($itemCount === 0) ? 'disabled' : '';
+                                    // Visuelle Einrückung basierend auf der Tiefe
+                                    $indent = $loc['depth'] > 0 ? str_repeat('— ', $loc['depth']) . ' ' : '';
+                                ?>
+                                <option value="<?= (int)$loc['id'] ?>" <?= $disabled ?> data-has-children="<?= isset($hasChildrenMap[$loc['id']]) ? '1' : '0' ?>">
+                                    <?= $indent ?><?= htmlspecialchars($loc['name']) ?> <?= $itemCount > 0 ? "({$itemCount} Items)" : '(leer)' ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div class="form-text">Leere Lagerorte sind deaktiviert.</div>
+                    </div>
 
                     <div class="mb-3">
                         <label class="form-label">Ziel-Lagerort</label>

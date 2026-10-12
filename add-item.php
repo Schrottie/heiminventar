@@ -65,14 +65,14 @@ require_once __DIR__ . '/inc/header.php';
                 </div>
             </div>
 
-            <!-- Schaltflächen zum Speichern -->
+            <!-- Schaltflächen zum Speichern & Archivieren -->
             <div class="d-flex gap-2">
                 <button type="submit" name="action" value="save" class="btn btn-success flex-fill">
                     <i class="fa-solid fa-floppy-disk me-2"></i>Speichern
                 </button>
                 <button type="submit" name="action" value="save_and_next" class="btn btn-primary flex-fill">
-                    <i class="fa-solid fa-square-plus me-2"></i>Speichern und nächster Gegenstand
-                </button>
+                    <i class="fa-solid fa-square-plus me-2"></i>Speichern & Nächster
+                </button>s
             </div>
         </form>
     </div>
@@ -80,3 +80,4 @@ require_once __DIR__ . '/inc/header.php';
 
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>
+

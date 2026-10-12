@@ -15,6 +15,8 @@ CREATE TABLE inventory_items (
     location_id INT NULL,
     quantity INT NOT NULL DEFAULT 1,
     min_quantity INT DEFAULT 0,
+    is_archived TINYINT(1) NOT NULL DEFAULT 0,
+    archived_at TIMESTAMP NULL DEFAULT NULL;
     created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_inventory_location
     FOREIGN KEY(location_id)

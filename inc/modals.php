@@ -373,6 +373,59 @@
     </div>
   </div>
 </div>
+<?php endif; ?>
+
+<!-- Reaktivieren archivierter Items mit Ziel-Lagerort-Auswahl -->
+<div class="modal fade" id="restoreModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-rotate-left me-2"></i>Gegenstand reaktivieren</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Wähle einen Lagerort aus, in den <strong><span id="restoreItemName"></span></strong> zurückgelegt werden soll:</p>
+                <input type="hidden" id="restoreItemId">
+                
+                <div class="mb-3">
+                    <label class="form-label">Ziel-Lagerort</label>
+                    <select id="restoreLocationSelect" class="form-select" required>
+                        <option value="">Bitte auswählen...</option>
+                        <?php foreach ($locations as $loc): ?>
+                            <?php $indent = $loc['depth'] > 0 ? str_repeat('— ', $loc['depth']) . ' ' : ''; ?>
+                            <option value="<?= (int)$loc['id'] ?>"><?= $indent ?><?= htmlspecialchars($loc['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-success" onclick="submitRestore()">Reaktivieren bestätigen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sicherheitsabfrage zum Archivieren von Items -->
+<div class="modal fade" id="archiveConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-box-archive me-2"></i>Gegenstand archivieren</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Möchtest du den Gegenstand <strong id="archiveItemNameText"></strong> wirklich archivieren?</p>
+                <p class="text-muted small mb-0">Er wird aus dem aktiven Bestand entfernt, kann aber über das Archiv jederzeit wiederhergestellt werden.</p>
+                <input type="hidden" id="archiveTargetId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-danger" onclick="executeArchive()">Ja, archivieren</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Marked.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -416,4 +469,3 @@ function markReleaseAsSeen(version) {
     .catch(err => console.error('Fehler beim Aktualisieren:', err));
 }
 </script>
-<?php endif; ?>

@@ -13,7 +13,11 @@
         ?>
 
         <?php if ($canSeeFab): ?>
-        <button id="historyFabBtn" class="btn btn-dark fab-action" title="Änderungsprotokoll aufrufen">
+        <button id="archiveFabBtn" class="btn btn-dark fab-action" title="Archiv aufrufen">
+            <i class="fa-solid fa-trash-can"></i> Archiv
+        </button>
+
+        <button id="historyFabBtn" class="btn btn-info fab-action" title="Änderungsprotokoll aufrufen">
             <i class="fa-solid fa-gear"></i> Protokoll
         </button>
 

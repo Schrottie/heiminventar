@@ -40,7 +40,7 @@ $placeholders = implode(',', array_fill(0, count($locationIds), '?'));
 $stmt = $pdo->prepare("
     SELECT COUNT(*)
     FROM inventory_items
-    WHERE location_id IN ($placeholders)
+    WHERE location_id IN ($placeholders)  AND is_archived = '0'
 ");
 
 $stmt->execute($locationIds);

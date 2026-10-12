@@ -8,7 +8,7 @@ require_once __DIR__ . '/inc/functions.php';
 $id = (int)($_GET['id'] ?? 0);
 
 // Gegenstand-Daten abfragen
-$stmt = $pdo->prepare("SELECT * FROM inventory_items WHERE id = ?");
+$stmt = $pdo->prepare("SELECT * FROM inventory_items WHERE id = ? AND is_archived = '0'");
 $stmt->execute([$id]);
 $item = $stmt->fetch();
 
@@ -33,13 +33,20 @@ require_once __DIR__ . '/inc/header.php';
         <div>
             <i class="fa-solid fa-box me-2"></i>Gegenstand bearbeiten
         </div>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#qrModal">
-            <i class="fa-solid fa-qrcode me-1"></i> QR-Code & Etikett
-        </button>
+        <div class="d-flex gap-2">
+            <!-- Button: Archivieren (öffnet das Modal aus modals.php) -->
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="openArchiveModal(<?= (int)$item['id'] ?>, '<?= htmlspecialchars($item['name'], ENT_QUOTES) ?>')">
+                <i class="fa-solid fa-box-archive me-1"></i>Archivieren
+            </button>
+            <!-- Button: QR-Code Modal -->
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#qrModal">
+                <i class="fa-solid fa-qrcode me-1"></i> QR-Code & Etikett
+            </button>
+        </div>
     </div>
 
     <div class="card-body">
-        
+       
         <!-- Bildergalerie mit Hauptbild-Auswahl & Löschen-Funktion -->
         <?php if (!empty($images)): ?>
             <div class="row mb-3">
@@ -49,14 +56,14 @@ require_once __DIR__ . '/inc/header.php';
                         <div class="card h-100 <?= $isMain ? 'border-warning shadow-sm' : '' ?>">
                             <img src="img/items/<?= htmlspecialchars($image['filename']) ?>" class="card-img-top img-fluid item-pic object-fit-cover" style="height: 140px;" alt="Bild">
                             <div class="card-body p-2 d-flex gap-1">
-                                
+                               
                                 <!-- Button: Als Hauptbild festlegen -->
                                 <form action="api/item-update.php" method="post" class="flex-grow-1">
                                     <input type="hidden" name="action_set_main_image" value="1">
                                     <input type="hidden" name="image_id" value="<?= (int)$image['id'] ?>">
                                     <input type="hidden" name="item_id" value="<?= (int)$item['id'] ?>">
-                                    <button type="submit" 
-                                            class="btn btn-sm w-100 <?= $isMain ? 'btn-warning text-white' : 'btn-outline-warning' ?>" 
+                                    <button type="submit"
+                                            class="btn btn-sm w-100 <?= $isMain ? 'btn-warning text-white' : 'btn-outline-warning' ?>"
                                             title="<?= $isMain ? 'Aktuelles Hauptbild' : 'Als Hauptbild festlegen' ?>">
                                         <i class="fa-solid fa-star"></i>
                                     </button>
@@ -121,6 +128,7 @@ require_once __DIR__ . '/inc/header.php';
                 <label class="form-label">Weitere Bilder hinzufügen</label>
                 <input type="file" name="images[]" class="form-control" accept="image/*" multiple>
             </div>
+
             <!-- Schaltflächen zum Speichern & Navigation -->
             <div class="d-flex flex-wrap gap-2">
                 <button type="submit" name="action" value="save" class="btn btn-success flex-fill">
@@ -133,10 +141,47 @@ require_once __DIR__ . '/inc/header.php';
                     <i class="fa-solid fa-arrow-left me-1"></i>Zur Übersicht
                 </a>
             </div>
-
         </form>
     </div>
 </div>
+
+<script>
+// Steuerung für das Archivierungs-Modal (id- und namen-Übergabe an das Modal aus modals.php)
+function openArchiveModal(id, name) {
+    const nameEl = document.getElementById('archiveItemNameText');
+    if (nameEl) nameEl.innerText = '"' + name + '"';
+    
+    const idInput = document.getElementById('archiveTargetId');
+    if (idInput) idInput.value = id;
+
+    const modalEl = document.getElementById('archiveConfirmModal');
+    if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+}
+
+// Führt den API-Call zum Archivieren aus (wird vom Bestätigungs-Button im Modal ausgelöst)
+function executeArchive() {
+    const idInput = document.getElementById('archiveTargetId');
+    const id = idInput ? idInput.value : <?= (int)$item['id'] ?>;
+
+    fetch('api/item-archive.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = 'index.php';
+        } else {
+            console.error('Fehler beim Archivieren:', data.error);
+        }
+    })
+    .catch(err => console.error('Netzwerkfehler:', err));
+}
+</script>
 
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>

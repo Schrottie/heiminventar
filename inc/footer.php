@@ -26,6 +26,10 @@
             <i class="fa-solid fa-box-archive"></i>
             <span>Archiv</span>
         </a>
+        <a href="import-export.php" class="fab-sub-item">
+            <i class="fa-solid fa-file-arrow-down"></i>
+            <span>Import / Export</span>
+        </a>
         <a href="release.php" class="fab-sub-item">
             <i class="fa-brands fa-square-github"></i>
             <span>Release-Notes</span>
@@ -40,6 +44,12 @@
         <span class="fab-label">Tools</span>
         <i class="fa-solid fa-chevron-left ms-auto fab-arrow"></i>
     </button>
+
+    <!-- Dashboard -->
+    <a href="dashboard.php" class="fab-action" title="Dashboard">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span class="fab-label">Dashboard</span>
+    </a>
 
     <!-- Einstellungen -->
     <a href="settings.php" class="fab-action" title="Einstellungen">

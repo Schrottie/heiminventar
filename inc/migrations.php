@@ -178,7 +178,7 @@ function runDatabaseMigrations(PDO $pdo): void
                 ADD COLUMN loan_to VARCHAR(255) DEFAULT NULL AFTER on_loan;
         ",
 
-        '013_release_1_0_4' => "
+        '015_release_1_0_4' => "
             INSERT INTO app_releases (version, title, content, is_active)
             VALUES (
                 '1.0.4',
@@ -194,6 +194,27 @@ function runDatabaseMigrations(PDO $pdo): void
                 inkl. Angabe an wen.
                 * **Inventur-Tool:** Ein neues Inventur-Tool ermöglicht es, den
                 aktuellen Bestand zu überprüfen und Abweichungen einzutragen.',
+                        1
+                    )
+                    ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
+        ",
+
+        '016_release_1_0_5' => "
+            INSERT INTO app_releases (version, title, content, is_active)
+            VALUES (
+                '1.0.5',
+                'Herbstupdate Teil 3 🚀',
+                'Das System wurde um diverse neue Funktionen erweitert:
+                
+                * **Datenimport:** Items können nun über eine CSV-Datei importiert
+                werden.
+                * **Datenexport:** Items können nun über eine CSV-Datei exportiert
+                werden.
+                * **Dashboard:** Ein neues Dashboard zeigt die wichtigsten
+                Kennzahlen auf einen Blick an.
+                * ** Release-Historie:** Die Release-Historie wurde um die
+                Möglichkeit erweitert, die Details zu den einzelnen Releases
+                einzusehen.',
                         1
                     )
                     ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);

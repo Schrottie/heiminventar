@@ -50,6 +50,9 @@ section {
                     <a href="#items" class="list-group-item list-group-item-action"><i class="fa-solid fa-pen-to-square me-2"></i>Gegenstände bearbeiten &amp; archivieren</a>
                     <a href="#locations" class="list-group-item list-group-item-action"><i class="fa-solid fa-folder-tree me-2"></i>Lagerortverwaltung</a>
                     <a href="#shuffle" class="list-group-item list-group-item-action"><i class="fa-solid fa-shuffle me-2"></i>Verschiebebahnhof</a>
+                    <a href="#dashboard" class="list-group-item list-group-item-action"><i class="fa-solid fa-chart-pie me-2"></i>Dashboard &amp; Auswertung</a>
+                    <a href="#import-export" class="list-group-item list-group-item-action"><i class="fa-solid fa-file-arrow-down me-2"></i>Daten-Import &amp; Export</a>
+                    <a href="#releases" class="list-group-item list-group-item-action"><i class="fa-brands fa-square-github me-2"></i>Release-Notes &amp; Changelog</a>
                     <a href="#security" class="list-group-item list-group-item-action"><i class="fa-solid fa-shield-halved me-2"></i>Sicherheit &amp; Login</a>
                     <a href="#shortcuts" class="list-group-item list-group-item-action"><i class="fa-solid fa-keyboard me-2"></i>Tastenkombinationen</a>
                     <a href="#sync" class="list-group-item list-group-item-action"><i class="fa-solid fa-arrows-rotate me-2"></i>Synchronisation &amp; Multi-User</a>
@@ -213,7 +216,76 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 8. Sicherheit & Zugriffsschutz -->
+                    <!-- 8. Dashboard & Auswertung -->
+                    <section id="dashboard" class="mb-5">
+                        <h5 class="text-danger d-flex align-items-center fw-bold">
+                            <i class="fa-solid fa-chart-pie me-2"></i> Dashboard &amp; Auswertung
+                        </h5>
+                        <p class="small text-muted mb-2">
+                            Das Dashboard bietet eine zentrale Übersicht und Kennzahlen für das gesamte Inventar:
+                        </p>
+                        <ul class="small text-muted ps-3 mb-0">
+                            <li class="mb-1">
+                                <strong>Kennzahlen (KPIs):</strong> Auf einen Blick werden der Gesamtwert des Inventars, die Anzahl verliehener Gegenstände, Artikel unter Mindestbestand sowie ablaufende Produkte angezeigt.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Aktive Verleihvorgänge:</strong> Eine kompakte Widget-Liste zeigt sofort, welcher Gegenstand aktuell an welche Person verliehen ist und wie hoch die verliehene Menge ist.
+                            </li>
+                            <li>
+                                <strong>Ablauf-Warnungen:</strong> Artikel, deren Verfallsdatum in den nächsten 30 Tagen erreicht wird oder bereits überschritten ist, werden hervorgehoben, um rechtzeitig reagieren zu können.
+                            </li>
+                        </ul>
+                    </section>
+
+                    <hr class="my-1 text-black-50">
+
+                    <!-- 9. Daten-Import & Export -->
+                    <section id="import-export" class="mb-5">
+                        <h5 class="text-danger d-flex align-items-center fw-bold">
+                            <i class="fa-solid fa-file-arrow-down me-2"></i> Daten-Import &amp; Export
+                        </h5>
+                        <p class="small text-muted mb-2">
+                            Über die Schnittstelle können Bestände flexibel gesichert oder massenhaft aktualisiert werden:
+                        </p>
+                        <ul class="small text-muted ps-3 mb-0">
+                            <li class="mb-1">
+                                <strong>CSV-Export:</strong> Das gesamte Inventar lässt sich per Mausklick als vollständige CSV-Datei (kompatibel mit Excel und LibreOffice) inklusive aller Attribute herunterladen.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Automatisierter Import:</strong> Durch Hochladen einer formatierten CSV-Datei werden neue Gegenstände angelegt oder bestehende Artikel anhand ihrer Bezeichnung automatisch aktualisiert.
+                            </li>
+                            <li>
+                                <strong>Transaktionssicherheit:</strong> Der Import läuft abgesichert ab. Bei fehlerhaften Datenformaten oder fehlenden Pflichtfeldern bricht der Vorgang ab, sodass keine Daten beschädigt werden.
+                            </li>
+                        </ul>
+                    </section>
+
+                    <hr class="my-1 text-black-50">
+
+                    <!-- 10. Release-Notes & Updates -->
+                    <section id="releases" class="mb-5">
+                        <h5 class="text-danger d-flex align-items-center fw-bold">
+                            <i class="fa-brands fa-square-github me-2"></i> Release-Notes &amp; Changelog
+                        </h5>
+                        <p class="small text-muted mb-2">
+                            Das System informiert automatisch über Neuerungen und Funktionserweiterungen:
+                        </p>
+                        <ul class="small text-muted ps-3 mb-0">
+                            <li class="mb-1">
+                                <strong>Automatische Benachrichtigung:</strong> Bei neuen Aktualisierungen öffnet sich beim ersten Aufruf eigenständig ein Release-Modal mit den wichtigsten Neuerungen.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Markdown-Darstellung:</strong> Release-Texte und Changelogs werden formatiert aufbereitet, um Änderungen übersichtlich darzustellen.
+                            </li>
+                            <li>
+                                <strong>Gesehen-Status:</strong> Bereits gelesene Versionshinweise werden im Hintergrund als gesehen markiert, damit das Modal bei Folgeaufrufen nicht erneut aufspringt.
+                            </li>
+                        </ul>
+                    </section>
+
+                    <hr class="my-1 text-black-50">
+
+                    <!-- 11. Sicherheit & Zugriffsschutz -->
                     <section id="security" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-shield-halved me-2"></i> Sicherheit &amp; Zugriffsschutz
@@ -230,7 +302,7 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 9. Tastenkombinationen -->
+                    <!-- 12. Tastenkombinationen -->
                     <section id="shortcuts" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-keyboard me-2"></i> Tastenkombinationen auf dem Desktop
@@ -246,7 +318,7 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 10. Multi-User & Synchronisation -->
+                    <!-- 13. Multi-User & Synchronisation -->
                     <section id="sync">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-arrows-rotate me-2"></i> Synchronisation &amp; Multi-User

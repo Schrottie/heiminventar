@@ -30,7 +30,9 @@ require_once __DIR__ . '/inc/header.php';
             <h2><i class="fa-solid fa-box-archive me-2"></i>Archiv / Papierkorb</h2>
             <p class="text-muted mb-0">Übersicht aller archivierten Gegenstände. Sie können jederzeit reaktiviert werden.</p>
         </div>
-        <a href="index.php" class="btn btn-outline-secondary">← Zur Übersicht</a>
+        <a href="index.php" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i>Zurück zur Übersicht
+        </a>
     </div>
 
     <!-- Live-Suchfeld -->

@@ -13,6 +13,10 @@
         ?>
 
         <?php if ($canSeeFab): ?>
+        <button id="helpFabBtn" class="btn btn-help fab-action" title="Archiv aufrufen">
+            <i class="fa-solid fa-circle-question"></i> Hilfe
+        </button>
+
         <button id="archiveFabBtn" class="btn btn-dark fab-action" title="Archiv aufrufen">
             <i class="fa-solid fa-trash-can"></i> Archiv
         </button>

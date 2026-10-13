@@ -70,6 +70,20 @@ a {
     --bs-btn-active-border-color: #550007;
 }
 
+.btn-help {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #6f42c1;
+    --bs-btn-border-color: #6f42c1;
+
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #5a32a3;
+    --bs-btn-hover-border-color: #5a32a3;
+
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #4a2882;
+    --bs-btn-active-border-color: #4a2882;
+}
+
 /* ==========================================================================
    02. HERO HEADER
    ========================================================================== */
@@ -288,10 +302,14 @@ a {
     position: fixed;
     bottom: 20px;
     right: 20px;
+    display: flex;
+    flex-direction: column; /* Normaler Fluss von oben nach unten */
+    align-items: flex-end;
+    gap: 10px; /* Abstand zwischen den Buttons */
     z-index: 1050;
 }
 
-/* Haupt-Auslöser-Button */
+/* Haupt-Auslöser-Button sitzt immer ganz unten */
 .fab-main {
     width: 60px;
     height: 60px;
@@ -300,10 +318,8 @@ a {
     background-color: #550007;
 }
 
-/* Versteckte Unter-Aktionen im Grundzustand */
+/* Basis-Design der Unter-Aktionen */
 .fab-action {
-    position: absolute;
-    right: 0;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -311,45 +327,24 @@ a {
     height: 44px;
     padding: 0 14px;
     border-radius: 22px;
+    
+    /* Zustand im geschlossenen Menü: Unsichtbar, unsichtbar verkleinert und nach unten verschoben (verstecken sich hinter dem Hauptbutton) */
     opacity: 0;
     pointer-events: none;
-    transform: translateY(0);
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform: scale(0.8) translateY(20px);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Schiebt die Aktions-Buttons im DOM optisch NACH OBEN über den Hauptbutton */
+    order: -1; 
 }
 
-/* Geöffneter Zustand: Buttons werden eingeblendet und nach oben geschoben */
+/* Geöffneter Zustand: Alle Buttons ploppen nach oben auf ihre richtige Position */
 #fabContainer.open .fab-action {
     opacity: 1;
     pointer-events: auto;
+    transform: scale(1) translateY(0);
 }
 
-#fabContainer.open #indexFabBtn {
-    transform: translateY(-60px);
-}
-
-#fabContainer.open #addFabBtn {
-    transform: translateY(-115px);
-}
-
-#fabContainer.open #locationsFabBtn {
-    transform: translateY(-170px);
-}
-
-#fabContainer.open #changeFabBtn {
-    transform: translateY(-225px);
-}
-
-#fabContainer.open #settingsFabBtn {
-    transform: translateY(-280px);
-}
-
-#fabContainer.open #historyFabBtn {
-    transform: translateY(-335px);
-}
-
-#fabContainer.open #archiveFabBtn {
-    transform: translateY(-390px);
-}
 
 /* ==========================================================================
    06. HELP LINK COMPONENT

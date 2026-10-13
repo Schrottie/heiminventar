@@ -43,15 +43,16 @@ section {
                     <i class="fa-solid fa-list me-2"></i>Inhalt
                 </div>
                 <div class="list-group list-group-flush small">
-                    <a href="#search" class="list-group-item list-group-item-action">Schnellsuche &amp; Filter</a>
-                    <a href="#fab" class="list-group-item list-group-item-action">Schnellaktionen (FAB)</a>
-                    <a href="#qrcode" class="list-group-item list-group-item-action">QR-Codes &amp; Etiketten</a>
-                    <a href="#design" class="list-group-item list-group-item-action">Design &amp; Vorschaubilder</a>
-                    <a href="#items" class="list-group-item list-group-item-action">Gegenstände &amp; Archiv</a>
-                    <a href="#locations" class="list-group-item list-group-item-action">Lagerortverwaltung</a>
-                    <a href="#security" class="list-group-item list-group-item-action">Sicherheit &amp; Login</a>
-                    <a href="#shortcuts" class="list-group-item list-group-item-action">Tastenkombinationen</a>
-                    <a href="#sync" class="list-group-item list-group-item-action">Multi-User &amp; Sync</a>
+                    <a href="#search" class="list-group-item list-group-item-action"><i class="fa-solid fa-magnifying-glass me-2"></i>Schnellsuche &amp; Filter</a>
+                    <a href="#fab" class="list-group-item list-group-item-action"><i class="fa-solid fa-bars-staggered me-2"></i>Schnellaktionen (FAB)</a>
+                    <a href="#qrcode" class="list-group-item list-group-item-action"><i class="fa-solid fa-qrcode me-2"></i> QR-Codes &amp; Etiketten</a>
+                    <a href="#design" class="list-group-item list-group-item-action"><i class="fa-solid fa-palette me-2"></i>Design &amp; Vorschaubilder</a>
+                    <a href="#items" class="list-group-item list-group-item-action"><i class="fa-solid fa-pen-to-square me-2"></i>Gegenstände bearbeiten &amp; archivieren</a>
+                    <a href="#locations" class="list-group-item list-group-item-action"><i class="fa-solid fa-folder-tree me-2"></i>Lagerortverwaltung</a>
+                    <a href="#shuffle" class="list-group-item list-group-item-action"><i class="fa-solid fa-shuffle me-2"></i>Verschiebebahnhof</a>
+                    <a href="#security" class="list-group-item list-group-item-action"><i class="fa-solid fa-shield-halved me-2"></i>Sicherheit &amp; Login</a>
+                    <a href="#shortcuts" class="list-group-item list-group-item-action"><i class="fa-solid fa-keyboard me-2"></i>Tastenkombinationen</a>
+                    <a href="#sync" class="list-group-item list-group-item-action"><i class="fa-solid fa-arrows-rotate me-2"></i>Synchronisation &amp; Multi-User</a>
                 </div>
             </div>
         </div>
@@ -195,13 +196,24 @@ section {
                             <li class="mb-1"><strong>Lagerort bearbeiten:</strong> Das Stift-Symbol öffnet ein Modal, in dem du den Namen oder den übergeordneten Ort anpassen kannst.</li>
                             <li class="mb-1"><strong>QR-Code & Löschen:</strong> Jeder Standort bietet einen Direktzugriff auf den QR-Code sowie eine Löschprüfung, ob noch Gegenstände oder Unterorte enthalten sind.</li>
                             <li><strong>Umlagern:</strong> Wähle Quell- und Ziel-Lagerort. Bei vorhandenen Unterlagerorten öffnet sich ein intelligentes Abfrage-Modal, mit dem du flexibel steuerst, ob Artikel, Unterorte oder ganze Zweige mitverschoben werden.</li>
-                            <li><strong>Umlagern:</strong> Hier können gegenstände aus einem in einen anderen Lagerort umgelagert werden. Befinden sich noch Unterlagerorte mit oder ohne eigenen gegenständen innerhalb des Quelllagerortes, können entweder nur die enthaltenen Gegenstände oder gleich alle Unterlagerorte (ein Schrank wechselt den raum o.ä.) inklusive gegenstände umgelagert werden werden.</li>
                         </ul>
                     </section>
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 7. Sicherheit & Zugriffsschutz -->
+                    <!-- 7. Verschiebebahnhof -->
+                    <section id="shuffle" class="mb-5">
+                        <h5 class="text-danger d-flex align-items-center fw-bold">
+                            <i class="fa-solid fa-shuffle me-2"></i> Verschiebebahnhof
+                        </h5>
+                        <p class="small text-muted mb-2">
+                            Der Verschiebebahnhof ermöglicht das schnelle Umsortieren von Lagerorten. Die Lagerorte werden in der gleichen Baumstruktur wie in der Lagerortverwaltung angezeigt. Jeder Lagerort hat dabei einen "Greifer", mit dem er innerhalb der Struktur verschoben werden kann. Die Änderungen werden sofort übernommen und optisch signalisiert. So können Lagerorte flexibel umsortiert werden, ohne dass Gegenstände oder Unterlagerorte verloren gehen.
+                        </p>
+                    </section>
+
+                    <hr class="my-1 text-black-50">
+
+                    <!-- 8. Sicherheit & Zugriffsschutz -->
                     <section id="security" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-shield-halved me-2"></i> Sicherheit &amp; Zugriffsschutz
@@ -218,7 +230,7 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 8. Tastenkombinationen -->
+                    <!-- 9. Tastenkombinationen -->
                     <section id="shortcuts" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-keyboard me-2"></i> Tastenkombinationen auf dem Desktop
@@ -234,7 +246,7 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 9. Multi-User & Synchronisation -->
+                    <!-- 10. Multi-User & Synchronisation -->
                     <section id="sync">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-arrows-rotate me-2"></i> Synchronisation &amp; Multi-User

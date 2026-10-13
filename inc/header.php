@@ -114,7 +114,7 @@ $unseenRelease = getUnseenRelease($pdo);
                 </span>
             </h1>
             <div class="hero-subtitle">
-                    Die smarte Lösung für Deine Inventarverwaltung <a href="help.php" class="help-link"><i class="fa-solid fa-circle-question"></i></a>
+                    Die smarte Lösung für Deine Inventarverwaltung
             </div>
         </div>
 

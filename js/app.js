@@ -8,6 +8,7 @@ const ROUTES = {
     SETTINGS: 'settings.php',
     HISTORY: 'history.php',
     ARCHIVE: 'archive.php',
+    HELP: 'help.php',
     START: 'index.php'
 };
 
@@ -80,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     bindFabRoute('settingsFabBtn', ROUTES.SETTINGS);
     bindFabRoute('archiveFabBtn', ROUTES.ARCHIVE);
     bindFabRoute('historyFabBtn', ROUTES.HISTORY);
+    bindFabRoute('helpFabBtn', ROUTES.HELP);
 
     // ---------------------------------------------------------------------
     // 3. Drag & Drop mit Sortable.js

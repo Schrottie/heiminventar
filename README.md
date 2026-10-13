@@ -2,7 +2,9 @@
 
 Eine leichte, responsive Webanwendung zur Verwaltung von Lagerorten und Gegenständen im eigenen Haushalt oder Lager. Das System wurde primär für den Betrieb auf einem Raspberry Pi optimiert und bietet eine übersichtliche Visualisierung von Standortstrukturen, bequeme Drag-and-Drop-Funktionen sowie eine flexible Benutzerverwaltung.
 
----
+## 💡 **Gebrauchshinweis**  
+
+Dieses System wurde primär für den privaten Gebrauch und die heimische Organisation entwickelt. Vom Einsatz in kommerziellen, geschäftskritischen oder professionellen Umgebungen wird ausdrücklich abgeraten.
 
 ## 🚀 Funktionen
 
@@ -24,18 +26,22 @@ Eine leichte, responsive Webanwendung zur Verwaltung von Lagerorten und Gegenst�
 * **QR-Codes generieren & drucken:** Für jeden Artikel sowie jeden Lagerort wird automatisch ein individueller QR-Code erzeugt. Dieser kann auf Etiketten ausgedruckt und an Kisten, Regalen oder Geräten angebracht werden.
 * **Direkter Aufruf:** Das Scannen eines QR-Codes mit der regulären Smartphone-Kamera öffnet direkt die passende Detailseite im Browser.
 
-### 4. Artikel bearbeiten, Anleitungen, Fotos & Hauptbild
+### 4. Gegenstände bearbeiten, Anleitungen, Fotos & Hauptbild
 * **Hauptbild festlegen (Stern-Symbol):** Bei Gegenständen mit mehreren Bildern kann durch Klick auf das Stern-Symbol ein Bild als Hauptbild definiert werden. Dieses erscheint als Titelbild in der Übersicht und in Kachelansichten.
 * **Fotos per Smartphone-Kamera:** Beim Hinzufügen von Bildern auf mobilen Geräten öffnet sich auf Wunsch direkt die Kamera für Schnappschüsse.
 * **Dokumente & Anleitungen:** Neben Bildern können auch Dokumente (PDF, DOCX, TXT) hochgeladen werden, z. B. Rechnungen, Garantiescheine oder Handbücher.
 
-### 5. Drag & Drop Modus
+### 7. Archivsystem
+* **Gegenstände archivieren:** Auf der Detailseite können Gegenstände archiviert werden.
+* **Archivseite:** Die Archivseite listet (filterbar) alle archivierten Gegenstände und bietet eine Option zum Reaktivieren an. Dabei kann (und muss) festgelegt werden, an welchem lagerort der reaktivierte Gegenstand gelistet werden soll.
+
+### 6. Drag & Drop Modus
 * **Visuelles Verschieben:** Eigenes Interface mit direkter Darstellung aller Orte und Items.
 * **Greifer-Icons:** Gegenstände können bequem per Drag & Drop zwischen verschiedenen Lagerorten verschoben werden.
 * **Mobil-Optimiert:** Touch-Unterstützung mit leichtem Delay zur Verhinderung ungewollten Auslösens beim Scrollen auf Smartphones und Tablets.
 * **Echtzeit-Anpassung:** Sofortiges Speichern der Standortänderung im Hintergrund via AJAX.
 
-### 6. Authentifizierung & Benutzerverwaltung 🔒
+### 7. Authentifizierung & Benutzerverwaltung 🔒
 * **Schaltbarer Passwortschutz:** Kann in den Systemeinstellungen mit einem Klick global aktiviert oder deaktiviert werden.
 * **Rollenbasiertes Rechtesystem:**
   * **Admin:** Vollzugriff inklusive Systemeinstellungen, Migrationsverwaltung und Benutzersteuerung.
@@ -44,14 +50,20 @@ Eine leichte, responsive Webanwendung zur Verwaltung von Lagerorten und Gegenst�
 * **Sichere Passwort-Hashes:** Automatische Erzeugung und Verifikation mittels BCRYPT (`password_hash` / `password_verify`).
 * **Modernes Login-Interface:** Besserer Komfort mit Passwort-Sichtbarkeits-Toggle ("Auge"-Icon) und integriertem Dark-Mode-Support.
 
-### 7. Systemeinstellungen & Theme-Wahl 🎨
+### 8. Systemeinstellungen & Theme-Wahl 🎨
 * **Erscheinungsbild (Light/Dark Mode):** Visuelle Auswahl zwischen hellem und dunklem Design per modernem UI-Button-System.
 * **Vorschaubilder:** In der Übersicht lassen sich auf Wunsch, sofern vorhanden, Vorschaubilder zu den gelisteten Gegenständen anzeigen. Dazu wird jeweils das erste zum Gegenstand abgelegte Bild verwendet.
 * **Automatisches Datenbank-Migrationssystem:** Schema-Updates der Datenbank werden über ein zentrales Skript (`migrations.php`) vollautomatisch im Hintergrund ausgeführt.
 
-### 8. Komfortables Installations-Script
+### 9. Hilfe und Bedienungsanleitung
+* Eine umfangreiche Hilfeseite informiert über alle Funktionen im Detail. Dabei werden die verschiedenen Optionen erläutert, Tastenkombinationen für die Benutzung auf dem Desktop gezeigt, sowie weniger offensichtliche Funktionen dargelegt.
+
+### 10. Komfortables Installations-Script
 * **Geführte Installation:** Automatische Prüfung aller Systemanforderungen (PDO MySQL, GD-Bibliothek, Dateirechte).
 * **Geführtes DB-Setup:** Automatische Erstellung der Datenbank, der Tabellenstruktur und des Datenbank-Benutzers im geführten Dialog (inklusive Support für frische MariaDB-Installationen auf Raspberry Pi OS).
+
+### 11. Release-Notes
+* Während kleinere Aktualisierungen im Hintergrund geschehen und über die üblichen github-Pulls in laufende Systeme übertragen werden können, haben größere Releases ein paar Erläuterungen im Gepäck, die jedem Benutzer einmalig in einem Popup angezeigt werden. Dabei erfolgt die Anzeige im "ungesicherten" Betrieb tatsächlich einmalig für alle, im "gesicherten" Betrieb für jeden Benutzer separat.
 
 ---
 

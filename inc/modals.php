@@ -427,6 +427,62 @@
     </div>
 </div>
 
+<!-- Modal: Lagerort bearbeiten -->
+<div class="modal fade" id="editLocationModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="editLocationForm" onsubmit="submitEditLocation(event)">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-pen-to-square me-2"></i>Lagerort bearbeiten</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="editLocationId">
+
+                    <div class="mb-3">
+                        <label class="form-label">Bezeichnung</label>
+                        <input type="text" name="name" id="editLocationName" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Übergeordnet</label>
+                        <select name="parent_id" id="editLocationParent" class="form-select">
+                            <option value="">- Oberste Ebene -</option>
+                            <?php 
+                            if (isset($pdo)) {
+                                $modalLocationsRaw = $pdo->query("SELECT id, parent_id, name FROM locations")->fetchAll(PDO::FETCH_ASSOC);
+                                
+                                function sortModalLocations(array $locations, $parentId = null, int $depth = 0): array {
+                                    $result = [];
+                                    $children = array_filter($locations, fn($loc) => (empty($loc['parent_id']) ? null : (int)$loc['parent_id']) === (empty($parentId) ? null : (int)$parentId));
+                                    usort($children, fn($a, $b) => strcasecmp($a['name'], $b['name']));
+                                    foreach ($children as $child) {
+                                        $child['depth'] = $depth;
+                                        $result[] = $child;
+                                        $result = array_merge($result, sortModalLocations($locations, $child['id'], $depth + 1));
+                                    }
+                                    return $result;
+                                }
+                                
+                                foreach (sortModalLocations($modalLocationsRaw) as $loc) {
+                                    $indent = $loc['depth'] > 0 ? str_repeat('— ', $loc['depth']) . ' ' : '';
+                                    echo '<option value="' . (int)$loc['id'] . '">' . $indent . htmlspecialchars($loc['name']) . '</option>';
+                                }
+                            }
+                            ?>
+                        </select>
+                        <div class="form-text">Ein Lagerort kann sich nicht selbst als Elternteil haben.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Änderungen speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Marked.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>

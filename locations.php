@@ -5,45 +5,41 @@ require_once __DIR__ . '/cfg/db.php';
 require_once __DIR__ . '/inc/functions.php';
 
 // 1. Alle Lagerorte ungeordnet abfragen
-$locationsRaw =$pdo->query("SELECT id, parent_id, name FROM locations")->fetchAll(PDO::FETCH_ASSOC);
+$locationsRaw = $pdo->query("SELECT id, parent_id, name FROM locations")->fetchAll(PDO::FETCH_ASSOC);
 
 // Hilfsfunktion: Lagerorte hierarchisch sortieren und Tiefe (depth) berechnen
-function sortLocationsHierarchically(array $locations,$parentId = null, int $depth = 0): array {$result = [];
-    
-    // Alle Kinder des aktuellen Parents filtern
+function sortLocationsHierarchically(array $locations, $parentId = null, int $depth = 0): array {
+    $result = [];
     $children = array_filter($locations, function($loc) use ($parentId) {
-        $locParent = empty($loc['parent_id']) ? null : (int)$loc['parent_id'];$targetParent = empty($parentId) ? null : (int)$parentId;
-        return $locParent ===$targetParent;
+        $locParent = empty($loc['parent_id']) ? null : (int)$loc['parent_id'];
+        $targetParent = empty($parentId) ? null : (int)$parentId;
+        return $locParent === $targetParent;
     });
 
-    // Kinder auf dieser Ebene alphabetisch sortieren
-    usort($children, fn($a,$b) => strcasecmp($a['name'],$b['name']));
+    usort($children, fn($a, $b) => strcasecmp($a['name'], $b['name']));
 
-    foreach ($children as$child) {
-        $child['depth'] =$depth;
-        $result[] =$child;
-        // Rekursiv die Unterkinder einfügen
-        $result = array_merge($result, sortLocationsHierarchically($locations, $child['id'],$depth + 1));
+    foreach ($children as $child) {
+        $child['depth'] = $depth;
+        $result[] = $child;
+        $result = array_merge($result, sortLocationsHierarchically($locations, $child['id'], $depth + 1));
     }
 
     return $result;
 }
 
-// `$locations` enthält nun die perfekte Baumstruktur als flaches Array, ideal für <select>
 $locations = sortLocationsHierarchically($locationsRaw);
 
 // Alle Items abfragen und nach location_id gruppieren
-$rawItems =$pdo->query("SELECT id, name, location_id FROM inventory_items WHERE is_archived = '0' ORDER BY name")->fetchAll();
+$rawItems = $pdo->query("SELECT id, name, location_id FROM inventory_items WHERE is_archived = '0' ORDER BY name")->fetchAll();
 $itemsByLocation = [];
-foreach ($rawItems as $item) {$itemsByLocation[$item['location_id']][] =$item;
+foreach ($rawItems as $item) {
+    $itemsByLocation[$item['location_id']][] = $item;
 }
 
-// Array mit IDs aller Lagerorte erstellen, die Gegenstände enthalten (für die Validierung)
 $nonEmptyLocationIds = array_keys($itemsByLocation);
 
-// Hilfsobjekt erstellen, das speichert, welche Lagerorte Unterlagerorte besitzen
 $hasChildrenMap = [];
-foreach ($locations as$loc) {
+foreach ($locations as $loc) {
     if (!empty($loc['parent_id'])) {
         $hasChildrenMap[$loc['parent_id']] = true;
     }
@@ -80,14 +76,13 @@ require_once __DIR__ . '/inc/header.php';
             </div>
         </div>
 
-        <!-- Card 2: Umlagern (Desktop: unter 'Neuer Lagerort', Mobil: ganz unten durch Order 3 auf col-12) -->
+        <!-- Card 2: Umlagern -->
         <div class="card shadow-sm mb-3 order-3 order-lg-2">
             <div class="card-header">
                 <i class="fa-solid fa-boxes-packing me-1"></i>Umlagern
             </div>
             <div class="card-body">
                 <form id="relocateForm" action="api/location-relocate.php" method="post">
-                    <!-- Verstecktes Feld für Modalauswahl (Sub-Locations einbeziehen) -->
                     <input type="hidden" name="include_sublocations" id="includeSublocationsInput" value="0">
 
                     <div class="mb-3">
@@ -95,10 +90,9 @@ require_once __DIR__ . '/inc/header.php';
                         <select name="source_id" id="sourceLocationSelect" class="form-select" required>
                             <option value="">Bitte auswählen...</option>
                             <?php foreach ($locations as $loc): ?>
-                                <?php 
+                                <?php
                                     $itemCount = count($itemsByLocation[$loc['id']] ?? []);
                                     $disabled = ($itemCount === 0) ? 'disabled' : '';
-                                    // Visuelle Einrückung basierend auf der Tiefe
                                     $indent = $loc['depth'] > 0 ? str_repeat('— ', $loc['depth']) . ' ' : '';
                                 ?>
                                 <option value="<?= (int)$loc['id'] ?>" <?= $disabled ?> data-has-children="<?= isset($hasChildrenMap[$loc['id']]) ? '1' : '0' ?>">
@@ -125,12 +119,11 @@ require_once __DIR__ . '/inc/header.php';
         </div>
     </div>
 
-    <!-- Rechte Spalte: Lagerortstruktur (Order 2 auf Desktop, rutscht auf Mobil vor 'Umlagern') -->
+    <!-- Rechte Spalte: Lagerortstruktur -->
     <div class="col-12 col-lg-8 order-2 order-lg-3">
         <div class="card shadow-sm mb-3">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="fa-solid fa-folder-tree me-1"></i>Lagerortstruktur</span>
-                <!-- Umschalter für die Anzeige der Inhalte -->
                 <div class="form-check form-switch m-0">
                     <input class="form-check-input" type="checkbox" role="switch" id="toggleItemsSwitch" style="cursor: pointer;">
                     <label class="form-check-label small text-muted" for="toggleItemsSwitch" style="cursor: pointer;">Inhalte anzeigen</label>
@@ -142,65 +135,6 @@ require_once __DIR__ . '/inc/header.php';
         </div>
     </div>
 </div>
-
-<!-- Modal: Nachfrage bei vorhanden Unterlagerorten -->
-<div class="modal fade" id="relocateSublocationsModal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-warning text-dark">
-                <h5 class="modal-title">
-                    <i class="fa-solid fa-sitemap me-2"></i>Unterlagerorte vorhanden
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Der gewählte Quell-Lagerort besitzt untergeordnete Lagerorte.</p>
-                <p class="fw-bold mb-0">Wie soll mit der Umlagerung verfahren werden?</p>
-            </div>
-            <div class="modal-footer d-flex flex-column gap-2">
-                <!-- Option A: Nur Gegenstände des Quellorts -->
-                <button type="button" class="btn btn-primary w-100" data-mode="items_only">
-                    Nur Gegenstände aus Quellort verschieben (Lagerard)
-                </button>
-                <!-- Option B: Auch Gegenstände aus Unterlagerorten mitnehmen -->
-                <button type="button" class="btn btn-outline-primary w-100" data-mode="items_with_sub">
-                    Gegenstände der Unterlagerorte ebenfalls mit verschieben (Orte bleiben)
-                </button>
-                <!-- Option C: Kompletten Zweig (Orte + Gegenstände) verschieben -->
-                <button type="button" class="btn btn-outline-warning w-100 text-dark" data-mode="move_all">
-                    Unterlagerorte samt Inhalten verschieben (Struktur mitverschieben)
-                </button>
-                <button type="button" class="btn btn-secondary btn-sm w-100 mt-1" data-bs-dismiss="modal">
-                    Abbrechen
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Lagerort löschen (bereits vorhanden) -->
-<div class="modal fade" id="deleteLocationModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Lagerort löschen?</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p><strong id="deleteLocationName"></strong></p>
-                <div id="deleteLocationInfo">Wird geladen...</div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                <a href="#" class="btn btn-danger" id="confirmDeleteLocation">Löschen</a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-
-</script>
 
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>

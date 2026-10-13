@@ -35,17 +35,17 @@ function renderLocationTree(array $locations, ?int $parentId = null, array $item
         return;
     }
 
-    $ulClass = ($parentId === null) 
-        ? 'list-group list-group-flush location-tree' 
+    $ulClass = ($parentId === null)
+        ? 'list-group list-group-flush location-tree'
         : 'list-group list-group-flush';
 
     echo '<ul class="' . $ulClass . '">';
 
     foreach ($children as $location) {
         $locationId = (int)$location['id'];
-        
+       
         echo '<li class="list-group-item">';
-        
+       
         // Standort-Zeile
         echo '<div class="d-flex justify-content-between align-items-center py-1">';
         echo '  <div class="text-truncate me-2">';
@@ -53,20 +53,30 @@ function renderLocationTree(array $locations, ?int $parentId = null, array $item
         echo        htmlspecialchars($location['name']);
         echo '  </div>';
 
-        // Gruppe für Aktions-Buttons (rechtsbündig durch ms-auto)
-        echo '  <div class="btn-group btn-group-sm ms-auto" role="group">';
-        echo '      <button type="button" class="btn btn-outline-secondary location-qr-btn" ';
-        echo '          data-id="' . (int)$location['id'] . '" ';
+        // Gruppe für Aktions-Buttons 
+        echo '  <div class="d-flex align-items-center gap-1 ms-auto" role="group">';
+        
+        // Bearbeiten-Button
+        echo '      <button type="button" class="btn btn-sm btn-outline-warning" onclick="openEditLocationModal(' . $locationId . ', \'' . htmlspecialchars($location['name'], ENT_QUOTES) . '\', \'' . (!empty($location['parent_id']) ? (int)$location['parent_id'] : '') . '\')" title="Bearbeiten">';
+        echo '          <i class="fa-solid fa-pen"></i>';
+        echo '      </button>';
+
+        // QR-Code Button
+        echo '      <button type="button" class="btn btn-sm btn-outline-secondary location-qr-btn" ';
+        echo '          data-id="' . $locationId . '" ';
         echo '          data-name="' . htmlspecialchars($location['name'], ENT_QUOTES, 'UTF-8') . '" ';
         echo '          title="QR-Code anzeigen & drucken">';
         echo '          <i class="fa-solid fa-qrcode"></i>';
         echo '      </button>';
-        echo '      <a href="#" class="btn btn-outline-danger location-delete-btn" ';
+
+        // Löschen-Button
+        echo '      <a href="#" class="btn btn-sm btn-outline-danger location-delete-btn" ';
         echo '          data-id="' . $locationId . '" ';
         echo '          data-name="' . htmlspecialchars($location['name'], ENT_QUOTES, 'UTF-8') . '" ';
         echo '          title="Lagerort löschen">';
         echo '          <i class="fa-solid fa-trash"></i>';
         echo '      </a>';
+
         echo '  </div>';
         echo '</div>';
 

@@ -730,3 +730,58 @@ function archiveItem(id) {
         }
     });
 }
+
+// Funktion zum Öffnen des Bearbeiten-Modals mit Übergabe der aktuellen Werte
+function openEditLocationModal(id, name, parentId) {
+    document.getElementById('editLocationId').value = id;
+    document.getElementById('editLocationName').value = name;
+    
+    // Parent-Select setzen (und ggf. den eigenen Eintrag deaktivieren, damit man sich nicht selbst wählt)
+    const parentSelect = document.getElementById('editLocationParent');
+    parentSelect.value = parentId ? parentId : "";
+
+    // Verhindern, dass der Ort sich selbst als Parent wählt in der Liste
+    for (let option of parentSelect.options) {
+        if (option.value == id) {
+            option.disabled = true;
+        } else {
+            option.disabled = false;
+        }
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('editLocationModal'));
+    modal.show();
+}
+
+/* Änderungen an Locations speichern */
+function submitEditLocation(event) {
+    event.preventDefault(); // Verhindert das klassische Neuladen / die weiße JSON-Seite
+
+    const form = document.getElementById('editLocationForm');
+    const formData = new FormData(form);
+
+    fetch('api/location-update.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Modal sauber via Bootstrap schließen
+            const modalEl = document.getElementById('editLocationModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+
+            // Seite direkt neu laden, damit der Location Tree frisch gerendert wird
+            location.reload();
+        } else {
+            alert('Fehler beim Speichern: ' + (data.error || 'Unbekannter Fehler'));
+        }
+    })
+    .catch(err => {
+        console.error('Netzwerkfehler:', err);
+        alert('Ein Netzwerkfehler ist aufgetreten.');
+    });
+}

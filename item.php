@@ -129,6 +129,29 @@ require_once __DIR__ . '/inc/header.php';
                 <input type="file" name="images[]" class="form-control" accept="image/*" multiple>
             </div>
 
+            <div class="row g-3 mb-3">
+                <!-- Ablaufdatum -->
+                <div class="col-md-4">
+                    <label for="expiration_date" class="form-label">Ablaufdatum / Verfallsdatum</label>
+                    <input type="date" class="form-control" id="expiration_date" name="expiration_date" value="<?= htmlspecialchars($item['expiration_date'] ?? '') ?>">
+                </div>
+
+                <!-- Anschaffungspreis -->
+                <div class="col-md-4">
+                    <label for="price" class="form-label">Anschaffungspreis (€)</label>
+                    <div class="input-group">
+                        <input type="number" step="0.01" min="0" class="form-control" id="price" name="price" value="<?= htmlspecialchars($item['price'] ?? '') ?>">
+                        <span class="input-group-text">€</span>
+                    </div>
+                </div>
+
+                <!-- Verleih-Status & Person -->
+                <div class="col-md-4">
+                    <label for="loan_to" class="form-label">Verliehen an (Name)</label>
+                    <input type="text" class="form-control" id="loan_to" name="loan_to" placeholder="Leer, wenn im Lager" value="<?= htmlspecialchars($item['loan_to'] ?? '') ?>">
+                </div>
+            </div>
+
             <!-- Schaltflächen zum Speichern & Navigation -->
             <div class="d-flex flex-wrap gap-2">
                 <button type="submit" name="action" value="save" class="btn btn-success flex-fill">

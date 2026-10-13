@@ -29,7 +29,6 @@ $filterLocationId = isset($_GET['location_id']) && is_numeric($_GET['location_id
 // Falls nach Standort gefiltert wird: Alle untergeordneten Lagerort-IDs ermitteln (Rekursion)
 $targetLocationIds = [];
 if ($filterLocationId !== null) {
-    // Hilfsfunktion zum Aufsammeln aller Kind-IDs
     function getSubLocationIds(array $locations, int $parentId): array {
         $ids = [$parentId];
         foreach ($locations as $loc) {
@@ -42,12 +41,11 @@ if ($filterLocationId !== null) {
     $targetLocationIds = getSubLocationIds($allLocations, $filterLocationId);
 }
 
-// Gegenstände inkl. Lagerort-Name, Hauptbild & min_quantity abfragen
+// Gegenstände inkl. neuen Feldern abfragen
 $params = [];
 $whereClause = '';
 
 if (!empty($targetLocationIds)) {
-    // Dynamische Platzhalter für IN(...) erzeugen
     $placeholders = implode(',', array_fill(0, count($targetLocationIds), '?'));
     $whereClause = " WHERE i.location_id IN ($placeholders) ";
     $params = $targetLocationIds;
@@ -59,6 +57,8 @@ $sql = "
         i.name,
         i.quantity,
         i.min_quantity,
+        i.expiration_date,
+        i.loan_to,
         i.location_id,
         l.name AS location_name,
         img.filename AS image_filename
@@ -83,11 +83,34 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $items = $stmt->fetchAll();
 
-// Zählen, wie viele Artikel den Mindestbestand unterschreiten
+// Hilfsfunktion zur Prüfung des Ablaufstatus
+function getExpirationStatus($dateStr) {
+    if (empty($dateStr)) return null;
+    
+    $today = new DateTime();
+    $expDate = new DateTime($dateStr);
+    $interval = $today->diff($expDate);
+    $daysRemaining = (int)$interval->format('%r%d');
+    
+    if ($daysRemaining < 0) {
+        return 'danger';
+    } elseif ($daysRemaining <= 21) {
+        return 'warning';
+    }
+    return 'success';
+}
+
 $lowStockCount = 0;
+$expiredCount = 0;
+
 foreach ($items as $chk) {
     if ((int)$chk['min_quantity'] > 0 && (int)$chk['quantity'] <= (int)$chk['min_quantity']) {
         $lowStockCount++;
+    }
+    
+    $expStatus = getExpirationStatus($chk['expiration_date'] ?? null);
+    if ($expStatus === 'danger' || $expStatus === 'warning') {
+        $expiredCount++;
     }
 }
 
@@ -95,8 +118,7 @@ require_once __DIR__ . '/inc/header.php';
 ?>
 
 <?php if ($filterLocationId !== null): ?>
-    <?php 
-        // Name des aktiven Lagerorts ermitteln
+    <?php
         $activeLocName = 'Unbekannt';
         foreach ($allLocations as $loc) {
             if ((int)$loc['id'] === $filterLocationId) {
@@ -114,7 +136,8 @@ require_once __DIR__ . '/inc/header.php';
         </a>
     </div>
 <?php endif; ?>
-<!-- Schnellfilter / Suchleiste & Low-Stock-Warnung -->
+
+<!-- Schnellfilter / Suchleiste & Warn-Buttons -->
 <div class="row mb-3 g-2 align-items-center">
     <div class="col">
         <div class="input-group">
@@ -138,6 +161,17 @@ require_once __DIR__ . '/inc/header.php';
             </button>
         </div>
     <?php endif; ?>
+
+    <?php if ($expiredCount > 0): ?>
+        <div class="col-auto">
+            <button type="button" id="toggleExpired" class="btn btn-outline-warning position-relative">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> Ablauf/Verfall
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
+                    <?= $expiredCount ?>
+                </span>
+            </button>
+        </div>
+    <?php endif; ?>
 </div>
 
 <!-- Inventarliste -->
@@ -148,19 +182,31 @@ require_once __DIR__ . '/inc/header.php';
         $qty = (int)$item['quantity'];
         $minQty = (int)$item['min_quantity'];
         $isLowStock = ($minQty > 0 && $qty <= $minQty);
+        $isOnLoan = !empty($item['loan_to']);
+        
+        $expStatus = getExpirationStatus($item['expiration_date'] ?? null);
+        $isExpiredOrWarning = ($expStatus === 'danger' || $expStatus === 'warning') ? '1' : '0';
 
         $path = getLocationPath($allLocations, (int)$item['location_id']);
-        $searchTerms = mb_strtolower($item['name'] . ' ' . ($item['location_name'] ?? '') . ' ' . $path);
+        $searchTerms = mb_strtolower($item['name'] . ' ' . ($item['location_name'] ?? '') . ' ' . $path . ' ' . ($item['loan_to'] ?? ''));
         $hasImage = $showImages && !empty($item['image_filename']);
+
+        // Styling für Karte je nach Status
+        $cardStyleClass = '';
+        if ($isLowStock) {
+            $cardStyleClass = 'border-danger-subtle bg-danger-subtle bg-opacity-10';
+        } elseif ($isOnLoan) {
+            $cardStyleClass = 'border-info-subtle bg-info-subtle bg-opacity-10';
+        }
         ?>
 
-        <div class="card shadow-sm mb-2 inventory-item <?= $isLowStock ? 'border-danger-subtle bg-danger-subtle bg-opacity-10' : '' ?>"
+        <div class="card shadow-sm mb-2 inventory-item <?= $cardStyleClass ?>"
              data-search="<?= htmlspecialchars($searchTerms) ?>"
-             data-low-stock="<?= $isLowStock ? '1' : '0' ?>">
+             data-low-stock="<?= $isLowStock ? '1' : '0' ?>"
+             data-expired="<?= $isExpiredOrWarning ?>">
             <div class="card-body p-3">
                 <div class="d-flex align-items-start justify-content-between">
                    
-                    <!-- Wichtig: min-width: 0 (mw-0) zwingt den Container, sich an den Bildschirm anzupassen -->
                     <div class="d-flex align-items-start me-3 flex-grow-1 mw-0">
                         <?php if ($hasImage): ?>
                             <div class="me-3 flex-shrink-0">
@@ -172,7 +218,6 @@ require_once __DIR__ . '/inc/header.php';
                         <?php endif; ?>
 
                         <div class="flex-grow-1 mw-0">
-                            <!-- text-break bricht lange Wörter/Namen sauber um -->
                             <h6 class="mb-1 text-break">
                                 <i class="fa-solid fa-box text-primary me-1"></i>
                                 <?= htmlspecialchars($item['name']) ?>
@@ -185,6 +230,25 @@ require_once __DIR__ . '/inc/header.php';
                                     <?php if ($isLowStock): ?>
                                         <span class="badge bg-warning text-dark ms-1" title="Mindestbestand: <?= $minQty ?>">
                                             <i class="fa-solid fa-triangle-exclamation me-1"></i>Min: <?= $minQty ?>
+                                        </span>
+                                    <?php if ($isOnLoan): ?>
+                                        <span class="badge bg-info text-dark ms-1" title="Verliehen an: <?= htmlspecialchars($item['loan_to']) ?>">
+                                            <i class="fa-solid fa-handshake me-1"></i> Verliehen: <?= htmlspecialchars($item['loan_to']) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                    <?php endif; ?>
+
+                                    <?php if ($isOnLoan && !$isLowStock): ?>
+                                        <span class="badge bg-info text-dark ms-1" title="Verliehen an: <?= htmlspecialchars($item['loan_to']) ?>">
+                                            <i class="fa-solid fa-handshake me-1"></i> Verliehen: <?= htmlspecialchars($item['loan_to']) ?>
+                                        </span>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($item['expiration_date'])):
+                                        $badgeClass = ($expStatus === 'danger') ? 'bg-danger text-white' : (($expStatus === 'warning') ? 'bg-warning text-dark' : 'text-muted');
+                                    ?>
+                                        <span class="badge <?= $badgeClass ?>" title="Ablaufdatum: <?= htmlspecialchars($item['expiration_date']) ?>">
+                                            <i class="fa-solid fa-calendar-days me-1"></i> <?= htmlspecialchars($item['expiration_date']) ?>
                                         </span>
                                     <?php endif; ?>
                                 </span>
@@ -217,12 +281,14 @@ require_once __DIR__ . '/inc/header.php';
     <?php endforeach; ?>
 </div>
 
-<!-- Kombinierte Filter-Logik für Textsuche & Nachbestell-Button -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const quickFilterInput = document.getElementById('quickFilter');
     const lowStockBtn = document.getElementById('toggleLowStock');
+    const expiredBtn = document.getElementById('toggleExpired');
+    
     let lowStockActive = false;
+    let expiredActive = false;
 
     function applyFilters() {
         const query = quickFilterInput ? quickFilterInput.value.toLowerCase().trim() : '';
@@ -230,11 +296,13 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.inventory-item').forEach(item => {
             const searchData = (item.getAttribute('data-search') || '').toLowerCase();
             const isLowStock = item.getAttribute('data-low-stock') === '1';
+            const isExpired = item.getAttribute('data-expired') === '1';
 
             const matchesSearch = query === '' || searchData.includes(query);
             const matchesLowStock = !lowStockActive || isLowStock;
+            const matchesExpired = !expiredActive || isExpired;
 
-            if (matchesSearch && matchesLowStock) {
+            if (matchesSearch && matchesLowStock && matchesExpired) {
                 item.style.display = '';
             } else {
                 item.style.display = 'none';
@@ -255,8 +323,20 @@ document.addEventListener('DOMContentLoaded', function() {
             applyFilters();
         });
     }
+
+    if (expiredBtn) {
+        expiredBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            expiredActive = !expiredActive;
+            expiredBtn.classList.toggle('btn-warning', expiredActive);
+            expiredBtn.classList.toggle('btn-outline-warning', !expiredActive);
+            expiredBtn.classList.toggle('text-dark', expiredActive);
+            applyFilters();
+        });
+    }
 });
 </script>
 
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>
+

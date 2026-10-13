@@ -295,54 +295,211 @@ a {
 }
 
 /* ==========================================================================
-   05. FLOATING ACTION BUTTON (FAB)
+   05. FLOATING ACTION BUTTON (FAB) - MODERN SUBMENU DESIGN
    ========================================================================== */
 
-#fabContainer {
+/* Abdunklung des Hintergrunds bei geöffnetem Menü */
+.fab-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(3px);
+    z-index: 1040;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.fab-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* FAB Container */
+.fab-container {
     position: fixed;
     bottom: 20px;
     right: 20px;
     display: flex;
-    flex-direction: column; /* Normaler Fluss von oben nach unten */
+    flex-direction: column;
     align-items: flex-end;
-    gap: 10px; /* Abstand zwischen den Buttons */
+    gap: 10px;
     z-index: 1050;
 }
 
-/* Haupt-Auslöser-Button sitzt immer ganz unten */
+/* Haupt-Auslöser-Button */
 .fab-main {
-    width: 60px;
-    height: 60px;
+    width: 58px;
+    height: 58px;
     border-radius: 50%;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.25);
+    border: none;
+    color: #fff;
     background-color: #550007;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    cursor: pointer;
+    transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* Basis-Design der Unter-Aktionen */
+.fab-main:hover {
+    background-color: #700009;
+    transform: scale(1.05);
+}
+
+.fab-main .fab-icon-close {
+    display: none;
+}
+
+/* Zustand bei geöffnetem Hauptmenü */
+.fab-container.open .fab-main {
+    background-color: #3d0005;
+    transform: rotate(90deg);
+}
+
+.fab-container.open .fab-main .fab-icon-main {
+    display: none;
+}
+
+.fab-container.open .fab-main .fab-icon-close {
+    display: block;
+}
+
+/* Basis-Design der Aktions-Buttons */
 .fab-action {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     white-space: nowrap;
     height: 44px;
-    padding: 0 14px;
+    padding: 0 16px;
     border-radius: 22px;
+    background: var(--bs-body-bg, #ffffff);
+    color: var(--bs-body-color, #212529);
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
     
-    /* Zustand im geschlossenen Menü: Unsichtbar, unsichtbar verkleinert und nach unten verschoben (verstecken sich hinter dem Hauptbutton) */
+    /* Animation beim Ein-/Ausblenden */
     opacity: 0;
     pointer-events: none;
-    transform: scale(0.8) translateY(20px);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    
-    /* Schiebt die Aktions-Buttons im DOM optisch NACH OBEN über den Hauptbutton */
-    order: -1; 
+    transform: scale(0.8) translateY(15px);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    order: -1; /* Liegen im Flex-Layout oberhalb des Hauptbuttons */
 }
 
-/* Geöffneter Zustand: Alle Buttons ploppen nach oben auf ihre richtige Position */
-#fabContainer.open .fab-action {
+.fab-action:hover {
+    background-color: var(--bs-tertiary-bg, #f8f9fa);
+    color: var(--bs-primary, #0d6efd);
+    transform: scale(1.03) translateY(0) !important;
+}
+
+/* Hervorhebung für "Gegenstand anlegen" */
+.fab-action-primary {
+    background: #6f42c1;
+    color: #ffffff !important;
+    border-color: #6f42c1;
+}
+
+.fab-action-primary:hover {
+    background: #5a32a3;
+    border-color: #5a32a3;
+}
+
+/* Anzeigestatus im geöffneten Container */
+.fab-container.open .fab-action {
     opacity: 1;
     pointer-events: auto;
     transform: scale(1) translateY(0);
+}
+
+/* ==========================================================================
+   SUBMENÜ (TOOLS FLYOUT)
+   ========================================================================== */
+
+.fab-submenu {
+    position: absolute;
+    right: 100%; /* Klappt links neben die Buttons auf */
+    top: 0;
+    margin-right: 12px;
+    min-width: 200px;
+    background: var(--bs-body-bg, #ffffff);
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    
+    /* Animation */
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(10px) scale(0.95);
+    transition: all 0.2s ease;
+    z-index: 1060;
+}
+
+.fab-submenu.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0) scale(1);
+}
+
+.fab-submenu-header {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--bs-secondary-color, #6c757d);
+    padding: 6px 12px 4px 12px;
+    border-bottom: 1px solid var(--bs-border-color-translucent, rgba(0,0,0,0.05));
+    margin-bottom: 4px;
+}
+
+.fab-sub-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    color: var(--bs-body-color, #212529);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.15s ease;
+}
+
+.fab-sub-item:hover {
+    background-color: var(--bs-tertiary-bg, #f8f9fa);
+    color: var(--bs-primary, #0d6efd);
+}
+
+.fab-action-tools .fab-arrow {
+    transition: transform 0.2s ease;
+}
+
+.fab-action-tools.active .fab-arrow {
+    transform: rotate(-90deg);
+}
+
+/* Responsive Optimierung für kleine Bildschirme (Smartphone) */
+@media (max-width: 576px) {
+    .fab-submenu {
+        right: 0;
+        top: auto;
+        bottom: 100%; /* Auf Mobilgeräten klappt das Submenü nach oben über den Button */
+        margin-right: 0;
+        margin-bottom: 10px;
+        min-width: 220px;
+    }
 }
 
 

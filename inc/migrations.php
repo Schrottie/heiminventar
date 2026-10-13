@@ -168,8 +168,36 @@ function runDatabaseMigrations(PDO $pdo): void
                         1
                     )
                     ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
-        "
+        ",
 
+        '014_add_functions' => "
+            ALTER TABLE inventory_items 
+                ADD COLUMN expiration_date DATE DEFAULT NULL AFTER min_quantity,
+                ADD COLUMN price DECIMAL(10,2) DEFAULT NULL AFTER expiration_date,
+                ADD COLUMN on_loan TINYINT(1) DEFAULT 0 AFTER price,
+                ADD COLUMN loan_to VARCHAR(255) DEFAULT NULL AFTER on_loan;
+        ",
+
+        '013_release_1_0_4' => "
+            INSERT INTO app_releases (version, title, content, is_active)
+            VALUES (
+                '1.0.4',
+                'Herbstupdate Teil 2 🚀',
+                'Die aktuelle Version bringt diverse neue Funktionen mit:
+                
+                * **Ablaufdatum:** Items können nun ein Ablaufdatum erhalten, 
+                das in der Übersicht farblich hervorgehoben wird.
+                * **Preis:** Items können nun einen Preis erhalten, der in der
+                Übersicht angezeigt wird. (im späteren Verlauf können auch
+                Preisänderungen protokolliert und ausgewertet werden)
+                * **Verleih:** Items können nun als verliehen markiert werden,
+                inkl. Angabe an wen.
+                * **Inventur-Tool:** Ein neues Inventur-Tool ermöglicht es, den
+                aktuellen Bestand zu überprüfen und Abweichungen einzutragen.',
+                        1
+                    )
+                    ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
+        "
     ];
 
     // 2. Cache-Check: Wurde das komplette Array (Inhalte + Schlüssel) verändert?

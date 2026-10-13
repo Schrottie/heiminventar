@@ -15,6 +15,10 @@ CREATE TABLE inventory_items (
     location_id INT NULL,
     quantity INT NOT NULL DEFAULT 1,
     min_quantity INT DEFAULT 0,
+    price DECIMAL(10,2) DEFAULT NULL,
+    expiration_date DATE DEFAULT NULL,
+    on_loan TINYINT(1) DEFAULT 0,
+    loan_to VARCHAR(255) DEFAULT NULL;
     is_archived TINYINT(1) NOT NULL DEFAULT 0,
     archived_at TIMESTAMP NULL DEFAULT NULL;
     created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

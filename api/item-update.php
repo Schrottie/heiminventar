@@ -9,8 +9,8 @@ if ($itemId <= 0) {
     die('Ungültige ID');
 }
 
-// 0. Vorherigen Zustand des Artikels für Vergleich und Logging abfragen
-$stmtOld = $pdo->prepare("SELECT name, description, quantity, min_quantity, location_id FROM inventory_items WHERE id = ?");
+// 0. Vorherigen Zustand des Artikels für Vergleich und Logging abfragen 
+$stmtOld = $pdo->prepare("SELECT name, description, quantity, min_quantity, location_id, expiration_date, price, loan_to FROM inventory_items WHERE id = ?");
 $stmtOld->execute([$itemId]);
 $oldItem = $stmtOld->fetch();
 
@@ -49,14 +49,20 @@ $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : (int)$oldItem[
 $minQuantity = isset($_POST['min_quantity']) ? (int)$_POST['min_quantity'] : (int)$oldItem['min_quantity'];
 $locationId = isset($_POST['location_id']) ? (!empty($_POST['location_id']) ? (int)$_POST['location_id'] : null) : $oldItem['location_id'];
 
+// Neue Felder (Ablaufdatum, Preis, Verleih) auswerten
+$expirationDate = isset($_POST['expiration_date']) ? (!empty($_POST['expiration_date']) ? $_POST['expiration_date'] : null) : $oldItem['expiration_date'];
+$price = isset($_POST['price']) ? (!empty($_POST['price']) ? (float)$_POST['price'] : null) : $oldItem['price'];
+$loanTo = isset($_POST['loan_to']) ? (trim($_POST['loan_to']) !== '' ? trim($_POST['loan_to']) : null) : $oldItem['loan_to'];
+$onLoan = ($loanTo !== null) ? 1 : 0; // Automatisch Flag setzen, wenn ein Verleih-Name eingetragen ist
+
 // Validierung: Name darf beim Ändern der Stammdaten nicht leer sein
 if ($hasNameField && $name === '') {
     die('Name darf nicht leer sein');
 }
 
 if ($hasNameField) {
-    $stmt = $pdo->prepare("UPDATE inventory_items SET name = ?, description = ?, quantity = ?, min_quantity = ?, location_id = ? WHERE id = ?");
-    $stmt->execute([$name, $description, $quantity, $minQuantity, $locationId, $itemId]);
+    $stmt = $pdo->prepare("UPDATE inventory_items SET name = ?, description = ?, quantity = ?, min_quantity = ?, location_id = ?, expiration_date = ?, price = ?, on_loan = ?, loan_to = ? WHERE id = ?");
+    $stmt->execute([$name, $description, $quantity, $minQuantity, $locationId, $expirationDate, $price, $onLoan, $loanTo, $itemId]);
 
     // --- PROTOKOLLIERUNG DER STAMMDATEN-ÄNDERUNGEN (EINZELN UND ENTKOPPELT) ---
 
@@ -126,7 +132,7 @@ if ($hasNameField) {
         );
     }
 
-    // E) Haupt-Lagerort / Standort geändert (Verwendet action='relocated' & field_changed='location_id')
+    // E) Haupt-Lagerort / Standort geändert
     if ((int)$oldItem['location_id'] !== (int)$locationId) {
         logInventoryAction(
             $pdo,
@@ -139,6 +145,55 @@ if ($hasNameField) {
             'location_id',
             $oldItem['location_id'] !== null ? (string)$oldItem['location_id'] : null,
             $locationId !== null ? (string)$locationId : null
+        );
+    }
+
+    // F) Ablaufdatum geändert
+    if ($oldItem['expiration_date'] !== $expirationDate) {
+        logInventoryAction(
+            $pdo,
+            $itemId,
+            $name,
+            'updated',
+            0,
+            $quantity,
+            'Ablaufdatum angepasst',
+            'expiration_date',
+            $oldItem['expiration_date'],
+            $expirationDate
+        );
+    }
+
+    // G) Preis geändert
+    if ($oldItem['price'] !== $price) {
+        logInventoryAction(
+            $pdo,
+            $itemId,
+            $name,
+            'updated',
+            0,
+            $quantity,
+            'Anschaffungspreis angepasst',
+            'price',
+            $oldItem['price'] !== null ? (string)$oldItem['price'] : null,
+            $price !== null ? (string)$price : null
+        );
+    }
+
+    // H) Verleihstatus / Verleih-Name geändert
+    if ($oldItem['loan_to'] !== $loanTo) {
+        $logActionText = empty($loanTo) ? 'Gegenstand zurückgegeben' : 'Gegenstand verliehen an: ' . $loanTo;
+        logInventoryAction(
+            $pdo,
+            $itemId,
+            $name,
+            'updated',
+            0,
+            $quantity,
+            $logActionText,
+            'loan_to',
+            $oldItem['loan_to'],
+            $loanTo
         );
     }
 }
@@ -162,7 +217,7 @@ if (!empty($_FILES['images']['name'][0])) {
                
                 if (move_uploaded_file($tmpName, $imgDir . $newFilename)) {
                     $isMain = !$hasMainImage ? 1 : 0;
-                    $hasMainImage = true; // Nach dem ersten Bild gibt es definitiv ein Hauptbild
+                    $hasMainImage = true;
 
                     $stmt = $pdo->prepare("INSERT INTO item_images (item_id, filename, is_main) VALUES (?, ?, ?)");
                     $stmt->execute([$itemId, $newFilename, $isMain]);

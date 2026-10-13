@@ -130,10 +130,15 @@ require_once __DIR__ . '/inc/header.php';
             </div>
 
             <div class="row g-3 mb-3">
-                <!-- Ablaufdatum -->
+                <!-- Ablaufdatum mit Lösch-Button -->
                 <div class="col-md-4">
                     <label for="expiration_date" class="form-label">Ablaufdatum / Verfallsdatum</label>
-                    <input type="date" class="form-control" id="expiration_date" name="expiration_date" value="<?= htmlspecialchars($item['expiration_date'] ?? '') ?>">
+                    <div class="input-group">
+                        <input type="date" class="form-control" id="expiration_date" name="expiration_date" value="<?= htmlspecialchars($item['expiration_date'] ?? '') ?>">
+                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('expiration_date').value = '';" title="Datum leeren">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Anschaffungspreis -->
@@ -145,10 +150,15 @@ require_once __DIR__ . '/inc/header.php';
                     </div>
                 </div>
 
-                <!-- Verleih-Status & Person -->
+                <!-- Verleih-Status & Person mit Lösch-Button -->
                 <div class="col-md-4">
                     <label for="loan_to" class="form-label">Verliehen an (Name)</label>
-                    <input type="text" class="form-control" id="loan_to" name="loan_to" placeholder="Leer, wenn im Lager" value="<?= htmlspecialchars($item['loan_to'] ?? '') ?>">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="loan_to" name="loan_to" placeholder="Leer, wenn im Lager" value="<?= htmlspecialchars($item['loan_to'] ?? '') ?>">
+                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('loan_to').value = '';" title="Verleih leeren">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -167,44 +177,6 @@ require_once __DIR__ . '/inc/header.php';
         </form>
     </div>
 </div>
-
-<script>
-// Steuerung für das Archivierungs-Modal (id- und namen-Übergabe an das Modal aus modals.php)
-function openArchiveModal(id, name) {
-    const nameEl = document.getElementById('archiveItemNameText');
-    if (nameEl) nameEl.innerText = '"' + name + '"';
-    
-    const idInput = document.getElementById('archiveTargetId');
-    if (idInput) idInput.value = id;
-
-    const modalEl = document.getElementById('archiveConfirmModal');
-    if (modalEl) {
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
-    }
-}
-
-// Führt den API-Call zum Archivieren aus (wird vom Bestätigungs-Button im Modal ausgelöst)
-function executeArchive() {
-    const idInput = document.getElementById('archiveTargetId');
-    const id = idInput ? idInput.value : <?= (int)$item['id'] ?>;
-
-    fetch('api/item-archive.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: id })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = 'index.php';
-        } else {
-            console.error('Fehler beim Archivieren:', data.error);
-        }
-    })
-    .catch(err => console.error('Netzwerkfehler:', err));
-}
-</script>
 
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>

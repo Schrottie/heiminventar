@@ -30,7 +30,7 @@ require_once __DIR__ . '/inc/header.php';
             <h2><i class="fa-solid fa-box-archive me-2"></i>Archiv / Papierkorb</h2>
             <p class="text-muted mb-0">Übersicht aller archivierten Gegenstände. Sie können jederzeit reaktiviert werden.</p>
         </div>
-        <a href="index.php" class="btn btn-outline-secondary">Zurück zur Hauptübersicht</a>
+        <a href="index.php" class="btn btn-outline-secondary">← Zur Übersicht</a>
     </div>
 
     <!-- Live-Suchfeld -->
@@ -80,61 +80,6 @@ require_once __DIR__ . '/inc/header.php';
         </div>
     </div>
 </div>
-
-
-
-<script>
-// 1. Live-Suchfilter (reagiert sofort auf Tiptypen)
-document.getElementById('archiveSearchInput').addEventListener('input', function() {
-    const query = this.value.toLowerCase().trim();
-    const rows = document.querySelectorAll('#archivedTable tbody tr[data-search-text]');
-
-    rows.forEach(row => {
-        const text = row.getAttribute('data-search-text');
-        if (text.includes(query)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
-});
-
-// 2. Modal öffnen
-function openRestoreModal(id, name) {
-    document.getElementById('restoreItemId').value = id;
-    document.getElementById('restoreItemName').innerText = name;
-    document.getElementById('restoreLocationSelect').value = '';
-    
-    const modal = new bootstrap.Modal(document.getElementById('restoreModal'));
-    modal.show();
-}
-
-// 3. Reaktivierung absenden
-function submitRestore() {
-    const id = document.getElementById('restoreItemId').value;
-    const locationId = document.getElementById('restoreLocationSelect').value;
-
-    if (!locationId) {
-        alert('Bitte wähle einen Lagerort aus.');
-        return;
-    }
-
-    fetch('api/item-restore.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: id, location_id: locationId })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            location.reload(); // Seite neu laden, um die Änderung zu sehen
-        } else {
-            alert('Fehler: ' + data.error);
-        }
-    })
-    .catch(err => console.error('Fehler:', err));
-}
-</script>
 
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>

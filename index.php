@@ -281,62 +281,6 @@ require_once __DIR__ . '/inc/header.php';
     <?php endforeach; ?>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const quickFilterInput = document.getElementById('quickFilter');
-    const lowStockBtn = document.getElementById('toggleLowStock');
-    const expiredBtn = document.getElementById('toggleExpired');
-    
-    let lowStockActive = false;
-    let expiredActive = false;
-
-    function applyFilters() {
-        const query = quickFilterInput ? quickFilterInput.value.toLowerCase().trim() : '';
-       
-        document.querySelectorAll('.inventory-item').forEach(item => {
-            const searchData = (item.getAttribute('data-search') || '').toLowerCase();
-            const isLowStock = item.getAttribute('data-low-stock') === '1';
-            const isExpired = item.getAttribute('data-expired') === '1';
-
-            const matchesSearch = query === '' || searchData.includes(query);
-            const matchesLowStock = !lowStockActive || isLowStock;
-            const matchesExpired = !expiredActive || isExpired;
-
-            if (matchesSearch && matchesLowStock && matchesExpired) {
-                item.style.display = '';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    }
-
-    if (quickFilterInput) {
-        quickFilterInput.addEventListener('input', applyFilters);
-    }
-
-    if (lowStockBtn) {
-        lowStockBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            lowStockActive = !lowStockActive;
-            lowStockBtn.classList.toggle('btn-danger', lowStockActive);
-            lowStockBtn.classList.toggle('btn-outline-danger', !lowStockActive);
-            applyFilters();
-        });
-    }
-
-    if (expiredBtn) {
-        expiredBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            expiredActive = !expiredActive;
-            expiredBtn.classList.toggle('btn-warning', expiredActive);
-            expiredBtn.classList.toggle('btn-outline-warning', !expiredActive);
-            expiredBtn.classList.toggle('text-dark', expiredActive);
-            applyFilters();
-        });
-    }
-});
-</script>
-
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>
 

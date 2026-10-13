@@ -26,6 +26,10 @@
             <i class="fa-solid fa-box-archive"></i>
             <span>Archiv</span>
         </a>
+        <a href="release.php" class="fab-sub-item">
+            <i class="fa-brands fa-square-github"></i>
+            <span>Release-Notes</span>
+        </a>
     </div>
 
     <!-- HAUPTAKTIONEN (von oben nach unten strukturiert) -->
@@ -86,7 +90,14 @@
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- 2. Eigene JavaScript-Module -->
+     <script>
+        window.unseenReleaseContent = <?= json_encode($unseenRelease['content'] ?? '') ?>;
+    </script>
     <script src="js/ui.js"></script>
+    <script>
+        window.settingsOnlyDefaultUser = <?= json_encode($onlyDefaultUser ?? false) ?>;
+    </script>
+    <script src="js/settings.js"></script>
     <script src="js/fab.js"></script>
     <script src="js/inventory.js"></script>
     <script src="js/locations.js"></script>

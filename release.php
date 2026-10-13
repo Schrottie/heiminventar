@@ -22,7 +22,7 @@ if ($isAdmin) {
             <h2>🚀 Versionshistorie & Changelog</h2>
             <p class="text-muted mb-0">Alle Neuerungen und Updates dieser Anwendung im Überblick.</p>
         </div>
-        <a href="index.php" class="btn btn-outline-secondary">Zurück zur App</a>
+        <a href="index.php" class="btn btn-outline-secondary">← Zur Übersicht</a>
     </div>
 
     <div class="card shadow-sm border-0">
@@ -108,23 +108,6 @@ if ($isAdmin) {
     </div>
   </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script>
-function viewReleaseModal(version, title, rawContent) {
-    document.getElementById('releaseModalVersion').innerText = '✨ Version ' + version;
-    document.getElementById('releaseModalTitle').innerText = title;
-    
-    if (typeof marked !== 'undefined') {
-        document.getElementById('releaseModalContent').innerHTML = marked.parse(rawContent);
-    } else {
-        document.getElementById('releaseModalContent').innerText = rawContent;
-    }
-
-    const modal = new bootstrap.Modal(document.getElementById('releaseDetailModal'));
-    modal.show();
-}
-</script>
 
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>

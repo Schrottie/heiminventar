@@ -785,3 +785,78 @@ function submitEditLocation(event) {
         alert('Ein Netzwerkfehler ist aufgetreten.');
     });
 }
+
+/**
+ * FAB-Menü mit tastenkombination Alt+M öffnen und mit den Pfeiltasten 
+ * durchnavigieren.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    const fabContainer = document.getElementById('fabContainer');
+    const fabMainBtn = document.getElementById('fabMainBtn');
+    
+    if (!fabContainer || !fabMainBtn) return;
+
+    // Alle sichtbaren Action-Buttons im FAB ermitteln
+    const getFabItems = () => {
+        return Array.from(fabContainer.querySelectorAll('.fab-action')).filter(btn => {
+            return window.getComputedStyle(btn).display !== 'none' && window.getComputedStyle(btn).visibility !== 'hidden';
+        });
+    };
+
+    function toggleFabMenu() {
+        fabMainBtn.click();
+
+       setTimeout(() => {
+            const items = getFabItems();
+            if (items.length > 0) {
+                items[0].focus();
+            }
+        }, 100);
+    }
+
+    // Globaler Shortcut: Strg + M öffnet das Menü
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key.toLowerCase() === 'm') {
+            e.preventDefault();
+            toggleFabMenu();
+        }
+    });
+
+    // Tastatursteuerung innerhalb des FAB-Containers (Pfeiltasten & Escape)
+    fabContainer.addEventListener('keydown', (e) => {
+        const items = getFabItems();
+        if (items.length === 0) return;
+
+        const currentIndex = items.indexOf(document.activeElement);
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            // Zum nächsten Button springen (beim letzten Element zum ersten springen)
+            const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
+            items[nextIndex].focus();
+        } 
+        else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            // Zum vorherigen Button springen (beim ersten zum letzten springen)
+            const prevIndex = currentIndex === -1 ? items.length - 1 : (currentIndex - 1 + items.length) % items.length;
+            items[prevIndex].focus();
+        } 
+        else if (e.key === 'Escape') {
+            e.preventDefault();
+            // Menü schließen und Fokus zurück auf den Haupt-Button legen
+            fabMainBtn.click();
+            fabMainBtn.focus();
+        }
+    });
+});
+
+/**
+ * Mit F1 die Hilfeseite öffnen
+ */
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'F1') {
+        e.preventDefault(); // Verhindert das Öffnen der Browser-Hilfe
+        
+        window.location.href = 'help.php';
+    }
+});

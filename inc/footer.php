@@ -18,11 +18,11 @@
         </button>
 
         <button id="historyFabBtn" class="btn btn-info fab-action" title="Änderungsprotokoll aufrufen">
-            <i class="fa-solid fa-gear"></i> Protokoll
+            <i class="fa-solid fa-clock-rotate-left"></i> Protokoll
         </button>
 
         <button id="settingsFabBtn" class="btn btn-light fab-action" title="Einstellungen anpassen">
-            <i class="fa-solid fa-clock-rotate-left"></i> Einstellungen
+            <i class="fa-solid fa-gear"></i> Einstellungen
         </button>
         <?php endif; ?>
 

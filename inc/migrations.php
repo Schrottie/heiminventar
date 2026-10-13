@@ -223,7 +223,7 @@ function runDatabaseMigrations(PDO $pdo): void
         '017_add_functions' => "
             ALTER TABLE inventory_items 
                 ADD COLUMN maintenance_interval_months INT DEFAULT NULL AFTER loan_to,
-                ADD COLUMN last_maintenance_date DATE DEFAULT NULL AFTER maintenance_interval;
+                ADD COLUMN last_maintenance_date DATE DEFAULT NULL AFTER maintenance_interval_months;
         ",
 
         '018_add_tags_to_items' => "

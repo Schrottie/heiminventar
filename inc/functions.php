@@ -169,3 +169,20 @@ function logInventoryAction(
         $userName
     ]);
 }
+
+if (!function_exists('getMaintenanceStatus')) {
+    function getMaintenanceStatus($monthsInterval, $lastDate) {
+        if (!$monthsInterval || $monthsInterval <= 0) return 'none';
+        if (!$lastDate) return 'overdue';
+        
+        $nextDueDate = date('Y-m-d', strtotime($lastDate . " + $monthsInterval months"));
+        $today = date('Y-m-d');
+        
+        if ($nextDueDate < $today) {
+            return 'overdue';
+        } elseif (strtotime($nextDueDate) <= strtotime('+14 days')) {
+            return 'warning';
+        }
+        return 'ok';
+    }
+}

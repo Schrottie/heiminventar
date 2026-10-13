@@ -49,11 +49,13 @@ $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : (int)$oldItem[
 $minQuantity = isset($_POST['min_quantity']) ? (int)$_POST['min_quantity'] : (int)$oldItem['min_quantity'];
 $locationId = isset($_POST['location_id']) ? (!empty($_POST['location_id']) ? (int)$_POST['location_id'] : null) : $oldItem['location_id'];
 
-// Neue Felder (Ablaufdatum, Preis, Verleih) auswerten
+// (Ablaufdatum, Preis, Verleih etc.) auswerten
 $expirationDate = isset($_POST['expiration_date']) ? (!empty($_POST['expiration_date']) ? $_POST['expiration_date'] : null) : $oldItem['expiration_date'];
 $price = isset($_POST['price']) ? (!empty($_POST['price']) ? (float)$_POST['price'] : null) : $oldItem['price'];
 $loanTo = isset($_POST['loan_to']) ? (trim($_POST['loan_to']) !== '' ? trim($_POST['loan_to']) : null) : $oldItem['loan_to'];
 $onLoan = ($loanTo !== null) ? 1 : 0; // Automatisch Flag setzen, wenn ein Verleih-Name eingetragen ist
+$maintenanceInterval = !empty($_POST['maintenance_interval_months']) ? (int)$_POST['maintenance_interval_months'] : null;
+$lastMaintenanceDate = !empty($_POST['last_maintenance_date']) ? trim($_POST['last_maintenance_date']) : null;
 
 // Validierung: Name darf beim Ändern der Stammdaten nicht leer sein
 if ($hasNameField && $name === '') {
@@ -61,8 +63,8 @@ if ($hasNameField && $name === '') {
 }
 
 if ($hasNameField) {
-    $stmt = $pdo->prepare("UPDATE inventory_items SET name = ?, description = ?, quantity = ?, min_quantity = ?, location_id = ?, expiration_date = ?, price = ?, on_loan = ?, loan_to = ? WHERE id = ?");
-    $stmt->execute([$name, $description, $quantity, $minQuantity, $locationId, $expirationDate, $price, $onLoan, $loanTo, $itemId]);
+    $stmt = $pdo->prepare("UPDATE inventory_items SET name = ?, description = ?, quantity = ?, min_quantity = ?, location_id = ?, expiration_date = ?, price = ?, on_loan = ?, loan_to = ? ,maintenance_interval_months = ?, last_maintenance_date = ? WHERE id = ?");
+    $stmt->execute([$name, $description, $quantity, $minQuantity, $locationId, $expirationDate, $price, $onLoan, $loanTo, $maintenanceInterval, $lastMaintenanceDate, $itemId]);
 
     // --- PROTOKOLLIERUNG DER STAMMDATEN-ÄNDERUNGEN (EINZELN UND ENTKOPPELT) ---
 

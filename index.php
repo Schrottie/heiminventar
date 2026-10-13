@@ -41,7 +41,7 @@ if ($filterLocationId !== null) {
     $targetLocationIds = getSubLocationIds($allLocations, $filterLocationId);
 }
 
-// Gegenstände inkl. neuen Feldern abfragen
+// Gegenstände inkl. Wartungsfeldern abfragen
 $params = [];
 $whereClause = '';
 
@@ -59,6 +59,8 @@ $sql = "
         i.min_quantity,
         i.expiration_date,
         i.loan_to,
+        i.maintenance_interval_months,
+        i.last_maintenance_date,
         i.location_id,
         l.name AS location_name,
         img.filename AS image_filename
@@ -86,12 +88,12 @@ $items = $stmt->fetchAll();
 // Hilfsfunktion zur Prüfung des Ablaufstatus
 function getExpirationStatus($dateStr) {
     if (empty($dateStr)) return null;
-    
+   
     $today = new DateTime();
     $expDate = new DateTime($dateStr);
     $interval = $today->diff($expDate);
     $daysRemaining = (int)$interval->format('%r%d');
-    
+   
     if ($daysRemaining < 0) {
         return 'danger';
     } elseif ($daysRemaining <= 21) {
@@ -102,15 +104,21 @@ function getExpirationStatus($dateStr) {
 
 $lowStockCount = 0;
 $expiredCount = 0;
+$maintenanceCount = 0;
 
 foreach ($items as $chk) {
     if ((int)$chk['min_quantity'] > 0 && (int)$chk['quantity'] <= (int)$chk['min_quantity']) {
         $lowStockCount++;
     }
-    
+   
     $expStatus = getExpirationStatus($chk['expiration_date'] ?? null);
     if ($expStatus === 'danger' || $expStatus === 'warning') {
         $expiredCount++;
+    }
+
+    $maintStatus = getMaintenanceStatus($chk['maintenance_interval_months'] ?? 0, $chk['last_maintenance_date'] ?? null);
+    if ($maintStatus === 'overdue' || $maintStatus === 'warning') {
+        $maintenanceCount++;
     }
 }
 
@@ -172,6 +180,17 @@ require_once __DIR__ . '/inc/header.php';
             </button>
         </div>
     <?php endif; ?>
+
+    <?php if ($maintenanceCount > 0): ?>
+        <div class="col-auto">
+            <button type="button" id="toggleMaintenance" class="btn btn-outline-secondary border-info position-relative text-info-emphasis">
+                <i class="fa-solid fa-screwdriver-wrench me-1"></i> Wartung fällig
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info text-dark">
+                    <?= $maintenanceCount ?>
+                </span>
+            </button>
+        </div>
+    <?php endif; ?>
 </div>
 
 <!-- Inventarliste -->
@@ -183,9 +202,12 @@ require_once __DIR__ . '/inc/header.php';
         $minQty = (int)$item['min_quantity'];
         $isLowStock = ($minQty > 0 && $qty <= $minQty);
         $isOnLoan = !empty($item['loan_to']);
-        
+       
         $expStatus = getExpirationStatus($item['expiration_date'] ?? null);
         $isExpiredOrWarning = ($expStatus === 'danger' || $expStatus === 'warning') ? '1' : '0';
+
+        $maintStatus = getMaintenanceStatus($item['maintenance_interval_months'] ?? 0, $item['last_maintenance_date'] ?? null);
+        $isMaintenanceDue = ($maintStatus === 'overdue' || $maintStatus === 'warning') ? '1' : '0';
 
         $path = getLocationPath($allLocations, (int)$item['location_id']);
         $searchTerms = mb_strtolower($item['name'] . ' ' . ($item['location_name'] ?? '') . ' ' . $path . ' ' . ($item['loan_to'] ?? ''));
@@ -203,7 +225,8 @@ require_once __DIR__ . '/inc/header.php';
         <div class="card shadow-sm mb-2 inventory-item <?= $cardStyleClass ?>"
              data-search="<?= htmlspecialchars($searchTerms) ?>"
              data-low-stock="<?= $isLowStock ? '1' : '0' ?>"
-             data-expired="<?= $isExpiredOrWarning ?>">
+             data-expired="<?= $isExpiredOrWarning ?>"
+             data-maintenance="<?= $isMaintenanceDue ?>">
             <div class="card-body p-3">
                 <div class="d-flex align-items-start justify-content-between">
                    
@@ -231,14 +254,9 @@ require_once __DIR__ . '/inc/header.php';
                                         <span class="badge bg-warning text-dark ms-1" title="Mindestbestand: <?= $minQty ?>">
                                             <i class="fa-solid fa-triangle-exclamation me-1"></i>Min: <?= $minQty ?>
                                         </span>
-                                    <?php if ($isOnLoan): ?>
-                                        <span class="badge bg-info text-dark ms-1" title="Verliehen an: <?= htmlspecialchars($item['loan_to']) ?>">
-                                            <i class="fa-solid fa-handshake me-1"></i> Verliehen: <?= htmlspecialchars($item['loan_to']) ?>
-                                        </span>
-                                    <?php endif; ?>
                                     <?php endif; ?>
 
-                                    <?php if ($isOnLoan && !$isLowStock): ?>
+                                    <?php if ($isOnLoan): ?>
                                         <span class="badge bg-info text-dark ms-1" title="Verliehen an: <?= htmlspecialchars($item['loan_to']) ?>">
                                             <i class="fa-solid fa-handshake me-1"></i> Verliehen: <?= htmlspecialchars($item['loan_to']) ?>
                                         </span>
@@ -249,6 +267,15 @@ require_once __DIR__ . '/inc/header.php';
                                     ?>
                                         <span class="badge <?= $badgeClass ?>" title="Ablaufdatum: <?= htmlspecialchars($item['expiration_date']) ?>">
                                             <i class="fa-solid fa-calendar-days me-1"></i> <?= htmlspecialchars($item['expiration_date']) ?>
+                                        </span>
+                                    <?php endif; ?>
+
+                                    <?php if ($isMaintenanceDue === '1'):
+                                        $maintBadgeClass = ($maintStatus === 'overdue') ? 'bg-danger text-white' : 'bg-info text-dark';
+                                        $maintText = ($maintStatus === 'overdue') ? 'Wartung überfällig' : 'Wartung fällig';
+                                    ?>
+                                        <span class="badge <?= $maintBadgeClass ?> ms-1" title="Wartungsintervall: Alle <?= (int)$item['maintenance_interval_months'] ?> Monate (Letzte: <?= htmlspecialchars($item['last_maintenance_date'] ?? 'Nie') ?>)">
+                                            <i class="fa-solid fa-screwdriver-wrench me-1"></i> <?= $maintText ?>
                                         </span>
                                     <?php endif; ?>
                                 </span>
@@ -283,4 +310,3 @@ require_once __DIR__ . '/inc/header.php';
 
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>
-

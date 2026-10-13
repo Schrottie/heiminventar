@@ -18,9 +18,11 @@ CREATE TABLE inventory_items (
     price DECIMAL(10,2) DEFAULT NULL,
     expiration_date DATE DEFAULT NULL,
     on_loan TINYINT(1) DEFAULT 0,
-    loan_to VARCHAR(255) DEFAULT NULL;
+    loan_to VARCHAR(255) DEFAULT NULL,
+    maintenance_interval_months INT DEFAULT NULL,
+    last_maintenance_date DATE DEFAULT NULL,
     is_archived TINYINT(1) NOT NULL DEFAULT 0,
-    archived_at TIMESTAMP NULL DEFAULT NULL;
+    archived_at TIMESTAMP NULL DEFAULT NULL,
     created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_inventory_location
     FOREIGN KEY(location_id)

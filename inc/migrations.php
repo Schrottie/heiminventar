@@ -218,6 +218,12 @@ function runDatabaseMigrations(PDO $pdo): void
                         1
                     )
                     ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
+        ",
+
+        '017_add_functions' => "
+            ALTER TABLE inventory_items 
+                ADD COLUMN maintenance_interval_months INT DEFAULT NULL AFTER loan_to,
+                ADD COLUMN last_maintenance_date DATE DEFAULT NULL AFTER maintenance_interval;
         "
     ];
 

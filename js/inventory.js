@@ -1,47 +1,122 @@
 /**
- * Inventar-Filter und Artikel-Verwaltung
+ * Inventar-Filter (Suchfeld, Nachbestellen, Ablaufdatum & Wartung fällig)
  */
 document.addEventListener('DOMContentLoaded', () => {
     const quickFilterInput = document.getElementById('quickFilter');
     const lowStockBtn = document.getElementById('toggleLowStock');
-    let lowStockActive = false;
+    const expiredBtn = document.getElementById('toggleExpired');
+    const maintenanceBtn = document.getElementById('toggleMaintenance');
 
-    // Filtert die Inventarliste basierend auf Suchbegriff und Mindestbestand
-    function applyFilters() {
+    function applyFilters(targetFilter = null) {
         const query = quickFilterInput ? quickFilterInput.value.toLowerCase().trim() : '';
-        
+
+        // Prüfen, welcher Button aktuell aktiv ist
+        let lowStockActive = lowStockBtn ? lowStockBtn.classList.contains('active-filter') : false;
+        let expiredActive = expiredBtn ? expiredBtn.classList.contains('active-filter') : false;
+        let maintenanceActive = maintenanceBtn ? maintenanceBtn.classList.contains('active-filter') : false;
+
+        // Wenn ein spezifischer Filter geklickt wurde
+        if (targetFilter !== null) {
+            // Wenn derselbe Filter bereits aktiv war -> ausschalten (Toggle)
+            if (targetFilter === 'lowStock') lowStockActive = !lowStockActive;
+            if (targetFilter === 'expired') expiredActive = !expiredActive;
+            if (targetFilter === 'maintenance') maintenanceActive = !maintenanceActive;
+
+            // Wenn es ein neuer Filter ist, alle anderen exklusiv ausschalten
+            if (targetFilter === 'lowStock' && lowStockActive) {
+                expiredActive = false;
+                maintenanceActive = false;
+            }
+            if (targetFilter === 'expired' && expiredActive) {
+                lowStockActive = false;
+                maintenanceActive = false;
+            }
+            if (targetFilter === 'maintenance' && maintenanceActive) {
+                lowStockActive = false;
+                expiredActive = false;
+            }
+
+            if (quickFilterInput) quickFilterInput.value = ''; // Suchfeld bei Button-Klick leeren
+        }
+
+        // Optischen Zustand der Buttons aktualisieren
+        if (lowStockBtn) {
+            lowStockBtn.classList.toggle('active-filter', lowStockActive);
+            lowStockBtn.classList.toggle('btn-danger', lowStockActive);
+            lowStockBtn.classList.toggle('btn-outline-danger', !lowStockActive);
+        }
+        if (expiredBtn) {
+            expiredBtn.classList.toggle('active-filter', expiredActive);
+            expiredBtn.classList.toggle('btn-warning', expiredActive);
+            expiredBtn.classList.toggle('text-dark', expiredActive);
+            expiredBtn.classList.toggle('btn-outline-warning', !expiredActive);
+        }
+        if (maintenanceBtn) {
+            maintenanceBtn.classList.toggle('active-filter', maintenanceActive);
+            maintenanceBtn.classList.toggle('btn-info', maintenanceActive);
+            maintenanceBtn.classList.toggle('text-dark', maintenanceActive);
+            maintenanceBtn.classList.toggle('btn-outline-secondary', !maintenanceActive);
+            maintenanceBtn.classList.toggle('border-info', !maintenanceActive);
+            maintenanceBtn.classList.toggle('text-info-emphasis', !maintenanceActive);
+        }
+
+        // Inventar-Elemente durchgehen und filtern
         document.querySelectorAll('.inventory-item').forEach(item => {
             const searchData = (item.getAttribute('data-search') || '').toLowerCase();
             const isLowStock = item.getAttribute('data-low-stock') === '1';
+            const isExpired = item.getAttribute('data-expired') === '1';
+            const isMaintenance = item.getAttribute('data-maintenance') === '1';
 
             const matchesSearch = query === '' || searchData.includes(query);
             const matchesLowStock = !lowStockActive || isLowStock;
+            const matchesExpired = !expiredActive || isExpired;
+            const matchesMaintenance = !maintenanceActive || isMaintenance;
 
-            item.style.display = (matchesSearch && matchesLowStock) ? '' : 'none';
+            if (matchesSearch && matchesLowStock && matchesExpired && matchesMaintenance) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
         });
     }
 
+    // Event-Listener für das Suchfeld
     if (quickFilterInput) {
-        quickFilterInput.addEventListener('input', applyFilters);
+        quickFilterInput.addEventListener('input', () => applyFilters(null));
     }
 
+    // Event-Listener: Nachbestellen
     if (lowStockBtn) {
-        lowStockBtn.addEventListener('click', function(e) {
+        lowStockBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            lowStockActive = !lowStockActive;
-            lowStockBtn.classList.toggle('btn-danger', lowStockActive);
-            lowStockBtn.classList.toggle('btn-outline-danger', !lowStockActive);
-            applyFilters();
+            applyFilters('lowStock');
+        });
+    }
+
+    // Event-Listener: Ablauf / Verfall
+    if (expiredBtn) {
+        expiredBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            applyFilters('expired');
+        });
+    }
+
+    // Event-Listener: Wartung fällig
+    if (maintenanceBtn) {
+        maintenanceBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            applyFilters('maintenance');
         });
     }
 });
+
 
 /**
  * Führt die Archivierung eines Gegenstands per AJAX aus
  */
 function archiveItem(id) {
     if (!confirm('Möchtest du diesen Gegenstand wirklich archivieren?')) return;
-    
+   
     fetch('api/item-archive.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -167,63 +242,6 @@ function submitRestore() {
     })
     .catch(err => console.error('Fehler:', err));
 }
-
-/**
- * Inventar-Filter (Suchfeld, Nachbestellen & Ablaufdatum)
- */
-document.addEventListener('DOMContentLoaded', () => {
-    const quickFilterInput = document.getElementById('quickFilter');
-    const lowStockBtn = document.getElementById('toggleLowStock');
-    const expiredBtn = document.getElementById('toggleExpired');
-   
-    let lowStockActive = false;
-    let expiredActive = false;
-
-    function applyFilters() {
-        const query = quickFilterInput ? quickFilterInput.value.toLowerCase().trim() : '';
-       
-        document.querySelectorAll('.inventory-item').forEach(item => {
-            const searchData = (item.getAttribute('data-search') || '').toLowerCase();
-            const isLowStock = item.getAttribute('data-low-stock') === '1';
-            const isExpired = item.getAttribute('data-expired') === '1';
-
-            const matchesSearch = query === '' || searchData.includes(query);
-            const matchesLowStock = !lowStockActive || isLowStock;
-            const matchesExpired = !expiredActive || isExpired;
-
-            if (matchesSearch && matchesLowStock && matchesExpired) {
-                item.style.display = '';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    }
-
-    if (quickFilterInput) {
-        quickFilterInput.addEventListener('input', applyFilters);
-    }
-
-    if (lowStockBtn) {
-        lowStockBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            lowStockActive = !lowStockActive;
-            lowStockBtn.classList.toggle('btn-danger', lowStockActive);
-            lowStockBtn.classList.toggle('btn-outline-danger', !lowStockActive);
-            applyFilters();
-        });
-    }
-
-    if (expiredBtn) {
-        expiredBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            expiredActive = !expiredActive;
-            expiredBtn.classList.toggle('btn-warning', expiredActive);
-            expiredBtn.classList.toggle('btn-outline-warning', !expiredActive);
-            expiredBtn.classList.toggle('text-dark', expiredActive);
-            applyFilters();
-        });
-    }
-});
 
 /**
  * Bestandsaktualisierung und Verifizierung im Inventur-Modus

@@ -111,6 +111,7 @@
     <script src="js/fab.js"></script>
     <script src="js/inventory.js"></script>
     <script src="js/locations.js"></script>
+    <script src="js/tags.js"></script>
     <script src="js/qr.js"></script>
     <script src="js/logs.js"></script>
     <script src="js/app.js"></script>

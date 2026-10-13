@@ -76,6 +76,18 @@ CREATE TABLE IF NOT EXISTS item_documents (
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS tags (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS item_tags (
+    item_id INT NOT NULL,
+    tag_id INT NOT NULL,
+    PRIMARY KEY (item_id, tag_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 /* ---------------------------
    INSERT CONFIG & SAMPLE DATA
    --------------------------- */

@@ -186,3 +186,58 @@ if (!function_exists('getMaintenanceStatus')) {
         return 'ok';
     }
 }
+
+/**
+ * Holt alle Tags für einen bestimmten Gegenstand
+ */
+function getItemTags(PDO $pdo, int $itemId): array {
+    $stmt = $pdo->prepare("
+        SELECT t.id, t.name 
+        FROM tags t
+        JOIN item_tags it ON it.tag_id = t.id
+        WHERE it.item_id = ?
+        ORDER BY t.name
+    ");
+    $stmt->execute([$itemId]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Speichert und verknüpft Tags für einen Gegenstand
+ */
+function saveItemTags(PDO $pdo, int $itemId, string $tagsString): void {
+    // Zuerst alle bestehenden Verknüpfungen für diesen Artikel löschen
+    $stmtDel = $pdo->prepare("DELETE FROM item_tags WHERE item_id = ?");
+    $stmtDel->execute([$itemId]);
+
+    if (empty(trim($tagsString))) return;
+
+    // Tags anhand von Kommas oder Leerzeichen trennen (hier flexibel nach Komma)
+    $tagNames = array_map('trim', explode(',', $tagsString));
+
+    foreach ($tagNames as $name) {
+        if (empty($name)) continue;
+
+        // Prüfen, ob der Tag bereits existiert (Case-insensitive / exakt)
+        $stmtCheck = $pdo->prepare("SELECT id FROM tags WHERE LOWER(name) = LOWER(?)");
+        $stmtCheck->execute([$name]);
+        $tag = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+        if ($tag) {
+            $tagId = $tag['id'];
+        } else {
+            // Neu anlegen
+            $stmtIns = $pdo->prepare("INSERT INTO tags (name) VALUES (?)");
+            $stmtIns->execute([$name]);
+            $tagId = $pdo->lastInsertId();
+        }
+
+        // Verknüpfung in item_tags erstellen (mit Fehlerbehandlung für Dubletten)
+        try {
+            $stmtLink = $pdo->prepare("INSERT IGNORE INTO item_tags (item_id, tag_id) VALUES (?, ?)");
+            $stmtLink->execute([$itemId, $tagId]);
+        } catch (Exception $e) {
+            // Ignorieren falls bereits verknüpft
+        }
+    }
+}

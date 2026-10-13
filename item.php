@@ -24,6 +24,10 @@ $stmt = $pdo->prepare("SELECT id, filename, is_main FROM item_images WHERE item_
 $stmt->execute([$id]);
 $images = $stmt->fetchAll();
 
+// Bestehende Tags für diesen Artikel abrufen und als kommagetrennten String aufbereiten
+$currentTags = getItemTags($pdo, $id);
+$currentTagsString = implode(', ', array_column($currentTags, 'name'));
+
 require_once __DIR__ . '/inc/header.php';
 ?>
 
@@ -185,7 +189,6 @@ require_once __DIR__ . '/inc/header.php';
                 </div>
             </div>
 
-
             <!-- Schaltflächen zum Speichern & Navigation -->
             <div class="d-flex flex-wrap gap-2">
                 <button type="submit" name="action" value="save" class="btn btn-success flex-fill">
@@ -199,6 +202,27 @@ require_once __DIR__ . '/inc/header.php';
                 </a>
             </div>
         </form>
+
+        <!-- Container für die interaktiven Tag-Pills und das Eingabefeld -->
+        <div class="mb-3 mt-2 border-top pt-3">
+            <label class="form-label">Schlagwörter (Tags)</label>
+        
+            <input type="hidden" id="currentItemId" value="<?= (int)$item['id'] ?>">
+
+            <!-- Container für die interaktiven Tag-Pills und das Eingabefeld (jetzt mit position-relative) -->
+            <div class="position-relative">
+                <div id="tagContainer" class="form-control d-flex flex-wrap align-items-center gap-1 p-2" style="min-height: 38px; cursor: text;">
+                    <input type="text" id="tagInputField" class="border-0 flex-grow-1 bg-transparent text-body p-0 shadow-none" placeholder="Tag eingeben, mit Komma trennen..." autocomplete="off" style="outline: none; min-width: 120px;">
+                </div>
+            
+                <!-- Autocomplete-Dropdown (klebt jetzt perfekt direkt unter dem Eingabe-Kasten) -->
+                <div id="tagSuggestions" class="dropdown-menu shadow-sm w-100" style="display: none; position: absolute; top: 100%; left: 0; z-index: 1050;"></div>
+            </div>
+        
+            <input type="hidden" id="tagsHiddenInput" name="tags" value="<?= htmlspecialchars($currentTagsString) ?>">
+        
+            <div class="form-text mt-1">Tippen, mit Pfeiltasten wählen &amp; Enter drücken. Klicke auf das × zum Entfernen.</div>
+        </div>
     </div>
 </div>
 

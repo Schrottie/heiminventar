@@ -224,6 +224,18 @@ function runDatabaseMigrations(PDO $pdo): void
             ALTER TABLE inventory_items 
                 ADD COLUMN maintenance_interval_months INT DEFAULT NULL AFTER loan_to,
                 ADD COLUMN last_maintenance_date DATE DEFAULT NULL AFTER maintenance_interval;
+        ",
+
+        '018_add_tags_to_items' => "
+            CREATE TABLE IF NOT EXISTS tags (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL UNIQUE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            CREATE TABLE IF NOT EXISTS item_tags (
+                item_id INT NOT NULL,
+                tag_id INT NOT NULL,
+                PRIMARY KEY (item_id, tag_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         "
     ];
 

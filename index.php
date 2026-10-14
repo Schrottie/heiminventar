@@ -12,16 +12,16 @@ require_once __DIR__ . '/inc/functions.php';
 
 // Einstellungen explizit aus der DB holen
 if (!isset($settings)) {
-    $stmtSettings =$pdo->query("SELECT setting_key, setting_value FROM settings");
-    $settings =$stmtSettings->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
+    $stmtSettings = $pdo->query("SELECT setting_key, setting_value FROM settings");
+    $settings = $stmtSettings->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
 }
 
 // Einstellung 'show_images' auslesen
-$rawShowImages =$settings['show_images'] ?? '1';
+$rawShowImages = $settings['show_images'] ?? '1';
 $showImages = ($rawShowImages === '1');
 
 // Alle Lagerorte für den Rekursionspfad (getLocationPath) und Filterung abfragen
-$allLocations =$pdo->query("SELECT id, parent_id, name FROM locations")->fetchAll();
+$allLocations = $pdo->query("SELECT id, parent_id, name FROM locations")->fetchAll();
 
 // location_id aus URL auslesen
 $filterLocationId = isset($_GET['location_id']) && is_numeric($_GET['location_id']) ? (int)$_GET['location_id'] : null;
@@ -29,23 +29,25 @@ $filterLocationId = isset($_GET['location_id']) && is_numeric($_GET['location_id
 // Falls nach Standort gefiltert wird: Alle untergeordneten Lagerort-IDs ermitteln (Rekursion)
 $targetLocationIds = [];
 if ($filterLocationId !== null) {
-    function getSubLocationIds(array $locations, int$parentId): array {
+    function getSubLocationIds(array $locations, int $parentId): array {
         $ids = [$parentId];
-        foreach ($locations as$loc) {
-            if ((int)$loc['parent_id'] ===$parentId) {
+        foreach ($locations as $loc) {
+            if ((int)$loc['parent_id'] === $parentId) {
                 $ids = array_merge($ids, getSubLocationIds($locations, (int)$loc['id']));
             }
         }
         return $ids;
     }
-    $targetLocationIds = getSubLocationIds($allLocations,$filterLocationId);
+    $targetLocationIds = getSubLocationIds($allLocations, $filterLocationId);
 }
 
 // Gegenstände abfragen (inklusive aller zugehörigen Tags als JSON oder Array für das Frontend)
-$params = [];$whereClause = '';
+$params = []; $whereClause = '';
 
-if (!empty($targetLocationIds)) {$placeholders = implode(',', array_fill(0, count($targetLocationIds), '?'));$whereClause = " WHERE i.location_id IN ($placeholders) ";
-    $params =$targetLocationIds;
+if (!empty($targetLocationIds)) {
+    $placeholders = implode(',', array_fill(0, count($targetLocationIds), '?'));
+    $whereClause = " AND i.location_id IN ($placeholders) ";
+    $params = $targetLocationIds;
 }
 
 $sql = "
@@ -76,6 +78,7 @@ $sql = "
         GROUP BY item_id
     ) main_img ON main_img.item_id = i.id
     LEFT JOIN item_images img ON img.id = main_img.main_id
+    WHERE i.is_archived = '0'
     {$whereClause}
     GROUP BY i.id
     ORDER BY i.name
@@ -83,13 +86,13 @@ $sql = "
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
-$items =$stmt->fetchAll();
+$items = $stmt->fetchAll();
 
 // Hilfsfunktion zur Prüfung des Ablaufstatus
 function getExpirationStatus($dateStr) {
     if (empty($dateStr)) return null;
    
-    $today = new DateTime();$expDate = new DateTime($dateStr);$interval = $today->diff($expDate);
+    $today = new DateTime(); $expDate = new DateTime($dateStr); $interval = $today->diff($expDate);
     $daysRemaining = (int)$interval->format('%r%d');
    
     if ($daysRemaining < 0) {
@@ -104,16 +107,19 @@ $lowStockCount = 0;
 $expiredCount = 0;
 $maintenanceCount = 0;
 
-foreach ($items as$chk) {
-    if ((int)$chk['min_quantity'] > 0 && (int)$chk['quantity'] <= (int)$chk['min_quantity']) {$lowStockCount++;
+foreach ($items as $chk) {
+    if ((int)$chk['min_quantity'] > 0 && (int)$chk['quantity'] <= (int)$chk['min_quantity']) {
+        $lowStockCount++;
     }
    
     $expStatus = getExpirationStatus($chk['expiration_date'] ?? null);
-    if ($expStatus === 'danger' || $expStatus === 'warning') {$expiredCount++;
+    if ($expStatus === 'danger' || $expStatus === 'warning') {
+        $expiredCount++;
     }
 
-    $maintStatus = getMaintenanceStatus($chk['maintenance_interval_months'] ?? 0,$chk['last_maintenance_date'] ?? null);
-    if ($maintStatus === 'overdue' || $maintStatus === 'warning') {$maintenanceCount++;
+    $maintStatus = getMaintenanceStatus($chk['maintenance_interval_months'] ?? 0, $chk['last_maintenance_date'] ?? null);
+    if ($maintStatus === 'overdue' || $maintStatus === 'warning') {
+        $maintenanceCount++;
     }
 }
 
@@ -123,9 +129,9 @@ require_once __DIR__ . '/inc/header.php';
 <?php if ($filterLocationId !== null): ?>
     <?php
         $activeLocName = 'Unbekannt';
-        foreach ($allLocations as$loc) {
-            if ((int)$loc['id'] ===$filterLocationId) {
-                $activeLocName =$loc['name'];
+        foreach ($allLocations as $loc) {
+            if ((int)$loc['id'] === $filterLocationId) {
+                $activeLocName = $loc['name'];
                 break;
             }
         }
@@ -140,12 +146,62 @@ require_once __DIR__ . '/inc/header.php';
     </div>
 <?php endif; ?>
 
+<!-- Meldungsbanner -->
+<?php if (($lowStockCount > 0 || $expiredCount > 0 || $maintenanceCount > 0) && (!isset($_COOKIE['hide_daily_notice']) || $_COOKIE['hide_daily_notice'] !== date('Y-m-d'))): ?>
+    <div id="dailyNoticeBanner" class="border rounded-3 p-2 px-3 mb-3 bg-body-tertiary small text-body-secondary shadow-none" style="font-size: 0.875rem;">
+        
+        <!-- Header (Schrift links, X rechts) -->
+        <div class="d-flex align-items-center justify-content-between pb-1 mb-2">
+            <div class="fw-bold text-secondary">
+                <i class="fa-solid fa-circle-info text-danger me-1"></i> Meldung des Tages
+            </div>
+            <div>
+                <button type="button" class="btn-close" style="font-size: 0.65rem;" onclick="hideDailyNotice()" title="Heute nicht mehr anzeigen"></button>
+            </div>
+        </div>
+
+        <!-- Inhalt als saubere Liste mit Singular/Plural -->
+        <ul class="mb-1 ps-3 text-secondary">
+            <?php if ($lowStockCount > 0): ?>
+                <li>
+                    <?php if ($lowStockCount === 1): ?>
+                        Anstehende Nachbestellung: <strong>1 Gegenstand</strong>
+                    <?php else: ?>
+                        Anstehende Nachbestellungen: <strong><?= $lowStockCount ?> Gegenstände</strong>
+                    <?php endif; ?>
+                </li>
+            <?php endif; ?>
+
+            <?php if ($expiredCount > 0): ?>
+                <li>
+                    <?php if ($expiredCount === 1): ?>
+                        Ablauf- oder Verfallsdatum erreicht: <strong>1 Gegenstand</strong>
+                    <?php else: ?>
+                        Ablauf- oder Verfallsdatum erreicht: <strong><?= $expiredCount ?> Gegenstände</strong>
+                    <?php endif; ?>
+                </li>
+            <?php endif; ?>
+
+            <?php if ($maintenanceCount > 0): ?>
+                <li>
+                    <?php if ($maintenanceCount === 1): ?>
+                        Fällige Wartung: <strong>1 Gegenstand</strong>
+                    <?php else: ?>
+                        Fällige Wartungen: <strong><?= $maintenanceCount ?> Gegenstände</strong>
+                    <?php endif; ?>
+                </li>
+            <?php endif; ?>
+        </ul>
+
+    </div>
+<?php endif; ?>
+
 <!-- Schnellfilter / Suchleiste & Warn-Buttons -->
 <div class="row mb-3 g-2 align-items-center">
     <div class="col">
         <div class="input-group">
             <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-            <input type="text" id="quickFilter" class="form-control" placeholder="Inventar durchsuchen...">
+            <input type="text" id="quickFilter" class="form-control text-body" placeholder="Inventar durchsuchen...">
         </div>
     </div>
     <div class="col-auto">
@@ -192,7 +248,10 @@ require_once __DIR__ . '/inc/header.php';
 <div class="card shadow-sm mb-3">
     <div class="card-body py-2 px-3">
         <div class="d-flex align-items-center justify-content-between mb-1">
-            <span class="text-muted small fw-bold"><i class="fa-solid fa-tags me-1"></i>Nach Tags filtern:</span>
+            <span class="text-muted small fw-bold">
+                <i class="fa-solid fa-tags me-1"></i>Nach Tags filtern:
+                <i class="fa-solid fa-circle-question text-muted ms-1" style="cursor: pointer;" data-bs-toggle="tooltip" data-bs-placement="top" title="Tipp: Tippen oder Vorschlag wählen und mit Enter oder Komma bestätigen. Ab 2 Tags erscheint ein UND/ODER-Modus Schalter."></i>
+            </span>
             
             <!-- UND / ODER Modus Umschalter (wird ab 2 Tags automatisch sichtbar) -->
             <div id="tagModeContainer" class="btn-group btn-group-sm" style="display: none;" role="group">
@@ -202,8 +261,8 @@ require_once __DIR__ . '/inc/header.php';
         </div>
         <div class="input-group">
             <div class="position-relative flex-grow-1">
-                <!-- Tag-Eingabe Container (Pills + Input) -->
-                <div id="filterTagContainer" class="form-control d-flex flex-wrap align-items-center gap-1 p-2 bg-body" style="min-height: 38px; cursor: text; border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                <!-- Tag-Eingabe Container (Pills + Input) - Darkmode-optimiert mit bg-transparent -->
+                <div id="filterTagContainer" class="form-control d-flex flex-wrap align-items-center gap-1 p-2 bg-transparent text-body" style="min-height: 38px; cursor: text; border-top-right-radius: 0; border-bottom-right-radius: 0;">
                     <input type="text" id="filterTagInput" class="border-0 flex-grow-1 bg-transparent text-body p-0 shadow-none" placeholder="Tag eingeben oder suchen..." autocomplete="off" style="outline: none; min-width: 140px;">
                 </div>
             
@@ -220,21 +279,22 @@ require_once __DIR__ . '/inc/header.php';
 
 <!-- Inventarliste -->
 <div id="inventoryList">
-    <?php foreach ($items as$item): ?>
+    <?php foreach ($items as $item): ?>
         <?php
         $itemId = (int)$item['id'];
         $qty = (int)$item['quantity'];
         $minQty = (int)$item['min_quantity'];
-        $isLowStock = ($minQty > 0 && $qty <=$minQty);
+        $isLowStock = ($minQty > 0 && $qty <= $minQty);
         $isOnLoan = !empty($item['loan_to']);
        
         $expStatus = getExpirationStatus($item['expiration_date'] ?? null);
-        $isExpiredOrWarning = ($expStatus === 'danger' ||$expStatus === 'warning') ? '1' : '0';
+        $isExpiredOrWarning = ($expStatus === 'danger' || $expStatus === 'warning') ? '1' : '0';
 
-        $maintStatus = getMaintenanceStatus($item['maintenance_interval_months'] ?? 0,$item['last_maintenance_date'] ?? null);
-        $isMaintenanceDue = ($maintStatus === 'overdue' ||$maintStatus === 'warning') ? '1' : '0';
+        $maintStatus = getMaintenanceStatus($item['maintenance_interval_months'] ?? 0, $item['last_maintenance_date'] ?? null);
+        $isMaintenanceDue = ($maintStatus === 'overdue' || $maintStatus === 'warning') ? '1' : '0';
 
-        $path = getLocationPath($allLocations, (int)$item['location_id']);$searchTerms = mb_strtolower($item['name'] . ' ' . ($item['location_name'] ?? '') . ' ' . $path . ' ' . ($item['loan_to'] ?? ''));
+        $path = getLocationPath($allLocations, (int)$item['location_id']);
+        $searchTerms = mb_strtolower($item['name'] . ' ' . ($item['location_name'] ?? '') . ' ' . $path . ' ' . ($item['loan_to'] ?? ''));
         
         // Tags als Array für das data-Attribute aufbereiten
         $itemTagsArray = !empty($item['item_tags_list']) ? explode('||', $item['item_tags_list']) : [];
@@ -244,8 +304,10 @@ require_once __DIR__ . '/inc/header.php';
 
         // Styling für Karte je nach Status
         $cardStyleClass = '';
-        if ($isLowStock) {$cardStyleClass = 'border-danger-subtle bg-danger-subtle bg-opacity-10';
-        } elseif ($isOnLoan) {$cardStyleClass = 'border-info-subtle bg-info-subtle bg-opacity-10';
+        if ($isLowStock) {
+            $cardStyleClass = 'border-danger-subtle bg-danger-subtle bg-opacity-10';
+        } elseif ($isOnLoan) {
+            $cardStyleClass = 'border-info-subtle bg-info-subtle bg-opacity-10';
         }
         ?>
 
@@ -297,7 +359,8 @@ require_once __DIR__ . '/inc/header.php';
                                         </span>
                                     <?php endif; ?>
 
-                                    <?php if (!empty($item['expiration_date'])):$badgeClass = ($expStatus === 'danger') ? 'bg-danger text-white' : (($expStatus === 'warning') ? 'bg-warning text-dark' : 'text-muted');
+                                    <?php if (!empty($item['expiration_date'])): 
+                                        $badgeClass = ($expStatus === 'danger') ? 'bg-danger text-white' : (($expStatus === 'warning') ? 'bg-warning text-dark' : 'text-muted');
                                     ?>
                                         <span class="badge <?= $badgeClass ?>" title="Ablaufdatum: <?= htmlspecialchars($item['expiration_date']) ?>">
                                             <i class="fa-solid fa-calendar-days me-1"></i> <?= htmlspecialchars($item['expiration_date']) ?>
@@ -316,17 +379,14 @@ require_once __DIR__ . '/inc/header.php';
                             </h6>
 
                             <small class="d-block text-truncate">
-                                <a class="text-decoration-none text-muted" role="button" data-bs-toggle="collapse" href="#locationPath<?= $itemId ?>">
+                                <a class="text-decoration-none text-muted d-inline-block" role="button" 
+                                onclick="toggleLocationPath(this, event)" 
+                                data-short="<?= htmlspecialchars($item['location_name'] ?? 'Kein Lagerort') ?>" 
+                                data-full="<?= htmlspecialchars($path) ?>">
                                     <i class="fa-solid fa-location-dot me-1"></i>
-                                    <?= htmlspecialchars($item['location_name'] ?? 'Kein Lagerort') ?>
+                                    <span class="location-text"><?= htmlspecialchars($item['location_name'] ?? 'Kein Lagerort') ?></span>
                                 </a>
                             </small>
-
-                            <div class="collapse mt-1" id="locationPath<?= $itemId ?>">
-                                <div class="small text-muted text-break">
-                                    <?= htmlspecialchars($path) ?>
-                                </div>
-                            </div>
                         </div>
                     </div>
 

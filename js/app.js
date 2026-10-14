@@ -27,3 +27,19 @@ window.addEventListener("scroll", () => {
         isCollapsed = false;
     }
 });
+
+// Bootstrap Tooltips aktivieren (für den Tag-Hilfetext)
+document.addEventListener('DOMContentLoaded', () => {
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltipTriggerList.forEach(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+});
+
+// Meldung des Tages schließen
+function hideDailyNotice() {
+    const banner = document.getElementById('dailyNoticeBanner');
+    if (banner) banner.style.display = 'none';
+    // Cookie für den aktuellen Tag setzen (gilt bis Mitternacht)
+    const tomorrow = new Date();
+    tomorrow.setHours(23, 59, 59, 999);
+    document.cookie = "hide_daily_notice=" + new Date().toISOString().slice(0,10) + "; path=/; expires=" + tomorrow.toUTCString();
+}

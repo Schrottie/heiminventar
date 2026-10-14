@@ -117,3 +117,20 @@ function viewReleaseModal(version, title, content, date) {
         modal.show();
     }
 }
+
+/**
+ * Schaltet auf der Übersichtsseite zwischen Lagerort und Pfad um
+ */
+function toggleLocationPath(element, event) {
+    event.preventDefault();
+    const span = element.querySelector('.location-text');
+    const shortText = element.getAttribute('data-short');
+    const fullText = element.getAttribute('data-full');
+
+    // Wenn der kurze Text da ist, auf den vollen Pfad wechseln – sonst zurück
+    if (span.textContent === shortText) {
+        span.textContent = fullText;
+    } else {
+        span.textContent = shortText;
+    }
+}

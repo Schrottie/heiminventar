@@ -701,6 +701,10 @@ body.theme-dark .text-secondary {
     color: #94a3b8 !important;
 }
 
+body.theme-dark .text-body-emphasis {
+    color: #f8fafc !important;
+}
+
 /* Formular-Elemente & QuickFilter */
 body.theme-dark .form-control,
 body.theme-dark .form-select {
@@ -885,6 +889,38 @@ body.theme-dark .bg-danger-subtle {
     color: #ea868f !important;
 }
 
+/* Formularfelder, Placeholder & Cursor (Caret) im Dark Mode optimieren */
+body.theme-dark input,
+body.theme-dark textarea,
+body.theme-dark .form-control {
+    color: #f8fafc !important;
+    caret-color: #ff4d5a !important; /* Deutlich sichtbarer roter Cursor */
+}
+
+body.theme-dark input::placeholder,
+body.theme-dark textarea::placeholder,
+body.theme-dark .form-control::placeholder {
+    color: #64748b !important; /* Klar erkennbarer, nicht zu dunkler Platzhalter */
+    opacity: 1 !important;
+}
+
+/* Spezifische Korrektur für QuickFilter und Tag-Input */
+body.theme-dark #quickFilter,
+body.theme-dark #filterTagInput {
+    color: #f8fafc !important;
+    background-color: transparent !important;
+}
+
+body.theme-dark #quickFilter::placeholder,
+body.theme-dark #filterTagInput::placeholder {
+    color: #64748b !important;
+}
+
+/* Container für Tags im Dark Mode optisch anbinden */
+body.theme-dark #filterTagContainer {
+    border-color: #334155 !important;
+    background-color: #121418 !important;
+}
 
 /* ==========================================================================
    11. Drucksettings

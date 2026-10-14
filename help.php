@@ -48,6 +48,7 @@ section {
                     <a href="#qrcode" class="list-group-item list-group-item-action"><i class="fa-solid fa-qrcode me-2"></i> QR-Codes &amp; Etiketten</a>
                     <a href="#design" class="list-group-item list-group-item-action"><i class="fa-solid fa-palette me-2"></i>Design &amp; Vorschaubilder</a>
                     <a href="#items" class="list-group-item list-group-item-action"><i class="fa-solid fa-pen-to-square me-2"></i>Gegenstände bearbeiten &amp; archivieren</a>
+                    <a href="#tags" class="list-group-item list-group-item-action"><i class="fa-solid fa-tags me-2"></i>Tag-System &amp; Filterung</a>
                     <a href="#locations" class="list-group-item list-group-item-action"><i class="fa-solid fa-folder-tree me-2"></i>Lagerortverwaltung</a>
                     <a href="#shuffle" class="list-group-item list-group-item-action"><i class="fa-solid fa-shuffle me-2"></i>Verschiebebahnhof</a>
                     <a href="#dashboard" class="list-group-item list-group-item-action"><i class="fa-solid fa-chart-pie me-2"></i>Dashboard &amp; Auswertung</a>
@@ -71,7 +72,7 @@ section {
                             <i class="fa-solid fa-magnifying-glass me-2"></i> Schnellsuche &amp; Filter
                         </h5>
                         <p class="small text-muted mb-0">
-                            Über das Suchfeld <strong>„QuickFilter“</strong> oben wird die Inventarliste in Echtzeit gefiltert. Es kann nach Name, Seriennummer, Kategorie oder Standort gesucht werden. Über die Schaltfläche <strong>„Nachbestellen“</strong> lassen sich mit einem Klick alle Artikel filtern, deren Mindestbestand unterschritten ist.
+                            Über das Suchfeld <strong>„QuickFilter“</strong> oben wird die Inventarliste in Echtzeit gefiltert. Es kann nach Name, Seriennummer, Kategorie oder Standort gesucht werden. Über die Schaltfläche <strong>„Nachbestellen“</strong> lassen sich mit einem Klick alle Gegenstände filtern, deren Mindestbestand unterschritten ist.
                         </p>
                     </section>
 
@@ -132,7 +133,7 @@ section {
                                 <strong>Kamera-Scanner nutzen:</strong> Über das Kamera-Symbol in der Kopfzeile wird der QR-Scanner geöffnet. Sobald ein QR-Code eines Gegenstands oder Lagerorts gescannt wird, springt die Anwendung direkt zum Ziel.
                             </li>
                             <li class="mb-1">
-                                <strong>QR-Codes generieren &amp; drucken:</strong> Für jeden Artikel sowie jeden Lagerort wird automatisch ein individueller QR-Code erzeugt. Dieser kann auf Etiketten ausgedruckt und an Kisten, Regalen oder Geräten angebracht werden.
+                                <strong>QR-Codes generieren &amp; drucken:</strong> Für jeden Gegenstand sowie jeden Lagerort wird automatisch ein individueller QR-Code erzeugt. Dieser kann auf Etiketten ausgedruckt und an Kisten, Regalen oder Geräten angebracht werden.
                             </li>
                             <li>
                                 <strong>Direkter Aufruf:</strong> Das Scannen eines QR-Codes mit der regulären Smartphone-Kamera öffnet direkt die passende Detailseite im Browser.
@@ -188,23 +189,53 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 6. Lagerortverwaltung & Struktur -->
+                    <!-- 6. Tag-System & Filterung -->
+                    <section id="tags" class="mb-5">
+                        <h5 class="text-danger d-flex align-items-center fw-bold">
+                            <i class="fa-solid fa-tags me-2"></i> Tag-System &amp; Filterung
+                        </h5>
+                        <p class="small text-muted mb-2">
+                            Gegenstände können flexibel mit Tags (Schlagwörtern) versehen werden, um sie blitzschnell zu kategorisieren und zu filtern:
+                        </p>
+                        <ul class="small text-muted ps-3 mb-0">
+                            <li class="mb-1">
+                                <strong>Tags hinzufügen:</strong> In der Tag-Leiste auf der Detailseite für gegenstände können bestehende Tags per Autocomplete ausgewählt oder neue Begriffe eingetippt werden. Bestätigen Sie die Eingabe einfach mit der <strong>Enter-Taste</strong> oder einem <strong>Komma</strong>. Es können beliebig viele Tags zu einem Gegenstand hinzugefügt werden. Die Tags weredn automatisch gespeichert.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Tagfilter:</strong> Analog zur Eingabe können auf der Übersichtsseite Tags als Filter verwendet werden. Sobald mehr als ein Tag eingegeben ist, erscheint ein ODER-UND-Umschalter, um die Filterlogik zu steuern. Die Filterung erfolgt in Echtzeit, sodass die Liste sofort aktualisiert wird.
+                            </li>
+                            <li class="mb-1">
+                                <strong>ODER-Modus (Standard):</strong> Es werden alle Gegenstände angezeigt, die <em>mindestens einen</em> der ausgewählten Tags besitzen.
+                            </li>
+                            <li class="mb-1">
+                                <strong>UND-Modus:</strong> Es werden nur Gegenstände angezeigt, die <em>alle</em> der ausgewählten Tags gleichzeitig aufweisen.
+                            </li>
+                            <li>
+                                <strong>Filter zurücksetzen:</strong> Über das kleine Kreuz-Symbol am Ende der Eingabeleiste oder das Löschen einzelner Tag-Pills lässt sich der Filter jederzeit mit einem Klick aufheben.
+                            </li>
+                        </ul>
+                    </section>
+
+                    <hr class="my-1 text-black-50">
+
+
+                    <!-- 7. Lagerortverwaltung & Struktur -->
                     <section id="locations" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-folder-tree me-2"></i> Lagerortverwaltung &amp; Struktur
                         </h5>
                         <ul class="small text-muted ps-3 mb-0">
                             <li class="mb-1"><strong>Neuen Lagerort anlegen:</strong> Gib eine Bezeichnung ein und wähle optional einen übergeordneten Lagerort (Parent), um Hierarchien (z. B. Raum → Regal) aufzubauen.</li>
-                            <li class="mb-1"><strong>Baumansicht & Inhalte:</strong> Standorte werden sauber eingerichtet dargestellt. Über den Schalter „Inhalte anzeigen“ kannst du dir alle gelagerten Artikel direkt einblenden lassen.</li>
+                            <li class="mb-1"><strong>Baumansicht & Inhalte:</strong> Standorte werden sauber eingerichtet dargestellt. Über den Schalter „Inhalte anzeigen“ kannst du dir alle gelagerten Gegenstände direkt einblenden lassen.</li>
                             <li class="mb-1"><strong>Lagerort bearbeiten:</strong> Das Stift-Symbol öffnet ein Modal, in dem du den Namen oder den übergeordneten Ort anpassen kannst.</li>
                             <li class="mb-1"><strong>QR-Code & Löschen:</strong> Jeder Standort bietet einen Direktzugriff auf den QR-Code sowie eine Löschprüfung, ob noch Gegenstände oder Unterorte enthalten sind.</li>
-                            <li><strong>Umlagern:</strong> Wähle Quell- und Ziel-Lagerort. Bei vorhandenen Unterlagerorten öffnet sich ein intelligentes Abfrage-Modal, mit dem du flexibel steuerst, ob Artikel, Unterorte oder ganze Zweige mitverschoben werden.</li>
+                            <li><strong>Umlagern:</strong> Wähle Quell- und Ziel-Lagerort. Bei vorhandenen Unterlagerorten öffnet sich ein intelligentes Abfrage-Modal, mit dem du flexibel steuerst, ob Gegenstände, Unterorte oder ganze Zweige mitverschoben werden.</li>
                         </ul>
                     </section>
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 7. Verschiebebahnhof -->
+                    <!-- 8. Verschiebebahnhof -->
                     <section id="shuffle" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-shuffle me-2"></i> Verschiebebahnhof
@@ -216,7 +247,7 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 8. Dashboard & Auswertung -->
+                    <!-- 9. Dashboard & Auswertung -->
                     <section id="dashboard" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-chart-pie me-2"></i> Dashboard &amp; Auswertung
@@ -226,20 +257,26 @@ section {
                         </p>
                         <ul class="small text-muted ps-3 mb-0">
                             <li class="mb-1">
-                                <strong>Kennzahlen (KPIs):</strong> Auf einen Blick werden der Gesamtwert des Inventars, die Anzahl verliehener Gegenstände, Artikel unter Mindestbestand sowie ablaufende Produkte angezeigt.
+                                <strong>Kennzahlen (KPIs):</strong> Auf einen Blick werden der Gesamtwert des Inventars, die Anzahl verliehener Gegenstände, Gegenstände unter Mindestbestand, ablaufende Gegenstände sowie fällige Wartungen angezeigt.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Nachbestellungen:</strong> Eine separate Widget-Liste zeigt alle Gegenstände, deren Bestand den definierten Mindestbestand unterschritten hat, damit diese rechtzeitig nachbestellt werden können.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Anstehende Wartungen:</strong> Listet Gegenstände auf, deren Wartungsintervall in den nächsten 30 Tagen abläuft oder bereits überfällig ist.
                             </li>
                             <li class="mb-1">
                                 <strong>Aktive Verleihvorgänge:</strong> Eine kompakte Widget-Liste zeigt sofort, welcher Gegenstand aktuell an welche Person verliehen ist und wie hoch die verliehene Menge ist.
                             </li>
                             <li>
-                                <strong>Ablauf-Warnungen:</strong> Artikel, deren Verfallsdatum in den nächsten 30 Tagen erreicht wird oder bereits überschritten ist, werden hervorgehoben, um rechtzeitig reagieren zu können.
+                                <strong>Ablauf-Warnungen:</strong> Gegenstände, deren Verfallsdatum in den nächsten 30 Tagen erreicht wird oder bereits überschritten ist, werden hervorgehoben, um rechtzeitig reagieren zu können.
                             </li>
                         </ul>
                     </section>
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 9. Daten-Import & Export -->
+                    <!-- 10. Daten-Import & Export -->
                     <section id="import-export" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-file-arrow-down me-2"></i> Daten-Import &amp; Export
@@ -252,7 +289,7 @@ section {
                                 <strong>CSV-Export:</strong> Das gesamte Inventar lässt sich per Mausklick als vollständige CSV-Datei (kompatibel mit Excel und LibreOffice) inklusive aller Attribute herunterladen.
                             </li>
                             <li class="mb-1">
-                                <strong>Automatisierter Import:</strong> Durch Hochladen einer formatierten CSV-Datei werden neue Gegenstände angelegt oder bestehende Artikel anhand ihrer Bezeichnung automatisch aktualisiert.
+                                <strong>Automatisierter Import:</strong> Durch Hochladen einer formatierten CSV-Datei werden neue Gegenstände angelegt oder bestehende Gegenstände anhand ihrer Bezeichnung automatisch aktualisiert.
                             </li>
                             <li>
                                 <strong>Transaktionssicherheit:</strong> Der Import läuft abgesichert ab. Bei fehlerhaften Datenformaten oder fehlenden Pflichtfeldern bricht der Vorgang ab, sodass keine Daten beschädigt werden.
@@ -262,7 +299,7 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 10. Release-Notes & Updates -->
+                    <!-- 11. Release-Notes & Updates -->
                     <section id="releases" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-brands fa-square-github me-2"></i> Release-Notes &amp; Changelog
@@ -285,7 +322,7 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 11. Sicherheit & Zugriffsschutz -->
+                    <!-- 12. Sicherheit & Zugriffsschutz -->
                     <section id="security" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-shield-halved me-2"></i> Sicherheit &amp; Zugriffsschutz
@@ -302,7 +339,7 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 12. Tastenkombinationen -->
+                    <!-- 13. Tastenkombinationen -->
                     <section id="shortcuts" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-keyboard me-2"></i> Tastenkombinationen auf dem Desktop

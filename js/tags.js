@@ -13,9 +13,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const itemId = itemIdInput ? parseInt(itemIdInput.value, 10) : 0;
     let tags = hiddenInput.value ? hiddenInput.value.split(',').map(t => t.trim()).filter(t => t.length > 0) : [];
     let selectedIndex = -1; // Für die Pfeiltasten-Navigation
+    const statusIndicator = document.getElementById('tagSaveStatus');
+    let saveTimeout = null;
+
+    function showSaveFeedback(status, message = 'Gespeichert') {
+        if (!statusIndicator) return;
+        
+        if (status === 'saving') {
+            statusIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-secondary me-1"></i>Speichere...';
+            statusIndicator.style.opacity = '1';
+        } else if (status === 'success') {
+            statusIndicator.innerHTML = `<i class="fa-solid fa-check text-success me-1"></i>${message}`;
+            statusIndicator.style.opacity = '1';
+            
+            // Nach 1.5 Sekunden wieder ausblenden
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                statusIndicator.style.opacity = '0';
+            }, 1500);
+        } else if (status === 'error') {
+            statusIndicator.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-danger me-1"></i>Fehler!';
+            statusIndicator.style.opacity = '1';
+        }
+    }
 
     function saveTagsToBackend() {
         if (itemId <= 0) return;
+
+        showSaveFeedback('saving');
 
         fetch('api/tags-save.php', {
             method: 'POST',
@@ -24,11 +49,17 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(res => res.json())
         .then(data => {
-            if (!data.success) {
+            if (data.success) {
+                showSaveFeedback('success');
+            } else {
+                showSaveFeedback('error');
                 console.error('Fehler beim Speichern der Tags:', data.error);
             }
         })
-        .catch(err => console.error('Netzwerkfehler:', err));
+        .catch(err => {
+            showSaveFeedback('error');
+            console.error('Netzwerkfehler:', err);
+        });
     }
 
     function renderTags() {

@@ -241,3 +241,34 @@ function saveItemTags(PDO $pdo, int $itemId, string $tagsString): void {
         }
     }
 }
+
+/**
+ * Synchronisiert die App-Releases aus einer JSON-Datei in die Datenbank.
+ */
+function syncAppReleases(PDO $pdo): void {
+    $jsonFile = __DIR__ . '/../data/releases.json'; // Pfad anpassen falls nötig
+    if (!file_exists($jsonFile)) return;
+
+    $releases = json_decode(file_get_contents($jsonFile), true);
+    if (!is_array($releases)) return;
+
+    $stmt = $pdo->prepare("
+        INSERT INTO app_releases (version, title, release_date, content, is_active)
+        VALUES (?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE 
+            title = VALUES(title), 
+            release_date = VALUES(release_date), 
+            content = VALUES(content), 
+            is_active = VALUES(is_active)
+    ");
+
+    foreach ($releases as $rel) {
+        $stmt->execute([
+            $rel['version'],
+            $rel['title'],
+            $rel['release_date'] ?? null,
+            $rel['content'],
+            $rel['is_active'] ?? 1
+        ]);
+    }
+}

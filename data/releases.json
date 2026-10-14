@@ -1,0 +1,58 @@
+[
+    {
+        "version": "1.0.1",
+        "title": "Großes Herbstupdate",
+        "release_date": "2026-10-08",
+        "content": "Das ganze System wurde einmal komplett aufgebohrt:\n\n* Änderungshistorie (inkl. Wiederherstellungsfunktion)\n* Releasenotes - nie mehr verpassen, wenn es neue Funktionen gibt.\n\nUnd jede Menge mehr!",
+        "is_active": 1
+    },
+    {
+        "version": "1.0.2",
+        "title": "Herbst-Update & Changelog-System 🚀",
+        "release_date": "2026-10-08",
+        "content": "Das ist neu in dieser Version:\n\n* **Changelog-System:** Alle Neuerungen werden nun beim ersten Aufruf angezeigt.\n* **Release-Übersicht:** Eine neue Historie-Seite zeigt alle vergangenen Updates.\n* **Bugfixes:** Stabilität bei Datenbank-Migrationen verbessert.",
+        "is_active": 1
+    },
+    {
+        "version": "1.0.3",
+        "title": "Archivsystem integriert 🚀",
+        "release_date": "2026-10-10",
+        "content": "Mit der vorliegenden Version 1.0.3 können Items nun archiviert werden. Archivierte Items werden in der Standardansicht nicht mehr angezeigt, können aber jederzeit wiederhergestellt werden. Dazu steht eine Archivseite (Papierkorb) zur Verfügung, auf der alle archivierten Items angezeigt und komfortabel gefiltert werden können.",
+        "is_active": 1
+    },
+    {
+        "version": "1.0.4",
+        "title": "Herbstupdate Teil 2 🚀",
+        "release_date": "2026-10-11",
+        "content": "Die aktuelle Version bringt diverse neue Funktionen mit:\n\n* **Ablaufdatum:** Items können nun ein Ablaufdatum erhalten, das in der Übersicht farblich hervorgehoben wird.\n* **Preis:** Items können nun einen Preis erhalten, der in der Übersicht angezeigt wird. (im späteren Verlauf können auch Preisänderungen protokolliert und ausgewertet werden)\n* **Verleih:** Items können nun als verliehen markiert werden, inkl. Angabe an wen.\n* **Inventur-Tool:** Ein neues Inventur-Tool ermöglicht es, den ktuellen Bestand zu überprüfen und Abweichungen einzutragen.",
+        "is_active": 1
+    },
+    {
+        "version": "1.0.5",
+        "title": "Herbstupdate Teil 3 🚀",
+        "release_date": "2026-10-13",
+        "content": "Das System wurde um diverse neue Funktionen erweitert:\n\n* **Datenimport:** Items können nun über eine CSV-Datei importiert werden.\n* **Datenexport:** Items können nun über eine CSV-Datei exportiert werden.\n* **Dashboard:** Ein neues Dashboard zeigt die wichtigsten Kennzahlen auf einen Blick an.\n* ** Release-Historie:** Die Release-Historie wurde um die Möglichkeit erweitert, die Details zu den einzelnen Releases einzusehen.",
+        "is_active": 1
+    },
+    {
+        "version": "1.0.6",
+        "title": "Herbstupdate Teil 4 🚀",
+        "release_date": "2026-10-14",
+        "content": "Neben umfassendem Refactoring:\n\n* **Tagsystem:** Einem gegenstand können beliebig viele Tags hinzugefügt werden. Bei der Eingabe von Tags kommt, sofern es schon gleiche oder ähnliche Tags gibt, eine Vorschlagsliste, aus der dann ausgewählt werden kann. Tags werden in der Übersicht angezeigt und können al sFilter verwendet werden. Gibt man in der Übersicht mehr als ein Tag an, erscheint ein Umschalter, mit dem man von ODER auf UND umschalten kann, was den tagfilter entsprechend arbeiten lässt.\n* **Releaseverwaltung:** Releases können jetzt ein Datum erhalten. bisher wurde immer das Datum als Release-Date verwendet, an dem das Release in die Datenbank eingetragen wurde. Mit der neuen Funktion kann man jetzt auch ein Datum angeben, an dem das Release tatsächlich veröffentlicht wurde. Das ist insbesondere dann sinnvoll, wenn man mehrere Releases auf einmal einträgt, die aber zu unterschiedlichen Zeitpunkten veröffentlicht wurden.",
+        "is_active": 1
+    },
+    {
+        "version": "1.0.7",
+        "title": "Herbstupdate Teil 5 🚀",
+        "release_date": "2026-10-14",
+        "content": "Folgende Funktionen wurden in dieser Version hinzugefügt:\n\n* **Dashboarderweiterung:** Es werden jetzt unter den KPI auch die Gegenstände gelistet, die abglaufen sind oder bei denen es fällige Wartungen gibt.\n* **Hilfe:** Die Hilfeseite wurde um einen Abschnitt für das Tag-System erweitert, in dem vor allem die Funktion der Tag-Filterung auf der Übersichtsseite genauer erläutert wird.\n* **Tagesmeldung:** Sofern es Gegenstände gibt, die irgendwie beachtet werden müssen - Ablauf- oder Verfallsdatum erreicht, Wartung fällig, Mindestanzahl unterschritten - kommt beim ersten Benutzen am Tag ein Hinweisfeld auf der Übersichtsseite hoch. Dieses Feld kann für den laufenden Tag ausgeblendet werden.\n* **Im- &amp; Export:** Das Exportfile wurde um die ID des Lagerortes erweitert, damit man sie ggf. auch für einen reimport nutzen kann und die Gegenstände direkt dem korrekten Lagerort zugeordnet werden. Für die Vorbereitung größerer Datenimporte kann auch ein Export der Lagerorte angestoßen werden, damit man die IDs für die Importvorbereitung zur Hand hat. Beim Import muss jetzt ein Ziel-Lagerort für neue Gegenstände ohne Lagerort-ID gewählt werden.\n* **UX-Kleinkram:** Auf der Übersichtsseite ist bei jedem Gegenstand der Lagerort angezeigt. Bei Klick darauf wurde unterhalb der komplette Pfad angezeigt. Jetzt wird der Lagerort ersetzt, es bleibt also in einer Zeile und wirkt, als würde lediglich ausgeklappt.",
+        "is_active": 1
+    },
+    {
+        "version": "1.0.8",
+        "title": "xxxxxx xxxxx 🚀",
+        "release_date": "2026-10-22",
+        "content": "Neu ist folgendes:\n\n**geheim**",
+        "is_active": 0
+    }
+]

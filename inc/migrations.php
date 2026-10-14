@@ -4,7 +4,7 @@
  */
 function runDatabaseMigrations(PDO $pdo): void
 {
-    // 1. Definition aller Migrationen
+    // 1. Definition aller reinen Schema-Migrationen
     $migrations = [
         '001_create_base_tables' => "
             CREATE TABLE IF NOT EXISTS locations (
@@ -59,7 +59,6 @@ function runDatabaseMigrations(PDO $pdo): void
 
             INSERT IGNORE INTO settings (setting_key, setting_value) VALUES ('auth_enabled', '0');
 
-            -- Default Admin anlegen (Passwort: admin123)
             INSERT IGNORE INTO users (id, username, password_hash, role, is_active, is_default)
             VALUES (1, 'admin', '$2y$10$8k9.aX1xN4U5hYV/Xg/3eO5aA1P3n.l7gY8R1f5k8U9z0q2W4e6yS', 'admin', 1, 1);
         ",
@@ -114,115 +113,38 @@ function runDatabaseMigrations(PDO $pdo): void
         ",
 
         '009_create_release_notes_system' => "
-            -- Tabelle für die Release-Texte
             CREATE TABLE IF NOT EXISTS app_releases (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 version VARCHAR(20) NOT NULL UNIQUE,
                 title VARCHAR(255) NOT NULL,
+                release_date DATE DEFAULT NULL,
                 content TEXT NOT NULL,
                 is_active TINYINT(1) NOT NULL DEFAULT 1,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-            -- Zuletzt gesehene Version direkt beim User protokollieren
             ALTER TABLE users ADD COLUMN last_seen_version VARCHAR(20) NULL AFTER role;
 
-            -- Aktuelle App-Version in den Einstellungen hinterlegen
-            INSERT IGNORE INTO settings (setting_key, setting_value) 
-            VALUES ('app_version', '1.0.0');
-        ",
-
-        '010_relerase_notes' => "
-            INSERT INTO `app_releases` (`id`, `version`, `title`, `content`, `is_active`, `created_at`) VALUES
-                (1, '1.0.1', 'Großes Herbstupdate', 'Das ganze System wurde einmal komplett aufgebohrt:\r\n\r\n* Änderungshistorie (inkl. Wiederherstellungsfunktion)\r\n* Releasenotes - nie mehr verpassen, wenn es neue Funktionen gibt.\r\n\r\nUnd jede Menge mehr!', 1, '2026-10-08 08:41:53'),
-                (2, '1.0.2', 'Versionshinweise', 'Ab sofort werden neue Versionen angekündigt und auf einen Blick schnelle Infos dazu gegeben, was alles neu ist.', 1, '2026-10-08 08:56:36');
-        ",
-
-        '011_release_1_0_2' => "
-            INSERT INTO app_releases (version, title, content, is_active)
-            VALUES (
-                '1.0.2',
-                'Herbst-Update & Changelog-System 🚀',
-                'Das ist neu in dieser Version:
-
-                * **Changelog-System:** Alle Neuerungen werden nun beim ersten Aufruf angezeigt.
-                * **Release-Übersicht:** Eine neue Historie-Seite zeigt alle vergangenen Updates.
-                * **Bugfixes:** Stabilität bei Datenbank-Migrationen verbessert.',
-                        1
-                    )
-                    ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
+            INSERT IGNORE INTO settings (setting_key, setting_value)
+            VALUES ('app_version', '1.0.7');
         ",
 
         '012_add_archive_to_items' => "
-            ALTER TABLE inventory_items 
+            ALTER TABLE inventory_items
             ADD COLUMN is_archived TINYINT(1) NOT NULL DEFAULT 0,
             ADD COLUMN archived_at TIMESTAMP NULL DEFAULT NULL;
         ",
 
-        '013_release_1_0_3' => "
-            INSERT INTO app_releases (version, title, content, is_active)
-            VALUES (
-                '1.0.3',
-                'Archivsystem integriert 🚀',
-                'Mit der vorliegenden Version 1.0.3 können Items nun archiviert werden. Archivierte Items werden in der Standardansicht nicht mehr angezeigt, können aber jederzeit wiederhergestellt werden. Dazu steht eine Archivseite (Papierkorb) zur Verfügung, auf der alle archivierten Items angezeigt und komfortabel gefiltert werden können.',
-                        1
-                    )
-                    ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
-        ",
-
         '014_add_functions' => "
-            ALTER TABLE inventory_items 
+            ALTER TABLE inventory_items
                 ADD COLUMN expiration_date DATE DEFAULT NULL AFTER min_quantity,
                 ADD COLUMN price DECIMAL(10,2) DEFAULT NULL AFTER expiration_date,
                 ADD COLUMN on_loan TINYINT(1) DEFAULT 0 AFTER price,
                 ADD COLUMN loan_to VARCHAR(255) DEFAULT NULL AFTER on_loan;
         ",
 
-        '015_release_1_0_4' => "
-            INSERT INTO app_releases (version, title, content, is_active)
-            VALUES (
-                '1.0.4',
-                'Herbstupdate Teil 2 🚀',
-                'Die aktuelle Version bringt diverse neue Funktionen mit:
-                
-                * **Ablaufdatum:** Items können nun ein Ablaufdatum erhalten, 
-                das in der Übersicht farblich hervorgehoben wird.
-                * **Preis:** Items können nun einen Preis erhalten, der in der
-                Übersicht angezeigt wird. (im späteren Verlauf können auch
-                Preisänderungen protokolliert und ausgewertet werden)
-                * **Verleih:** Items können nun als verliehen markiert werden,
-                inkl. Angabe an wen.
-                * **Inventur-Tool:** Ein neues Inventur-Tool ermöglicht es, den
-                aktuellen Bestand zu überprüfen und Abweichungen einzutragen.',
-                        1
-                    )
-                    ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
-        ",
-
-        '016_release_1_0_5' => "
-            INSERT INTO app_releases (version, title, release_date, content, is_active)
-            VALUES (
-                '1.0.5',
-                'Herbstupdate Teil 3 🚀',
-                '2026-10-13', 
-                'Das System wurde um diverse neue Funktionen erweitert:
-                
-                * **Datenimport:** Items können nun über eine CSV-Datei importiert
-                werden.
-                * **Datenexport:** Items können nun über eine CSV-Datei exportiert
-                werden.
-                * **Dashboard:** Ein neues Dashboard zeigt die wichtigsten
-                Kennzahlen auf einen Blick an.
-                * ** Release-Historie:** Die Release-Historie wurde um die
-                Möglichkeit erweitert, die Details zu den einzelnen Releases
-                einzusehen.',
-                        1
-                    )
-                    ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
-        ",
-
-        '017_add_functions' => "
-            ALTER TABLE inventory_items 
+        '017_add_maintenance_functions' => "
+            ALTER TABLE inventory_items
                 ADD COLUMN maintenance_interval_months INT DEFAULT NULL AFTER loan_to,
                 ADD COLUMN last_maintenance_date DATE DEFAULT NULL AFTER maintenance_interval_months;
         ",
@@ -237,52 +159,13 @@ function runDatabaseMigrations(PDO $pdo): void
                 tag_id INT NOT NULL,
                 PRIMARY KEY (item_id, tag_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-        ",
-
-        '019_add_release_date' => "
-            ALTER TABLE app_releases 
-                ADD COLUMN release_date DATE DEFAULT NULL AFTER title;
-        ",
-
-        '019_release_1_0_6' => "
-            INSERT INTO app_releases (version, title, release_date, content, is_active)
-            VALUES (
-                '1.0.6',
-                'Herbstupdate Teil 4 🚀',
-                '2026-10-14', 
-                'Neben einer umfassenden Refactoring des Codes - insbesondere der Javascripte - wurden folgende neue Funktionen hinzugefügt:
-
-                * **Tagsystem:** Einem gegenstand können beliebig viele Tags hinzugefügt werden. Bei der Eingabe von Tags kommt, sofern es schon gleiche oder ähnliche Tags gibt, eine Vorschlagsliste, aus der dann ausgewählt werden kann. Tags werden in der Übersicht angezeigt und können al sFilter verwendet werden. Gibt man in der Übersicht mehr als ein Tag an, erscheint ein Umschalter, mit dem man von ODER auf UND umschalten kann, was den tagfilter entsprechend arbeiten lässt. 
-                * **Releaseverwaltung:** Releases können jetzt ein Datum erhalten. bisher wurde immer das Datum als Release-Date verwendet, an dem das Release in die Datenbank eingetragen wurde. Mit der neuen Funktion kann man jetzt auch ein Datum angeben, an dem das Release tatsächlich veröffentlicht wurde. Das ist insbesondere dann sinnvoll, wenn man mehrere Releases auf einmal einträgt, die aber zu unterschiedlichen Zeitpunkten veröffentlicht wurden.',
-                        1
-                    )
-                    ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
-        ",
-
-        '020_release_1_0_7' => "
-            INSERT INTO app_releases (version, title, release_date, content, is_active)
-            VALUES (
-                '1.0.7',
-                'Herbstupdate Teil 5 🚀',
-                '2026-10-14', 
-                'Folgende Fuunktionen wurden in dieser Version hinzugefügt:
-
-                * **Dashboarderweiterung:** Es werden jetzt unter den KPI auch die Gegenstände gelistet, die abglaufen sind oder bei denen es fällige Wartungen gibt.
-                * **Hilfe:** Die Hilfeseite wurde um einen Abschnitt für das Tag-System erweitert, in dem vor allem die Funktion der Tag-Filterung auf der Übersichtsseite genauer erläutert wird.
-                * **Tagesmeldung:** Sofern es Gegenstände gibt, die irgendwie beachtet werden müssen - Ablauf- oder Verfalssdatum erreicht, Wartung fällig, Mindestanzahl unterschritten - kommt beim ersten Benutzen am Tag ein Hinweisfeld auf der Übersichtsseite hoch. Dieses Feld kann für den laufenden Tag ausgeblendet werden.
-                * **Im- &amp; Export:** Das Exportfile wurde um die ID des Lagerortes erweitert, damit man sie ggf. auch für einen reimport nutzen kann und die gegenstände direkt dem korrekten Lagerort zugeordnet werden. Für die Vorbereitung größerer Datenimporte kann auch ein Export der Lagerorte angestoßen werden, damit man die IDs für die Importvorbereitung zur Hand hat. Beim Import muss jetzt ein Ziel-Lagerort für neue Gegenstände ohne Lagerort-ID gewählt werden.
-                * **UX-Kleinkram:** Auf der Übersichtsseite ist bei jedem Gegenstand der Lagerort angezeigt. Bei Klick darauf wurde unterhalb der komplette Pfad angezeigt. Jetzt wird der lagerort ersetzt, es bleibt also in einer zeile und wirkt, als würde lediglich ausgeklappt.',
-                        1
-                    )
-                    ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
         "
     ];
 
-    // 2. Cache-Check: Wurde das komplette Array (Inhalte + Schlüssel) verändert?
+    // 2. Cache-Check
     $cacheFile = __DIR__ . '/../cfg/.migration_cache';
     $currentHash = md5(serialize($migrations));
 
-    // Falls die Cache-Datei existiert und der Hash exakt übereinstimmt -> Abbruch
     if (file_exists($cacheFile) && file_get_contents($cacheFile) ===$currentHash) {
         return;
     }
@@ -301,25 +184,19 @@ function runDatabaseMigrations(PDO $pdo): void
     foreach ($migrations as $name =>$sql) {
         if (!in_array($name,$executed, true)) {
             try {
-                // Transaktion zur Sicherheit (DDL-Statements führen in MySQL implizit ein COMMIT aus,
-                // fängt aber Fehler bei Mehrfach-INSERTs ab)
                 $pdo->exec($sql);
-
                 $stmt =$pdo->prepare("INSERT INTO schema_migrations (migration_name) VALUES (?)");
                 $stmt->execute([$name]);
             } catch (PDOException $e) {
-                // Falls Fehler bei ALTER TABLE auftreten weil Spalte existiert, abfangen
                 if (str_contains($e->getMessage(), 'Duplicate column name')) {
                     $stmt =$pdo->prepare("INSERT INTO schema_migrations (migration_name) VALUES (?)");
                     $stmt->execute([$name]);
                     continue;
                 }
-
                 die("Fehler bei Datenbank-Migration '{$name}': " . $e->getMessage());
             }
         }
     }
 
-    // 4. Cache-Datei erst schreiben, wenn ALLE Migrationen erfolgreich durchliefen
     @file_put_contents($cacheFile,$currentHash);
 }

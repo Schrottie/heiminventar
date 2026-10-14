@@ -21,6 +21,9 @@ try {
     // Migrationen automatisch ausführen
     require_once __DIR__ . '/../inc/migrations.php';
     runDatabaseMigrations($pdo);
+    // Release-Notes importieren
+    require_once __DIR__ . '/../inc/functions.php'; 
+    syncAppReleases($pdo);
 }
 catch (PDOException $e) {
     die('Datenbankverbindung fehlgeschlagen.');

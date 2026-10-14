@@ -111,8 +111,9 @@
     <script src="js/inventory.js"></script>
 <?php if ($page === 'drag-n-drop.php'): ?>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.min.js"></script>
-    <script src="js/locations.js"></script>
+    <script src="js/drag-n-drop.js"></script>
 <?php endif; ?>
+    <script src="js/locations.js"></script>
     <script src="js/tags.js"></script>
     <script src="js/qr.js"></script>
     <script src="js/logs.js"></script>

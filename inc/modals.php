@@ -278,3 +278,29 @@
         </div>
     </div>
 </div>
+
+<!-- Modal: Lagerort löschen (Sicherheitsabfrage) -->
+<div class="modal fade" id="deleteLocationModal" tabindex="-1" aria-labelledby="deleteLocationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteLocationModalLabel">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Lagerort löschen: <span id="deleteLocationName"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Dynamischer Inhalt aus der AJAX-Abfrage -->
+                <div id="deleteLocationInfo">
+                    Wird geladen...
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" id="confirmDeleteLocation" class="btn btn-danger btn-sm">
+                    <i class="fa-solid fa-trash me-1"></i>Endgültig löschen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

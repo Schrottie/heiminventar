@@ -1,5 +1,5 @@
 /**
- * Inventar-Filter (Suchfeld, Nachbestellen, Ablaufdatum & Wartung fällig)
+ * Zentrales Inventar-Filtersystem (Suchfeld, Status-Buttons & Tag-Filter mit UND/ODER)
  */
 document.addEventListener('DOMContentLoaded', () => {
     const quickFilterInput = document.getElementById('quickFilter');
@@ -7,6 +7,213 @@ document.addEventListener('DOMContentLoaded', () => {
     const expiredBtn = document.getElementById('toggleExpired');
     const maintenanceBtn = document.getElementById('toggleMaintenance');
 
+    // Tag-Filter UI Elemente
+    const filterTagContainer = document.getElementById('filterTagContainer');
+    const filterTagInput = document.getElementById('filterTagInput');
+    const filterTagSuggestions = document.getElementById('filterTagSuggestions');
+    const tagModeContainer = document.getElementById('tagModeContainer');
+    const modeOrBtn = document.getElementById('modeOrBtn');
+    const modeAndBtn = document.getElementById('modeAndBtn');
+    const clearFilterBtn = document.getElementById('clearFilterTags'); // X-Button
+
+    let activeFilterTags = [];
+    let filterMode = 'or'; // 'or' oder 'and'
+    let selectedIndex = -1;
+   
+    // --- Tag-UI & Event-Steuerung ---
+    if (filterTagContainer && filterTagInput) {
+        filterTagContainer.addEventListener('click', () => filterTagInput.focus());
+
+        function renderFilterTags() {
+            // Nur noch die Filter-Pills im Container verwalten
+            filterTagContainer.querySelectorAll('.badge-filter-tag').forEach(el => el.remove());
+
+            activeFilterTags.forEach((tag, index) => {
+                const pill = document.createElement('span');
+                pill.className = 'badge bg-primary d-flex align-items-center gap-1 badge-filter-tag py-1 px-2';
+                pill.innerHTML = `<span>${tag}</span> <button type="button" class="btn-close btn-close-white" style="font-size: 0.6rem;" data-index="${index}"></button>`;
+                filterTagContainer.insertBefore(pill, filterTagInput);
+            });
+
+            // X-Button (Input-Group Addon) ein- oder ausblenden
+            const clearBtn = document.getElementById('clearFilterTags');
+            if (clearBtn) {
+                if (activeFilterTags.length > 0) {
+                    clearBtn.classList.remove('d-none');
+                } else {
+                    clearBtn.classList.add('d-none');
+                }
+            }
+
+            // UND/ODER Umschalter anzeigen, wenn min. 2 Tags aktiv sind
+            if (tagModeContainer) {
+                if (activeFilterTags.length > 1) {
+                    tagModeContainer.style.display = 'inline-flex';
+                } else {
+                    tagModeContainer.style.display = 'none';
+                }
+            }
+
+            applyFilters(null);
+        }
+
+        // Event-Listener für den X-Button (einmalig binden)
+        const clearBtn = document.getElementById('clearFilterTags');
+        if (clearBtn && !clearBtn.dataset.bound) {
+            clearBtn.dataset.bound = 'true';
+            clearBtn.addEventListener('click', () => {
+                activeFilterTags = [];
+                renderFilterTags();
+            });
+        }
+
+        filterTagContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-close')) {
+                const index = parseInt(e.target.getAttribute('data-index'), 10);
+                activeFilterTags.splice(index, 1);
+                renderFilterTags();
+            }
+        });
+
+        if (modeOrBtn && modeAndBtn) {
+            modeOrBtn.addEventListener('click', () => {
+                modeOrBtn.classList.add('active', 'btn-primary');
+                modeOrBtn.classList.remove('btn-outline-primary');
+                modeAndBtn.classList.remove('active', 'btn-primary');
+                modeAndBtn.classList.add('btn-outline-primary');
+                filterMode = 'or';
+                applyFilters(null);
+            });
+
+            modeAndBtn.addEventListener('click', () => {
+                modeAndBtn.classList.add('active', 'btn-primary');
+                modeAndBtn.classList.remove('btn-outline-primary');
+                modeOrBtn.classList.remove('active', 'btn-primary');
+                modeOrBtn.classList.add('btn-outline-primary');
+                filterMode = 'and';
+                applyFilters(null);
+            });
+        }
+
+        function addFilterTag(tagName) {
+            const cleanName = tagName.trim();
+            if (cleanName.length > 0 && !activeFilterTags.includes(cleanName)) {
+                activeFilterTags.push(cleanName);
+                renderFilterTags();
+            }
+            filterTagInput.value = '';
+            hideSuggestions();
+        }
+
+        function hideSuggestions() {
+            if (!filterTagSuggestions) return;
+            filterTagSuggestions.style.display = 'none';
+            filterTagSuggestions.classList.remove('show');
+            selectedIndex = -1;
+        }
+
+        function updateActiveSuggestion() {
+            const items = filterTagSuggestions.querySelectorAll('.tag-suggestion-item');
+            items.forEach((item, index) => {
+                if (index === selectedIndex) {
+                    item.classList.add('active');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        filterTagInput.addEventListener('input', function() {
+            let val = this.value;
+
+            if (val.includes(',')) {
+                const parts = val.split(',');
+                addFilterTag(parts[0]);
+                this.value = parts.slice(1).join(',').trimStart();
+                hideSuggestions();
+                return;
+            }
+
+            const query = val.trim();
+            if (query.length < 1) {
+                hideSuggestions();
+                return;
+            }
+
+            fetch(`api/tags-search.php?q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(suggestions => {
+                    const filtered = suggestions.filter(s => !activeFilterTags.includes(s.name));
+
+                    if (filtered.length === 0) {
+                        hideSuggestions();
+                        return;
+                    }
+
+                    let html = '';
+                    filtered.forEach(s => {
+                        html += `<button type="button" class="dropdown-item tag-suggestion-item" style="cursor: pointer;">${s.name}</button>`;
+                    });
+
+                    filterTagSuggestions.innerHTML = html;
+                    filterTagSuggestions.style.display = 'block';
+                    filterTagSuggestions.classList.add('show');
+                    selectedIndex = -1;
+
+                    filterTagSuggestions.querySelectorAll('.tag-suggestion-item').forEach(btn => {
+                        btn.addEventListener('mousedown', function(e) {
+                            e.preventDefault();
+                            addFilterTag(this.textContent);
+                            filterTagInput.focus();
+                        });
+                    });
+                })
+                .catch(err => console.error('Fehler bei Tag-Suche:', err));
+        });
+
+        filterTagInput.addEventListener('keydown', function(e) {
+            const items = filterTagSuggestions.querySelectorAll('.tag-suggestion-item');
+            const isVisible = filterTagSuggestions.style.display === 'block' && items.length > 0;
+
+            if (e.key === 'ArrowDown') {
+                if (isVisible) {
+                    e.preventDefault();
+                    selectedIndex = (selectedIndex + 1) % items.length;
+                    updateActiveSuggestion();
+                }
+            } else if (e.key === 'ArrowUp') {
+                if (isVisible) {
+                    e.preventDefault();
+                    selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                    updateActiveSuggestion();
+                }
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (isVisible && selectedIndex >= 0 && items[selectedIndex]) {
+                    addFilterTag(items[selectedIndex].textContent);
+                } else {
+                    const val = this.value.trim().replace(/,/g, '');
+                    if (val.length > 0) {
+                        addFilterTag(val);
+                    }
+                }
+            } else if (e.key === 'Escape') {
+                hideSuggestions();
+            } else if (e.key === 'Backspace' && this.value === '' && activeFilterTags.length > 0) {
+                activeFilterTags.pop();
+                renderFilterTags();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!filterTagContainer.contains(e.target) && !filterTagSuggestions.contains(e.target)) {
+                hideSuggestions();
+            }
+        });
+    }
+
+    // --- Zentrale Filter-Logik ---
     function applyFilters(targetFilter = null) {
         const query = quickFilterInput ? quickFilterInput.value.toLowerCase().trim() : '';
 
@@ -17,12 +224,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Wenn ein spezifischer Filter geklickt wurde
         if (targetFilter !== null) {
-            // Wenn derselbe Filter bereits aktiv war -> ausschalten (Toggle)
             if (targetFilter === 'lowStock') lowStockActive = !lowStockActive;
             if (targetFilter === 'expired') expiredActive = !expiredActive;
             if (targetFilter === 'maintenance') maintenanceActive = !maintenanceActive;
 
-            // Wenn es ein neuer Filter ist, alle anderen exklusiv ausschalten
             if (targetFilter === 'lowStock' && lowStockActive) {
                 expiredActive = false;
                 maintenanceActive = false;
@@ -66,13 +271,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const isLowStock = item.getAttribute('data-low-stock') === '1';
             const isExpired = item.getAttribute('data-expired') === '1';
             const isMaintenance = item.getAttribute('data-maintenance') === '1';
+            const itemTags = JSON.parse(item.getAttribute('data-tags') || '[]');
 
             const matchesSearch = query === '' || searchData.includes(query);
             const matchesLowStock = !lowStockActive || isLowStock;
             const matchesExpired = !expiredActive || isExpired;
             const matchesMaintenance = !maintenanceActive || isMaintenance;
 
-            if (matchesSearch && matchesLowStock && matchesExpired && matchesMaintenance) {
+            // Tag-Filter Prüfung (UND / ODER Modus)
+            let matchesTags = true;
+            if (activeFilterTags.length > 0) {
+                if (filterMode === 'and') {
+                    matchesTags = activeFilterTags.every(t => itemTags.includes(t));
+                } else {
+                    matchesTags = activeFilterTags.some(t => itemTags.includes(t));
+                }
+            }
+
+            if (matchesSearch && matchesLowStock && matchesExpired && matchesMaintenance && matchesTags) {
                 item.style.display = '';
             } else {
                 item.style.display = 'none';
@@ -80,234 +296,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Event-Listener für das Suchfeld
+    // Event-Listener verknüpfen
     if (quickFilterInput) {
         quickFilterInput.addEventListener('input', () => applyFilters(null));
     }
-
-    // Event-Listener: Nachbestellen
     if (lowStockBtn) {
-        lowStockBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            applyFilters('lowStock');
-        });
+        lowStockBtn.addEventListener('click', (e) => { e.preventDefault(); applyFilters('lowStock'); });
     }
-
-    // Event-Listener: Ablauf / Verfall
     if (expiredBtn) {
-        expiredBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            applyFilters('expired');
-        });
+        expiredBtn.addEventListener('click', (e) => { e.preventDefault(); applyFilters('expired'); });
     }
-
-    // Event-Listener: Wartung fällig
     if (maintenanceBtn) {
-        maintenanceBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            applyFilters('maintenance');
-        });
+        maintenanceBtn.addEventListener('click', (e) => { e.preventDefault(); applyFilters('maintenance'); });
     }
 });
-
-
-/**
- * Führt die Archivierung eines Gegenstands per AJAX aus
- */
-function archiveItem(id) {
-    if (!confirm('Möchtest du diesen Gegenstand wirklich archivieren?')) return;
-   
-    fetch('api/item-archive.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: id })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = 'index.php';
-        } else {
-            alert('Fehler beim Archivieren: ' + data.error);
-        }
-    });
-}
-
-/**
- * Öffnet das Archivierungs-Modal und übergibt Gegenstands-ID und Name
- */
-function openArchiveModal(id, name) {
-    const nameEl = document.getElementById('archiveItemNameText');
-    if (nameEl) nameEl.innerText = '"' + name + '"';
-   
-    const idInput = document.getElementById('archiveTargetId');
-    if (idInput) idInput.value = id;
-
-    const modalEl = document.getElementById('archiveConfirmModal');
-    if (modalEl) {
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
-    }
-}
-
-/**
- * Führt den API-Call zum Archivieren des Gegenstands aus
- */
-function executeArchive() {
-    const idInput = document.getElementById('archiveTargetId');
-    const id = idInput ? idInput.value : 0;
-
-    if (!id) return;
-
-    fetch('api/item-archive.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: parseInt(id, 10) })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = 'index.php';
-        } else {
-            console.error('Fehler beim Archivieren:', data.error);
-        }
-    })
-    .catch(err => console.error('Netzwerkfehler:', err));
-}
-
-/**
- * Live-Suchfilter für die Archiv-Tabelle
- */
-document.addEventListener('DOMContentLoaded', () => {
-    const archiveSearchInput = document.getElementById('archiveSearchInput');
-    if (!archiveSearchInput) return;
-
-    archiveSearchInput.addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim();
-        const rows = document.querySelectorAll('#archivedTable tbody tr[data-search-text]');
-
-        rows.forEach(row => {
-            const text = row.getAttribute('data-search-text');
-            if (text.includes(query)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    });
-});
-
-/**
- * Öffnet das Modal zum Wiederherstellen eines archivierten Gegenstands
- */
-function openRestoreModal(id, name) {
-    const itemIdInput = document.getElementById('restoreItemId');
-    const itemNameEl = document.getElementById('restoreItemName');
-    const locationSelect = document.getElementById('restoreLocationSelect');
-
-    if (itemIdInput) itemIdInput.value = id;
-    if (itemNameEl) itemNameEl.innerText = name;
-    if (locationSelect) locationSelect.value = '';
-   
-    const modalEl = document.getElementById('restoreModal');
-    if (modalEl && typeof bootstrap !== 'undefined') {
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
-    }
-}
-
-/**
- * Sendet die Reaktivierung des Gegenstands an das Backend
- */
-function submitRestore() {
-    const id = document.getElementById('restoreItemId').value;
-    const locationId = document.getElementById('restoreLocationSelect').value;
-
-    if (!locationId) {
-        alert('Bitte wähle einen Lagerort aus.');
-        return;
-    }
-
-    fetch('api/item-restore.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: parseInt(id, 10), location_id: parseInt(locationId, 10) })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Fehler: ' + data.error);
-        }
-    })
-    .catch(err => console.error('Fehler:', err));
-}
-
-/**
- * Bestandsaktualisierung und Verifizierung im Inventur-Modus
- */
-function updateQty(itemId, change) {
-    const input = document.getElementById('qty-' + itemId);
-    if (!input) return;
-   
-    let currentVal = parseInt(input.value) || 0;
-    let newVal = currentVal + change;
-    if (newVal < 0) newVal = 0;
-   
-    input.value = newVal;
-    saveQty(itemId);
-}
-
-function saveQty(itemId) {
-    const input = document.getElementById('qty-' + itemId);
-    if (!input) return;
-   
-    const newQuantity = parseInt(input.value) || 0;
-
-    fetch('api/audit-update.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: itemId, quantity: newQuantity })
-    })
-    .then(res => res.json())
-    .then(data => {
-        const badge = document.getElementById('auditStatusBadge');
-        if (data.success) {
-            if (badge) {
-                badge.style.display = 'inline-block';
-                setTimeout(() => { badge.style.display = 'none'; }, 2000);
-            }
-        } else {
-            alert('Fehler beim Speichern: ' + (data.error || 'Unbekannter Fehler'));
-        }
-    })
-    .catch(err => {
-        console.error('Netzwerkfehler:', err);
-    });
-}
-
-function verifyItem(itemId) {
-    const row = document.getElementById('row-' + itemId);
-    if (!row) return;
-
-    row.style.transition = 'all 0.3s ease';
-    row.style.opacity = '0';
-    row.style.transform = 'scale(0.98)';
-   
-    setTimeout(() => {
-        row.style.display = 'none';
-       
-        const visibleRows = document.querySelectorAll('.audit-row:not([style*="display: none"])');
-        const countSpan = document.getElementById('itemCount');
-        if (countSpan) {
-            countSpan.innerText = visibleRows.length;
-        }
-
-        if (visibleRows.length === 0) {
-            const tbody = document.querySelector('tbody');
-            if (tbody) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-success fw-semibold"><i class="fa-solid fa-circle-check me-2"></i>Alle Gegenstände in diesem Bereich erfolgreich geprüft!</td></tr>`;
-            }
-        }
-    }, 300);
-}

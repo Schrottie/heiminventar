@@ -200,10 +200,11 @@ function runDatabaseMigrations(PDO $pdo): void
         ",
 
         '016_release_1_0_5' => "
-            INSERT INTO app_releases (version, title, content, is_active)
+            INSERT INTO app_releases (version, title, release_date, content, is_active)
             VALUES (
                 '1.0.5',
                 'Herbstupdate Teil 3 🚀',
+                '2026-10-13', 
                 'Das System wurde um diverse neue Funktionen erweitert:
                 
                 * **Datenimport:** Items können nun über eine CSV-Datei importiert
@@ -236,6 +237,26 @@ function runDatabaseMigrations(PDO $pdo): void
                 tag_id INT NOT NULL,
                 PRIMARY KEY (item_id, tag_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ",
+
+        '019_add_release_date' => "
+            ALTER TABLE app_releases 
+                ADD COLUMN release_date DATE DEFAULT NULL AFTER title;
+        ",
+
+        '019_release_1_0_6' => "
+            INSERT INTO app_releases (version, title, release_date, content, is_active)
+            VALUES (
+                '1.0.6',
+                'Herbstupdate Teil 4 🚀',
+                '2026-10-14', 
+                'Neben einer umfassenden Refactoring des Codes - insbesondere der Javascripte - wurden folgende neue Funktionen hinzugefügt:
+
+                * **Tagsystem:** Einem gegenstand können beliebig viele Tags hinzugefügt werden. Bei der Eingabe von Tags kommt, sofern es schon gleiche oder ähnliche Tags gibt, eine Vorschlagsliste, aus der dann ausgewählt werden kann. Tags werden in der Übersicht angezeigt und können al sFilter verwendet werden. Gibt man in der Übersicht mehr als ein Tag an, erscheint ein Umschalter, mit dem man von ODER auf UND umschalten kann, was den tagfilter entsprechend arbeiten lässt. 
+                * **Releaseverwaltung:** Releases können jetzt ein Datum erhalten. bisher wurde immer das Datum als Release-Date verwendet, an dem das Release in die Datenbank eingetragen wurde. Mit der neuen Funktion kann man jetzt auch ein Datum angeben, an dem das Release tatsächlich veröffentlicht wurde. Das ist insbesondere dann sinnvoll, wenn man mehrere Releases auf einmal einträgt, die aber zu unterschiedlichen Zeitpunkten veröffentlicht wurden.',
+                        1
+                    )
+                    ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
         "
     ];
 

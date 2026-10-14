@@ -9,9 +9,10 @@
    05. Floating Action Button (FAB)
    06. Help Link Component
    07. Help Modal - Responsive & Mobile Optimizations
-   08. Responsive Breakpoints
-   09. Dark Theme Overrides
-   10. Drucksettings
+   08. Modal-Besonderheiten
+   09. Responsive Breakpoints
+   10. Dark Theme Overrides
+   11. Drucksettings
    ========================================================================== */
 
 
@@ -585,9 +586,23 @@ a {
     border: 1px solid #e9ecef;
 }
 
+/* ==========================================================================
+   08. MODAL-BESONDERHEITEN
+   ========================================================================== */
+
+/* Erzwingt saubere Markdown-Listen in den Release-Modals */
+.markdown-body ul, .release-markdown-body ul {
+    list-style-type: disc !important;
+    padding-left: 1.5rem !important;
+    margin-bottom: 1rem;
+}
+
+.markdown-body li, .release-markdown-body li {
+    margin-bottom: 0.3rem;
+}
 
 /* ==========================================================================
-   08. RESPONSIVE BREAKPOINTS
+   09. RESPONSIVE BREAKPOINTS
    ========================================================================== */
 
 /* Tablets & kleinere Bildschirme */
@@ -624,7 +639,7 @@ a {
 }
 
 /* ==========================================================================
-   09. DARK THEME OVERRIDES (.theme-dark)
+   10. DARK THEME OVERRIDES (.theme-dark)
    ========================================================================== */
 
 /* Layout & Basis */
@@ -872,7 +887,7 @@ body.theme-dark .bg-danger-subtle {
 
 
 /* ==========================================================================
-   10. Drucksettings
+   11. Drucksettings
    ========================================================================== */
 
 @media print {

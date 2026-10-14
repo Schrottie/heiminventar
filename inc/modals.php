@@ -148,7 +148,7 @@
 </div>
 
 <?php if ($unseenRelease): ?>
-<!-- AUTOMATISCHES RELEASE-MODAL -->
+<!-- Releasemodal -->
 <div class="modal fade" id="autoReleaseModal" tabindex="-1" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">

@@ -1,19 +1,26 @@
 <?php
 require_once __DIR__ . '/cfg/db.php';
 require_once __DIR__ . '/inc/functions.php';
-require_once __DIR__ . '/inc/header.php';
+
+// --- DATENBANK-MIGRATION SICHERSTELLEN (release_date Spalte) ---
+try {
+    $pdo->exec("ALTER TABLE app_releases ADD COLUMN release_date DATE DEFAULT NULL");
+} catch (Exception $e) {
+    // Spalte existiert bereits, Fehler ignorieren
+}
 
 // --- BERECHTIGUNGSPRÜFUNG ---
 $loginActive = function_exists('isLoginEnabled') && isLoginEnabled();
 $isAdmin = !$loginActive || (isset($_SESSION['user']) && ($_SESSION['user']['role'] ?? '') === 'admin');
 
 // --- RELEASES LADEN ---
-// Admins sehen auch inaktive Releases, normale Nutzer nur aktive
 if ($isAdmin) {
-    $releases = $pdo->query("SELECT * FROM app_releases ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+    $releases =$pdo->query("SELECT * FROM app_releases ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
 } else {
-    $releases = $pdo->query("SELECT * FROM app_releases WHERE is_active = 1 ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+    $releases =$pdo->query("SELECT * FROM app_releases WHERE is_active = 1 ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
 }
+
+require_once __DIR__ . '/inc/header.php';
 ?>
 
 <div class="container py-5 flex-grow-1">
@@ -39,7 +46,7 @@ if ($isAdmin) {
                             <?php if ($isAdmin): ?>
                                 <th style="width: 100px;">Status</th>
                             <?php endif; ?>
-                            <th style="width: 160px;">Datum</th>
+                            <th style="width: 160px;">Release-Datum</th>
                             <th style="width: 120px;" class="text-end">Aktion</th>
                         </tr>
                     </thead>
@@ -51,7 +58,11 @@ if ($isAdmin) {
                                 </td>
                             </tr>
                         <?php else: ?>
-                            <?php foreach ($releases as $r): ?>
+                            <?php foreach ($releases as$r): ?>
+                                <?php 
+                                    // Fallback auf created_at, falls kein release_date gepflegt wurde
+                                    $displayDate = !empty($r['release_date']) ? date('d.m.Y', strtotime($r['release_date'])) : date('d.m.Y', strtotime($r['created_at']));
+                                ?>
                                 <tr>
                                     <td>
                                         <span class="badge bg-dark font-monospace fs-6">
@@ -70,11 +81,11 @@ if ($isAdmin) {
                                     <?php endif; ?>
                                     <td>
                                         <small class="text-muted">
-                                            <?= date('d.m.Y H:i', strtotime($r['created_at'])) ?>
+                                            <i class="fa-solid fa-calendar-days me-1"></i> <?= $displayDate ?>
                                         </small>
                                     </td>
                                     <td class="text-end">
-                                        <button type="button" class="btn btn-sm btn-outline-primary" 
+                                        <button type="button" class="btn btn-sm btn-outline-primary"
                                                 onclick="viewReleaseModal(<?= htmlspecialchars(json_encode($r['version'])) ?>, <?= htmlspecialchars(json_encode($r['title'])) ?>, <?= htmlspecialchars(json_encode($r['content'])) ?>)">
                                             🔍 Ansehen
                                         </button>
@@ -89,8 +100,8 @@ if ($isAdmin) {
     </div>
 </div>
 
-<!-- DETAIL MODAL -->
-<div class="modal fade" id="releaseDetailModal" tabindex="-1">
+<!-- Detailansicht Release-Modal -->
+ <div class="modal fade" id="releaseDetailModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white">
@@ -99,8 +110,9 @@ if ($isAdmin) {
       </div>
       <div class="modal-body">
         <h4 id="releaseModalTitle" class="fw-bold text-primary"></h4>
+        <div class="text-muted small mb-3" id="releaseModalDate"></div>
         <hr>
-        <div id="releaseModalContent" class="release-markdown-body"></div>
+        <div id="releaseModalContent" class="markdown-body"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>

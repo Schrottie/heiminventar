@@ -1,5 +1,5 @@
 /**
- * Allgemeine UI-Interaktionen (Theme-Switch, Benutzer-Modals)
+ * Zentrale Skripte: Allgemeine UI-Interaktionen & Release-Verwaltung (Markdown)
  */
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Theme Toggle (Dark / Light Mode)
@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
         themeBtn.addEventListener('click', () => {
             const body = document.body;
             const icon = themeBtn.querySelector('i');
-            
+           
             body.classList.toggle('theme-dark');
             const isDark = body.classList.contains('theme-dark');
 
@@ -31,32 +31,39 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('modalRole').value = button.getAttribute('data-role');
         });
     }
-});
 
-/**
- * Markdown-Parsing und automatisches Anzeigen des Release-Modals
- */
-document.addEventListener('DOMContentLoaded', function() {
-    // Falls das globale Release-Objekt im Template definiert wurde
-    const rawContent = typeof window.unseenReleaseContent !== 'undefined' ? window.unseenReleaseContent : '';
-    const contentContainer = document.getElementById('autoReleaseContent');
-
-    if (!rawContent || !contentContainer) return;
-
+    // 3. Marked.js Grundeinstellungen initialisieren (falls geladen)
     if (typeof marked !== 'undefined') {
         marked.setOptions({
             breaks: true,
             gfm: true
         });
-        contentContainer.innerHTML = marked.parse(rawContent);
-    } else {
-        contentContainer.innerText = rawContent;
     }
 
-    const modalEl = document.getElementById('autoReleaseModal');
-    if (modalEl && typeof bootstrap !== 'undefined') {
-        const autoModal = new bootstrap.Modal(modalEl);
-        autoModal.show();
+    // 4. Automatisches Release-Ankündigungs-Modal initialisieren & parsen
+    const autoContent = document.getElementById('autoReleaseContent');
+    const autoModalEl = document.getElementById('autoReleaseModal');
+    
+    if (autoContent) {
+        // Zuerst prüfen, ob ein globales window.unseenReleaseContent existiert, sonst innerHTML nutzen
+        const rawContent = (typeof window.unseenReleaseContent !== 'undefined' && window.unseenReleaseContent) 
+                           ? window.unseenReleaseContent 
+                           : autoContent.innerHTML;
+
+        if (rawContent && rawContent.trim() !== '') {
+            const cleanedContent = rawContent.split('\n').map(line => line.trim()).join('\n');
+            if (typeof marked !== 'undefined') {
+                autoContent.innerHTML = marked.parse(cleanedContent);
+            } else {
+                autoContent.innerText = cleanedContent;
+            }
+        }
+
+        // Automatisches Modal beim Start öffnen
+        if (autoModalEl && typeof bootstrap !== 'undefined') {
+            const autoModal = new bootstrap.Modal(autoModalEl);
+            autoModal.show();
+        }
     }
 });
 
@@ -81,19 +88,27 @@ function markReleaseAsSeen(version) {
 }
 
 /**
- * Öffnet das Detail-Modal für Release-Notes mit Markdown-Parsing
+ * Öffnet das Detail-Modal für Release-Notes mit Markdown-Parsing (Manueller Aufruf)
  */
-function viewReleaseModal(version, title, rawContent) {
-    document.getElementById('releaseModalVersion').innerText = '✨ Version ' + version;
-    document.getElementById('releaseModalTitle').innerText = title;
-   
-    const contentEl = document.getElementById('releaseModalContent');
-    if (!contentEl) return;
+function viewReleaseModal(version, title, content, date) {
+    const modalTitleVer = document.getElementById('releaseModalVersion');
+    const modalTitle = document.getElementById('releaseModalTitle');
+    const modalDate = document.getElementById('releaseModalDate');
+    const modalContent = document.getElementById('releaseModalContent');
 
-    if (typeof marked !== 'undefined') {
-        contentEl.innerHTML = marked.parse(rawContent);
-    } else {
-        contentEl.innerText = rawContent;
+    if (modalTitleVer) modalTitleVer.innerText = `✨ Release v${version}`;
+    if (modalTitle) modalTitle.innerText = title;
+    if (modalDate && date) modalDate.innerHTML = `<i class="fa-solid fa-calendar-days me-1"></i> Veröffentlicht am ${date}`;
+   
+    if (modalContent) {
+        // Führende Einrückungen bereinigen, damit Marked.js saubere Listen baut
+        const cleanedContent = content.split('\n').map(line => line.trim()).join('\n');
+       
+        if (typeof marked !== 'undefined') {
+            modalContent.innerHTML = marked.parse(cleanedContent);
+        } else {
+            modalContent.innerText = cleanedContent;
+        }
     }
 
     const modalEl = document.getElementById('releaseDetailModal');

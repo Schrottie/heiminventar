@@ -95,7 +95,6 @@
 </footer>
     <!-- 1. Externe Bibliotheken -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -110,7 +109,10 @@
     <script src="js/settings.js"></script>
     <script src="js/fab.js"></script>
     <script src="js/inventory.js"></script>
+<?php if ($page === 'drag-n-drop.php'): ?>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.min.js"></script>
     <script src="js/locations.js"></script>
+<?php endif; ?>
     <script src="js/tags.js"></script>
     <script src="js/qr.js"></script>
     <script src="js/logs.js"></script>

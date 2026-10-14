@@ -159,6 +159,11 @@ function runDatabaseMigrations(PDO $pdo): void
                 tag_id INT NOT NULL,
                 PRIMARY KEY (item_id, tag_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ",
+
+        '019_add_release_date' => "
+            ALTER TABLE app_releases 
+                ADD COLUMN release_date DATE DEFAULT NULL AFTER title;
         "
     ];
 

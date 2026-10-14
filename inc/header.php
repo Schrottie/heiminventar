@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/../cfg/db.php';
 
+$page = basename($_SERVER['PHP_SELF']);
+
 // 1. Settings aus der DB laden
 $settingsStmt = $pdo->query("SELECT setting_key, setting_value FROM settings");
 $settings = $settingsStmt->fetchAll(PDO::FETCH_KEY_PAIR);

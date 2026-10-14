@@ -163,7 +163,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="markReleaseAsSeen('<?= htmlspecialchars($unseenRelease['version']) ?>')">
-          Verstanden & Schließen
+          <i class="fa-solid fa-check me-1"></i>Wow, toll! 
         </button>
       </div>
     </div>

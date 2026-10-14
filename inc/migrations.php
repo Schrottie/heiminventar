@@ -257,6 +257,24 @@ function runDatabaseMigrations(PDO $pdo): void
                         1
                     )
                     ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
+        ",
+
+        '020_release_1_0_7' => "
+            INSERT INTO app_releases (version, title, release_date, content, is_active)
+            VALUES (
+                '1.0.7',
+                'Herbstupdate Teil 5 🚀',
+                '2026-10-14', 
+                'Folgende Fuunktionen wurden in dieser Version hinzugefügt:
+
+                * **Dashboarderweiterung:** Es werden jetzt unter den KPI auch die Gegenstände gelistet, die abglaufen sind oder bei denen es fällige Wartungen gibt.
+                * **Hilfe:** Die Hilfeseite wurde um einen Abschnitt für das Tag-System erweitert, in dem vor allem die Funktion der Tag-Filterung auf der Übersichtsseite genauer erläutert wird.
+                * **Tagesmeldung:** Sofern es Gegenstände gibt, die irgendwie beachtet werden müssen - Ablauf- oder Verfalssdatum erreicht, Wartung fällig, Mindestanzahl unterschritten - kommt beim ersten Benutzen am Tag ein Hinweisfeld auf der Übersichtsseite hoch. Dieses Feld kann für den laufenden Tag ausgeblendet werden.
+                * **Im- &amp; Export:** Das Exportfile wurde um die ID des Lagerortes erweitert, damit man sie ggf. auch für einen reimport nutzen kann und die gegenstände direkt dem korrekten Lagerort zugeordnet werden. Für die Vorbereitung größerer Datenimporte kann auch ein Export der Lagerorte angestoßen werden, damit man die IDs für die Importvorbereitung zur Hand hat. Beim Import muss jetzt ein Ziel-Lagerort für neue Gegenstände ohne Lagerort-ID gewählt werden.
+                * **UX-Kleinkram:** Auf der Übersichtsseite ist bei jedem Gegenstand der Lagerort angezeigt. Bei Klick darauf wurde unterhalb der komplette Pfad angezeigt. Jetzt wird der lagerort ersetzt, es bleibt also in einer zeile und wirkt, als würde lediglich ausgeklappt.',
+                        1
+                    )
+                    ON DUPLICATE KEY UPDATE title = VALUES(title), content = VALUES(content);
         "
     ];
 

@@ -18,7 +18,7 @@
             <i class="fa-solid fa-clipboard-check"></i>
             <span>Inventur</span>
         </a>
-        <a href="inventory.php" class="fab-sub-item">
+        <a href="drag-n-drop.php" class="fab-sub-item">
             <i class="fa-solid fa-arrows-up-down-left-right"></i>
             <span>Verschiebebahnhof</span>
         </a>

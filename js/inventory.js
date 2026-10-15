@@ -311,6 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Modal zum Löschen von Dokuemnten
 function openDocumentDeleteModal(docId, itemId, docTitle) {
     // Titel in den Modal-Text schreiben
     document.getElementById('deleteDocTitlePlaceholder').textContent = '"' + docTitle + '"';

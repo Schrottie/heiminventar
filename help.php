@@ -48,10 +48,13 @@ section {
                     <a href="#qrcode" class="list-group-item list-group-item-action"><i class="fa-solid fa-qrcode me-2"></i> QR-Codes &amp; Etiketten</a>
                     <a href="#design" class="list-group-item list-group-item-action"><i class="fa-solid fa-palette me-2"></i>Design &amp; Vorschaubilder</a>
                     <a href="#items" class="list-group-item list-group-item-action"><i class="fa-solid fa-pen-to-square me-2"></i>Gegenstände bearbeiten &amp; archivieren</a>
+                    <a href="#sets" class="list-group-item list-group-item-action"><i class="fa-solid fa-layer-group me-2"></i>Set-Verwaltung</a>
                     <a href="#tags" class="list-group-item list-group-item-action"><i class="fa-solid fa-tags me-2"></i>Tag-System &amp; Filterung</a>
                     <a href="#locations" class="list-group-item list-group-item-action"><i class="fa-solid fa-folder-tree me-2"></i>Lagerortverwaltung</a>
                     <a href="#shuffle" class="list-group-item list-group-item-action"><i class="fa-solid fa-shuffle me-2"></i>Verschiebebahnhof</a>
                     <a href="#dashboard" class="list-group-item list-group-item-action"><i class="fa-solid fa-chart-pie me-2"></i>Dashboard &amp; Auswertung</a>
+                    <a href="#printing" class="list-group-item list-group-item-action"><i class="fa-solid fa-print me-2"></i>Druck- &amp; Berichtsgenerator</a>
+                    <a href="#inventory-audit" class="list-group-item list-group-item-action"><i class="fa-solid fa-clipboard-check me-2"></i>Inventur &amp; Bestandsprüfung</a>
                     <a href="#import-export" class="list-group-item list-group-item-action"><i class="fa-solid fa-file-arrow-down me-2"></i>Daten-Import &amp; Export</a>
                     <a href="#releases" class="list-group-item list-group-item-action"><i class="fa-brands fa-square-github me-2"></i>Release-Notes &amp; Changelog</a>
                     <a href="#security" class="list-group-item list-group-item-action"><i class="fa-solid fa-shield-halved me-2"></i>Sicherheit &amp; Login</a>
@@ -66,7 +69,7 @@ section {
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4 p-md-5">
 
-                    <!-- 1. Schnellsuche -->
+                    <!-- Schnellsuche -->
                     <section id="search" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-magnifying-glass me-2"></i> Schnellsuche &amp; Filter
@@ -78,7 +81,7 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 2. Aktionen via FAB -->
+                    <!-- Aktionen via FAB -->
                     <section id="fab" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-bars-staggered me-2"></i> Schnellaktionen (Aktions-Button)
@@ -120,7 +123,7 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 3. QR-Code-Scanner & QR-Codes -->
+                    <!-- QR-Code-Scanner & QR-Codes -->
                     <section id="qrcode" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-qrcode me-2"></i> QR-Code-Scanner &amp; Etiketten
@@ -143,7 +146,7 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 4. Design & Bildeinstellungen -->
+                    <!-- Design & Bildeinstellungen -->
                     <section id="design" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-palette me-2"></i> Design &amp; Vorschaubilder
@@ -163,7 +166,7 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 5. Gegenstände bearbeiten & archivieren -->
+                    <!-- Gegenstände bearbeiten & archivieren -->
                     <section id="items" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-pen-to-square me-2"></i> Gegenstände bearbeiten &amp; archivieren
@@ -173,13 +176,28 @@ section {
                         </p>
                         <ul class="small text-muted ps-3 mb-0">
                             <li class="mb-1">
+                                <strong>Stammdaten &amp; Hersteller:</strong> Neben der Bezeichnung und Beschreibung kann direkt der Hersteller (z. B. für Werkzeuge oder Geräte) gepflegt werden.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Bestand &amp; Mindestbestand:</strong> Neben der aktuellen Menge lässt sich ein Mindestbestand definieren (0 = kein Mindestbestand), um Unterdeckungen im Blick zu behalten.
+                            </li>
+                            <li class="mb-1">
                                 <strong>Hauptbild festlegen (Stern-Symbol):</strong> Bei Gegenständen mit mehreren Bildern kann durch Klick auf das Stern-Symbol ein Bild als <em>Hauptbild</em> definiert werden. Dieses erscheint als Titelbild in der Übersicht und in Kachelansichten.
                             </li>
                             <li class="mb-1">
                                 <strong>Fotos per Smartphone-Kamera:</strong> Beim Hinzufügen von Bildern auf mobilen Geräten öffnet sich auf Wunsch direkt die Kamera für Schnappschüsse.
                             </li>
-                            <li>
-                                <strong>Dokumente &amp; Anleitungen:</strong> Neben Bildern können auch Dokumente (PDF, DOCX, TXT) hochgeladen werden, z. B. Rechnungen, Garantiescheine oder Handbücher.
+                            <li class="mb-1">
+                                <strong>Dokumente &amp; Anleitungen (mit Typisierung):</strong> Es können Dokumente (PDF, DOCX, TXT) hochgeladen werden. Diese werden festen Typen (*Bedienungsanleitung*, *Rechnung*, *Sonstiges*) zugeordnet, was u. a. für die automatische Rechnungsprüfung in Berichten genutzt wird.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Anschaffung &amp; Versicherung:</strong> Erfassung von Anschaffungspreis, Kaufdatum, Händler/Kaufort, Garantiedauer in Monaten sowie dem wichtigen Flag <em>"Für Versicherungsliste markieren"</em>.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Verleih-Status:</strong> Gegenstände können mit Namen ("Verliehen an") und Verleihdatum versehen werden, um den Verbleib nachzuvollziehen.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Fristen &amp; Wartung:</strong> Pflege von Ablauf-/Verfallsdaten sowie Wartungsintervallen (in Monaten) inklusive des Datums der letzten Durchführung.
                             </li>
                             <li>
                                 <strong>Archivieren:</strong> Ein Gegenstand kann über die Detailansicht archiviert werden. Archivierte Gegenstände werden aus der aktiven Übersicht entfernt, können aber in der Archivseite jederzeit wiederhergestellt werden.
@@ -189,7 +207,33 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 6. Tag-System & Filterung -->
+                    <!-- Set-Verwaltung -->
+                    <section id="sets" class="mb-5">
+                        <h5 class="text-danger d-flex align-items-center fw-bold">
+                            <i class="fa-solid fa-layer-group me-2"></i> Set-Verwaltung &amp; Inventur-Audit
+                        </h5>
+                        <p class="small text-muted mb-2">
+                            Komplexe Ausrüstungsgegenstände oder Kisten können als Set organisiert werden:
+                        </p>
+                        <ul class="small text-muted ps-3 mb-0">
+                            <li class="mb-1">
+                                <strong>Als Set markieren:</strong> Durch Aktivieren der Checkbox "Dieser Gegenstand ist ein Set" im Artikelformular wird die Set-Verwaltung freigeschaltet.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Modalbasierter Editor (1+n Elemente):</strong> Über den Button "Set-Inhalte verwalten" öffnet sich ein Editor, in dem beliebig viele Freitext-Komponenten inklusive Stückzahlen hinzugefügt werden können.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Drag &amp; Drop Sortierung:</strong> Die Inhaltsteile lassen sich im Modal per Drag &amp; Drop (unterstützt durch SortableJS) in eine logische Reihenfolge bringen.
+                            </li>
+                            <li>
+                                <strong>Inventur-Audit-Ansicht:</strong> Set-Komponenten werden in Audit- und Bestandsprüfungsansichten direkt inline angezeigt, um die Vollständigkeit (Compliance-Prüfung) unkompliziert zu kontrollieren.
+                            </li>
+                        </ul>
+                    </section>   
+
+                    <hr class="my-1 text-black-50">                 
+
+                    <!-- Tag-System & Filterung -->
                     <section id="tags" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-tags me-2"></i> Tag-System &amp; Filterung
@@ -219,7 +263,7 @@ section {
                     <hr class="my-1 text-black-50">
 
 
-                    <!-- 7. Lagerortverwaltung & Struktur -->
+                    <!-- Lagerortverwaltung & Struktur -->
                     <section id="locations" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-folder-tree me-2"></i> Lagerortverwaltung &amp; Struktur
@@ -235,7 +279,7 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 8. Verschiebebahnhof -->
+                    <!-- Verschiebebahnhof -->
                     <section id="shuffle" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-shuffle me-2"></i> Verschiebebahnhof
@@ -247,7 +291,7 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 9. Dashboard & Auswertung -->
+                    <!-- Dashboard & Auswertung -->
                     <section id="dashboard" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-chart-pie me-2"></i> Dashboard &amp; Auswertung
@@ -276,7 +320,59 @@ section {
 
                     <hr class="my-1 text-black-50">
 
-                    <!-- 10. Daten-Import & Export -->
+                    <!-- Druck- & Berichtsgenerator -->
+                    <section id="printing" class="mb-5">
+                        <h5 class="text-danger d-flex align-items-center fw-bold">
+                            <i class="fa-solid fa-print me-2"></i> Druck- &amp; Berichtsgenerator
+                        </h5>
+                        <p class="small text-muted mb-2">
+                            Über das Druck-Modul lassen sich Berichte in Echtzeit im Browser filtern und ausgeben:
+                        </p>
+                        <ul class="small text-muted ps-3 mb-0">
+                            <li class="mb-1">
+                                <strong>Echtzeit-Client-Filterung:</strong> Alle Berichtsarten und Lagerorte schalten und filtern sofort im Browser, ganz ohne störende Seiten-Reloads.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Flexible Lagerort-Auswahl:</strong> Per Checkbox kann über alle Lagerorte hinweg gedruckt werden oder über beliebig viele kombinierbare Standort-Dropdowns (inklusive automatischer Einbeziehung aller Unterlagerorte).
+                            </li>
+                            <li class="mb-1">
+                                <strong>Standard-Inventardruck:</strong> Kompakte Kachelkarten (optimiert für mindestens 6 Artikel pro Seite) mit Hauptbild, Stammdaten und farbigen Dokument-Badges.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Automatisierte Versicherungsliste:</strong> Kompakte Tabellenansicht aller versicherungsrelevanten Gegenstände. Das System prüft automatisch, ob eine Rechnung verknüpft ist, und berechnet den Gesamtwert aus Menge und Kaufpreis.
+                            </li>
+                            <li>
+                                <strong>Direkte Verlinkung:</strong> Gegenstandsnamen sind direkt mit der Bearbeitungsansicht verknüpft, sodass Unstimmigkeiten sofort korrigiert werden können.
+                            </li>
+                        </ul>
+                    </section>
+
+                    <hr class="my-1 text-black-50">
+
+                    <!-- Inventur & Bestandsprüfung -->
+                    <section id="inventory-audit" class="mb-5">
+                        <h5 class="text-danger d-flex align-items-center fw-bold">
+                            <i class="fa-solid fa-clipboard-check me-2"></i> Inventur &amp; Bestandsprüfung
+                        </h5>
+                        <p class="small text-muted mb-2">
+                            Das Inventur-Modul unterstützt bei der regelmäßigen Kontrolle und Bestandsaufnahme der gelagerten Güter:
+                        </p>
+                        <ul class="small text-muted ps-3 mb-0">
+                            <li class="mb-1">
+                                <strong>Systematische Bestandsaufnahme:</strong> Die Inventur-Ansicht listet Gegenstände strukturiert auf, um Soll- und Ist-Bestände abzugleichen.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Inline-Set-Prüfung:</strong> Auch komplexe Set-Inhalte werden direkt in der Inventur- und Audit-Ansicht angezeigt, sodass Inhaltsteile und Vollständigkeiten unkompliziert mit überprüft werden können.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Schnelle Korrekturen:</strong> Abweichungen können direkt im Zuge der Prüfung eingesehen und über die Artikelbearbeitung angepasst werden.
+                            </li>
+                        </ul>
+                    </section>
+
+                    <hr class="my-1 text-black-50">
+
+                    <!-- Daten-Import & Export -->
                     <section id="import-export" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
                             <i class="fa-solid fa-file-arrow-down me-2"></i> Daten-Import &amp; Export

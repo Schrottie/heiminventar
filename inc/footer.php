@@ -92,7 +92,7 @@
     <small>
       &copy; <?= date('Y') ?> Was ist wo? &middot; 
       <a href="release.php" class="text-decoration-none text-muted" title="Changelog ansehen">
-        v<?= htmlspecialchars($currentVersion ?? '1.0.0') ?>
+        v<?= htmlspecialchars($currentVersion ?? '1.0.0') ?>  &middot; <a href="help.php" class="text-muted"><i class="fa-solid fa-circle-question"></i></a>
       </a>
     </small>
   </div>

@@ -17,7 +17,7 @@ Dieses System wurde primär für den privaten Gebrauch und die heimische Organis
   * **Smarte Optionen bei Unterlagerorten:** Wahlweise nur Inhalte verschieben, Inhalte inklusive aller Unterlagerorte verschieben oder die gesamte Standortstruktur mitverschieben.
 
 ### 2. Gegenstandsverwaltung (Inventory Items) 📦
-* **Detaillierte Erfassung:** Anlegen von Artikeln mit Bezeichnung, Beschreibung, Menge, Foto(s) und zugewiesem Lagerort.
+* **Detaillierte Erfassung:** Anlegen von Artikeln mit Bezeichnung, Beschreibung, Menge, Foto(s) und zugewiesenem Lagerort.
 * **Schneller Erfassungsmodus:** Funktion *"Speichern und nächster Gegenstand"*, um mehrere Artikel nacheinander ohne Unterbrechung anzulegen.
 * **Bearbeiten & Verwalten:** Direktes Editieren und Löschen aller Gegenstände über Schnellzugriffe.
 
@@ -29,19 +29,30 @@ Dieses System wurde primär für den privaten Gebrauch und die heimische Organis
 ### 4. Gegenstände bearbeiten, Anleitungen, Fotos & Hauptbild 🖼️
 * **Hauptbild festlegen (Stern-Symbol):** Bei Gegenständen mit mehreren Bildern kann durch Klick auf das Stern-Symbol ein Bild als Hauptbild definiert werden. Dieses erscheint als Titelbild in der Übersicht und in Kachelansichten.
 * **Fotos per Smartphone-Kamera:** Beim Hinzufügen von Bildern auf mobilen Geräten öffnet sich auf Wunsch direkt die Kamera für Schnappschüsse.
-* **Dokumente & Anleitungen:** Neben Bildern können auch Dokumente (PDF, DOCX, TXT) hochgeladen werden, z. B. Rechnungen, Garantiescheine oder Handbücher.
+* **Dokumente, Anleitungen & Typisierung:** Neben Bildern können auch Dokumente (PDF, DOCX, TXT) hochgeladen werden. Diese werden festen **Dokumententypen** (*Bedienungsanleitung*, *Rechnung*, *Sonstiges*) zugeordnet, um Struktur zu wahren und Prüfungen zu automatisieren.
 
-### 7. Archivsystem 🗄️
-* **Gegenstände archivieren:** Auf der Detailseite können Gegenstände archiviert werden.
-* **Archivseite:** Die Archivseite listet (filterbar) alle archivierten Gegenstände und bietet eine Option zum Reaktivieren an. Dabei kann (und muss) festgelegt werden, an welchem lagerort der reaktivierte Gegenstand gelistet werden soll.
+### 5. Set-Verwaltung & Inventur-Audit 🧩
+* **Set-Artikel:** Gegenstände können als Set markiert werden, um mehrere Inhaltsteile zu bündeln.
+* **Modalbasierter 1+n-Editor:** Schnelles Hinzufügen, Bearbeiten und Sortieren von Set-Inhalten (inkl. Mengen und Freitexten via SortableJS).
+* **Inventur-Audit-Ansicht:** Nahtlose Integration der Set-Komponenten direkt in den Bestandsprüfungs- und Audit-Ansichten zur unkomplizierten Compliance-Prüfung.
 
-### 6. Drag & Drop Modus 🖱️
+### 6. Druck- & Berichtsgenerator (`print.php`) 🖨️
+* **Echtzeit-Client-Filterung:** Dynamisches Umschalten von Berichten und Filtern ohne Seiten-Reload.
+* **Flexibles Standort-Filtering:** Checkbox für den Gesamtdruck über alle Lagerorte oder zielgenaue, dynamisch erweiterbare Standort-Dropdowns (inkl. automatischer Einbeziehung aller Unterlagerorte).
+* **Standard-Inventardruck:** Kompakte Kartenansicht (optisch optimiert für mindestens 6 Gegenstände pro Seite) mit Hauptbild links, Stammdaten und farbigen Dokument-Badges.
+* **Automatisierte Versicherungsliste:** Klassische Datentabelle für versicherungsrelevante Artikel mit automatischer Rechnungs-Prüfung (aus den verknüpften Dokumenten) und automatischer Gesamtwertberechnung (`Menge × Preis`).
+
+### 7. Drag & Drop Modus 🖱️
 * **Visuelles Verschieben:** Eigenes Interface mit direkter Darstellung aller Orte und Items.
 * **Greifer-Icons:** Gegenstände können bequem per Drag & Drop zwischen verschiedenen Lagerorten verschoben werden.
 * **Mobil-Optimiert:** Touch-Unterstützung mit leichtem Delay zur Verhinderung ungewollten Auslösens beim Scrollen auf Smartphones und Tablets.
 * **Echtzeit-Anpassung:** Sofortiges Speichern der Standortänderung im Hintergrund via AJAX.
 
-### 7. Authentifizierung & Benutzerverwaltung 🔒
+### 8. Archivsystem 🗄️
+* **Gegenstände archivieren:** Auf der Detailseite können Gegenstände archiviert werden.
+* **Archivseite:** Die Archivseite listet (filterbar) alle archivierten Gegenstände und bietet eine Option zum Reaktivieren an. Dabei kann (und muss) festgelegt werden, an welchem Lagerort der reaktivierte Gegenstand gelistet werden soll.
+
+### 9. Authentifizierung & Benutzerverwaltung 🔒
 * **Schaltbarer Passwortschutz:** Kann in den Systemeinstellungen mit einem Klick global aktiviert oder deaktiviert werden.
 * **Rollenbasiertes Rechtesystem:**
   * **Admin:** Vollzugriff inklusive Systemeinstellungen, Migrationsverwaltung und Benutzersteuerung.
@@ -50,20 +61,20 @@ Dieses System wurde primär für den privaten Gebrauch und die heimische Organis
 * **Sichere Passwort-Hashes:** Automatische Erzeugung und Verifikation mittels BCRYPT (`password_hash` / `password_verify`).
 * **Modernes Login-Interface:** Besserer Komfort mit Passwort-Sichtbarkeits-Toggle ("Auge"-Icon) und integriertem Dark-Mode-Support.
 
-### 8. Systemeinstellungen & Theme-Wahl 🎨
+### 10. Systemeinstellungen & Theme-Wahl 🎨
 * **Erscheinungsbild (Light/Dark Mode):** Visuelle Auswahl zwischen hellem und dunklem Design per modernem UI-Button-System.
 * **Vorschaubilder:** In der Übersicht lassen sich auf Wunsch, sofern vorhanden, Vorschaubilder zu den gelisteten Gegenständen anzeigen. Dazu wird jeweils das erste zum Gegenstand abgelegte Bild verwendet.
 * **Automatisches Datenbank-Migrationssystem:** Schema-Updates der Datenbank werden über ein zentrales Skript (`migrations.php`) vollautomatisch im Hintergrund ausgeführt.
 
-### 9. Hilfe und Bedienungsanleitung 📖
+### 11. Hilfe und Bedienungsanleitung 📖
 * Eine umfangreiche Hilfeseite informiert über alle Funktionen im Detail. Dabei werden die verschiedenen Optionen erläutert, Tastenkombinationen für die Benutzung auf dem Desktop gezeigt, sowie weniger offensichtliche Funktionen dargelegt.
 
-### 10. Komfortables Installations-Script ⚙️
+### 12. Komfortables Installations-Script ⚙️
 * **Geführte Installation:** Automatische Prüfung aller Systemanforderungen (PDO MySQL, GD-Bibliothek, Dateirechte).
 * **Geführtes DB-Setup:** Automatische Erstellung der Datenbank, der Tabellenstruktur und des Datenbank-Benutzers im geführten Dialog (inklusive Support für frische MariaDB-Installationen auf Raspberry Pi OS).
 
-### 11. Release-Notes 📢
-* Während kleinere Aktualisierungen im Hintergrund geschehen und über die üblichen github-Pulls in laufende Systeme übertragen werden können, haben größere Releases ein paar Erläuterungen im Gepäck, die jedem Benutzer einmalig in einem Popup angezeigt werden. Dabei erfolgt die Anzeige im "ungesicherten" Betrieb tatsächlich einmalig für alle, im "gesicherten" Betrieb für jeden Benutzer separat.
+### 13. Release-Notes 📢
+* Während kleinere Aktualisierungen im Hintergrund geschehen und über die üblichen GitHub-Pulls in laufende Systeme übertragen werden können, haben größere Releases ein paar Erläuterungen im Gepäck, die jedem Benutzer einmalig in einem Popup angezeigt werden. Dabei erfolgt die Anzeige im "ungesicherten" Betrieb tatsächlich einmalig für alle, im "gesicherten" Betrieb für jeden Benutzer separat.
 
 ---
 

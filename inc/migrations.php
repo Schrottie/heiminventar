@@ -138,12 +138,35 @@ function runDatabaseMigrations(PDO $pdo): void
             -- Spaltenprüfung für users erfolgt unten
         ",
 
+        '0010_relerase_notes' => "
+            -- Release
+        ",
+
+        '011_release_1_0_2' => "
+            -- Release
+        ",
+
         '012_add_archive_to_items' => "
             -- Spaltenprüfung erfolgt unten
         ",
 
+        '013_release_1_0_3' => "
+        ",
+
+        '013_release_1_0_4' => "
+        ",
+
         '014_add_functions' => "
             -- Spaltenprüfung erfolgt unten
+        ",
+
+        '015_release_1_0_4' => "
+        ",
+
+        '016_release_1_0_5' => "
+        ",
+
+        '017_add_functions' => "
         ",
 
         '017_add_maintenance_functions' => "
@@ -160,6 +183,20 @@ function runDatabaseMigrations(PDO $pdo): void
                 tag_id INT NOT NULL,
                 PRIMARY KEY (item_id, tag_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ",
+
+        '019_add_release_date' => "
+            -- Spaltenprüfung erfolgt unten
+        ",
+
+        '019_release_1_0_6' => "
+        ",
+
+        '020_release_1_0_7' => "
+        ",
+
+        '021_add_fields' => "
+           -- Spaltenprüfung erfolgt unten
         "
     ];
 
@@ -171,25 +208,77 @@ function runDatabaseMigrations(PDO $pdo): void
     // Das fängt übersprungene Updates oder gelöschte Spalten ab!
     
     // item_images.is_main
-    if (!$columnExists($pdo, 'item_images', 'is_main')) {$pdo->exec("ALTER TABLE item_images ADD COLUMN is_main TINYINT(1) DEFAULT 0;");
+    if (!$columnExists($pdo, 'item_images', 'is_main')) {
+        $pdo->exec("ALTER TABLE item_images 
+            ADD COLUMN is_main TINYINT(1) DEFAULT 0;");
     }
     // inventory_items.min_quantity
-    if (!$columnExists($pdo, 'inventory_items', 'min_quantity')) {$pdo->exec("ALTER TABLE inventory_items ADD COLUMN min_quantity INT DEFAULT 0 AFTER quantity;");
+    if (!$columnExists($pdo, 'inventory_items', 'min_quantity')) {
+        $pdo->exec("ALTER TABLE inventory_items 
+            ADD COLUMN min_quantity INT DEFAULT 0 AFTER quantity;");
     }
     // users.last_seen_version
-    if (!$columnExists($pdo, 'users', 'last_seen_version')) {$pdo->exec("ALTER TABLE users ADD COLUMN last_seen_version VARCHAR(20) NULL AFTER role;");
+    if (!$columnExists($pdo, 'users', 'last_seen_version')) {
+        $pdo->exec("ALTER TABLE users 
+            ADD COLUMN last_seen_version VARCHAR(20) NULL AFTER role;");
     }
     // inventory_items.is_archived
-    if (!$columnExists($pdo, 'inventory_items', 'is_archived')) {$pdo->exec("ALTER TABLE inventory_items ADD COLUMN is_archived TINYINT(1) NOT NULL DEFAULT 0, ADD COLUMN archived_at TIMESTAMP NULL DEFAULT NULL;");
+    if (!$columnExists($pdo, 'inventory_items', 'is_archived')) {
+        $pdo->exec("ALTER TABLE inventory_items 
+            ADD COLUMN is_archived TINYINT(1) NOT NULL DEFAULT 0, 
+            ADD COLUMN archived_at TIMESTAMP NULL DEFAULT NULL;");
     }
     // inventory_items Funktionsspalten (expiration_date, price, on_loan, loan_to)
-    if (!$columnExists($pdo, 'inventory_items', 'expiration_date')) {$pdo->exec("ALTER TABLE inventory_items ADD COLUMN expiration_date DATE DEFAULT NULL AFTER min_quantity, ADD COLUMN price DECIMAL(10,2) DEFAULT NULL AFTER expiration_date, ADD COLUMN on_loan TINYINT(1) DEFAULT 0 AFTER price, ADD COLUMN loan_to VARCHAR(255) DEFAULT NULL AFTER on_loan;");
+    if (!$columnExists($pdo, 'inventory_items', 'expiration_date')) {
+        $pdo->exec("ALTER TABLE inventory_items 
+            ADD COLUMN expiration_date DATE DEFAULT NULL AFTER min_quantity, 
+            ADD COLUMN price DECIMAL(10,2) DEFAULT NULL AFTER expiration_date, 
+            ADD COLUMN on_loan TINYINT(1) DEFAULT 0 AFTER price, 
+            ADD COLUMN loan_to VARCHAR(255) DEFAULT NULL AFTER on_loan;");
     }
     // inventory_items Wartungsspalten
-    if (!$columnExists($pdo, 'inventory_items', 'maintenance_interval_months')) {$pdo->exec("ALTER TABLE inventory_items ADD COLUMN maintenance_interval_months INT DEFAULT NULL AFTER loan_to, ADD COLUMN last_maintenance_date DATE DEFAULT NULL AFTER maintenance_interval_months;");
+    if (!$columnExists($pdo, 'inventory_items', 'maintenance_interval_months')) {
+        $pdo->exec("ALTER TABLE inventory_items 
+            ADD COLUMN maintenance_interval_months INT DEFAULT NULL AFTER loan_to, 
+            ADD COLUMN last_maintenance_date DATE DEFAULT NULL AFTER maintenance_interval_months;");
     }
     // app_releases.release_date
-    if (!$columnExists($pdo, 'app_releases', 'release_date')) {$pdo->exec("ALTER TABLE app_releases ADD COLUMN release_date DATE DEFAULT NULL AFTER title;");
+    if (!$columnExists($pdo, 'app_releases', 'release_date')) {
+        $pdo->exec("ALTER TABLE app_releases 
+            ADD COLUMN release_date DATE DEFAULT NULL AFTER title;");
+    }
+    // inventory_items Funktionsspalten
+        if (!$columnExists($pdo, 'inventory_items', 'purchase_date')) {
+        $pdo->exec("ALTER TABLE inventory_items 
+            ADD COLUMN purchase_date DATE DEFAULT NULL AFTER price,
+            ADD COLUMN purchase_location VARCHAR(255) DEFAULT NULL AFTER purchase_date,
+            ADD COLUMN manufacturer VARCHAR(255) DEFAULT NULL AFTER purchase_location,
+            ADD COLUMN warranty_months INT DEFAULT NULL AFTER manufacturer,
+            ADD COLUMN is_insured TINYINT(1) DEFAULT 0 AFTER warranty_months,
+            ADD COLUMN loan_date DATE DEFAULT NULL AFTER loan_to;
+        ");
+    }
+    // Spalte 'is_set' in inventory_items ergänzen, falls noch nicht vorhanden
+    if (!$columnExists($pdo, 'inventory_items', 'is_set')) {
+        $pdo->exec("ALTER TABLE inventory_items ADD COLUMN is_set TINYINT(1) NOT NULL DEFAULT 0 AFTER is_insured;");
+    }
+    // Set-Tabelle mit Name des Inhaltsteils, Set-Artikel-ID und Sortierindex
+    if (!$pdo->query("SHOW TABLES LIKE 'item_set_items'")->fetch()) {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS item_set_items (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                item_id INT NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                quantity INT NOT NULL DEFAULT 1,
+                sort_order INT NOT NULL DEFAULT 0,
+                CONSTRAINT fk_set_parent_item FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ");
+    }
+    // Dokumententypen für item_documents ergänzen
+    if (!$columnExists($pdo, 'item_documents', 'doc_type')) {
+        $pdo->exec("ALTER TABLE item_documents 
+            ADD COLUMN doc_type VARCHAR(50) NOT NULL DEFAULT 'sonstiges' AFTER title;");
     }
 
     // 6. Standard-Migrationen ganz normal ausführen (falls Cache nicht greift)

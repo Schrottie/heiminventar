@@ -24,6 +24,11 @@ $stmt = $pdo->prepare("SELECT id, filename, is_main FROM item_images WHERE item_
 $stmt->execute([$id]);
 $images = $stmt->fetchAll();
 
+// Zugehörige Dokumente des Gegenstands abfragen
+$stmtDoc = $pdo->prepare("SELECT id, filename, title, doc_type FROM item_documents WHERE item_id = ? ORDER BY id DESC");
+$stmtDoc->execute([$id]);
+$documents = $stmtDoc->fetchAll();
+
 // Bestehende Tags für diesen Artikel abrufen und als kommagetrennten String aufbereiten
 $currentTags = getItemTags($pdo, $id);
 $currentTagsString = implode(', ', array_column($currentTags, 'name'));
@@ -44,7 +49,7 @@ require_once __DIR__ . '/inc/header.php';
             </button>
             <!-- Button: QR-Code Modal -->
             <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#qrModal">
-                <i class="fa-solid fa-qrcode me-1"></i> QR-Code & Etikett
+                <i class="fa-solid fa-qrcode me-1"></i> QR-Code &amp; Etikett
             </button>
         </div>
     </div>
@@ -93,48 +98,107 @@ require_once __DIR__ . '/inc/header.php';
         <form action="api/item-update.php" method="post" enctype="multipart/form-data">
             <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
 
-            <div class="mb-3">
-                <label class="form-label">Bezeichnung</label>
-                <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($item['name']) ?>" required>
+            <div class="row g-3 mb-3">
+                <div class="col-md-8">
+                    <label class="form-label">Bezeichnung</label>
+                    <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($item['name']) ?>" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Hersteller</label>
+                    <input type="text" name="manufacturer" class="form-control" value="<?= htmlspecialchars($item['manufacturer'] ?? '') ?>" placeholder="z.B. Bosch, Makita">
+                </div>
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Beschreibung</label>
-                <textarea name="description" class="form-control" rows="4"><?= htmlspecialchars($item['description']) ?></textarea>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-6">
-                    <label class="form-label">Aktuelle Menge</label>
-                    <input type="number" name="quantity" class="form-control" min="0" value="<?= (int)$item['quantity'] ?>">
-                </div>
-                <div class="col-6">
-                    <label class="form-label">Mindestbestand</label>
-                    <input type="number" name="min_quantity" class="form-control" min="0" value="<?= (int)($item['min_quantity'] ?? 0) ?>">
-                    <div class="form-text">0 = Kein Mindestbestand erforderlich</div>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Lagerort</label>
-                <select name="location_id" class="form-select">
-                    <option value="">Bitte auswählen...</option>
-                    <?php renderLocationOptions($locations, null, 0, (int)$item['location_id']); ?>
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label"><i class="fa-solid fa-paperclip me-1"></i>Dokumente / Anleitungen hinzufügen (PDF, DOCX)</label>
-                <input type="file" name="documents[]" class="form-control" accept=".pdf,.doc,.docx,.txt" multiple>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Weitere Bilder hinzufügen</label>
-                <input type="file" name="images[]" class="form-control" accept="image/*" multiple>
+                <textarea name="description" class="form-control" rows="3"><?= htmlspecialchars($item['description']) ?></textarea>
             </div>
 
             <div class="row g-3 mb-3">
-                <!-- Ablaufdatum mit Lösch-Button -->
+                <div class="col-md-4">
+                    <label class="form-label">Aktuelle Menge</label>
+                    <input type="number" name="quantity" class="form-control" min="0" value="<?= (int)$item['quantity'] ?>">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Mindestbestand</label>
+                    <input type="number" name="min_quantity" class="form-control" min="0" value="<?= (int)($item['min_quantity'] ?? 0) ?>">
+                    <div class="form-text">0 = Kein Mindestbestand</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Lagerort</label>
+                    <select name="location_id" class="form-select">
+                        <option value="">Bitte auswählen...</option>
+                        <?php renderLocationOptions($locations, null, 0, (int)$item['location_id']); ?>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Sektion: Anschaffung & Versicherung -->
+            <div class="card bg-light border-0 p-3 mb-3">
+                <h6 class="text-secondary fw-bold mb-3"><i class="fa-solid fa-file-invoice-dollar me-2"></i>Anschaffung &amp; Versicherung</h6>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="price" class="form-label">Anschaffungspreis (€)</label>
+                        <div class="input-group">
+                            <input type="number" step="0.01" min="0" class="form-control" id="price" name="price" value="<?= htmlspecialchars($item['price'] ?? '') ?>">
+                            <span class="input-group-text">€</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="purchase_date" class="form-label">Kaufdatum</label>
+                        <div class="input-group">
+                            <input type="date" class="form-control" id="purchase_date" name="purchase_date" value="<?= htmlspecialchars($item['purchase_date'] ?? '') ?>">
+                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('purchase_date').value = '';" title="Leeren">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="purchase_location" class="form-label">Kaufort / Händler</label>
+                        <input type="text" class="form-control" id="purchase_location" name="purchase_location" value="<?= htmlspecialchars($item['purchase_location'] ?? '') ?>" placeholder="z.B. Hornbach Berlin">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="warranty_months" class="form-label">Garantie (Monate)</label>
+                        <input type="number" min="0" class="form-control" id="warranty_months" name="warranty_months" value="<?= (int)($item['warranty_months'] ?? 0) ?>" placeholder="z.B. 24">
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="1" id="is_insured" name="is_insured" <?= !empty($item['is_insured']) ? 'checked' : '' ?>>
+                        <label class="form-check-label fw-semibold text-warning-emphasis" for="is_insured">
+                            Für Versicherungsliste markieren (versicherungsrelevant)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sektion: Verleih & Status -->
+            <div class="card bg-light border-0 p-3 mb-3">
+                <h6 class="text-secondary fw-bold mb-3"><i class="fa-solid fa-handshake-angle me-2"></i>Verleih-Status</h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="loan_to" class="form-label">Verliehen an</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="loan_to" name="loan_to" placeholder="Leer, wenn im Lager" value="<?= htmlspecialchars($item['loan_to'] ?? '') ?>">
+                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('loan_to').value = ''; document.getElementById('loan_date').value = '';" title="Verleih aufheben">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="loan_date" class="form-label">Verliehen seit</label>
+                        <div class="input-group">
+                            <input type="date" class="form-control" id="loan_date" name="loan_date" value="<?= htmlspecialchars($item['loan_date'] ?? '') ?>">
+                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('loan_date').value = '';" title="Datum leeren">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <!-- Ablaufdatum -->
                 <div class="col-md-4">
                     <label for="expiration_date" class="form-label">Ablaufdatum / Verfallsdatum</label>
                     <div class="input-group">
@@ -145,40 +209,17 @@ require_once __DIR__ . '/inc/header.php';
                     </div>
                 </div>
 
-                <!-- Anschaffungspreis -->
-                <div class="col-md-4">
-                    <label for="price" class="form-label">Anschaffungspreis (€)</label>
-                    <div class="input-group">
-                        <input type="number" step="0.01" min="0" class="form-control" id="price" name="price" value="<?= htmlspecialchars($item['price'] ?? '') ?>">
-                        <span class="input-group-text">€</span>
-                    </div>
-                </div>
-
-                <!-- Verleih-Status & Person mit Lösch-Button -->
-                <div class="col-md-4">
-                    <label for="loan_to" class="form-label">Verliehen an (Name)</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="loan_to" name="loan_to" placeholder="Leer, wenn im Lager" value="<?= htmlspecialchars($item['loan_to'] ?? '') ?>">
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('loan_to').value = '';" title="Verleih leeren">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row g-3 mb-3">
                 <!-- Wartungsintervall in Monaten -->
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label for="maintenance_interval_months" class="form-label">Wartungsintervall (Monate)</label>
                     <div class="input-group">
                         <input type="number" min="0" class="form-control" id="maintenance_interval_months" name="maintenance_interval_months" placeholder="z.B. 12" value="<?= (int)($item['maintenance_interval_months'] ?? 0) ?>">
                         <span class="input-group-text">Monate</span>
                     </div>
-                    <div class="form-text">0 = Keine Wartung erforderlich (z.B. 12 = jährlich)</div>
                 </div>
 
                 <!-- Datum der letzten Wartung -->
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label for="last_maintenance_date" class="form-label">Letzte Wartung am</label>
                     <div class="input-group">
                         <input type="date" class="form-control" id="last_maintenance_date" name="last_maintenance_date" value="<?= htmlspecialchars($item['last_maintenance_date'] ?? '') ?>">
@@ -186,6 +227,83 @@ require_once __DIR__ . '/inc/header.php';
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Dokumenten-Sektion mit bestehender Liste und Upload -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fa-solid fa-paperclip me-1"></i>Dokumente &amp; Anleitungen</label>
+                
+                <?php if (!empty($documents)): ?>
+                    <div class="list-group mb-2">
+                        <?php foreach ($documents as $doc): ?>
+                            <?php 
+                            $badgeColor = match($doc['doc_type']) {
+                                'rechnung' => 'bg-success',
+                                'bedienungsanleitung' => 'bg-info text-dark',
+                                default => 'bg-secondary'
+                            };
+                            $docTypeName = match($doc['doc_type']) {
+                                'rechnung' => 'Rechnung',
+                                'bedienungsanleitung' => 'Anleitung',
+                                default => 'Sonstiges'
+                            };
+                            ?>
+                            <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-file-lines text-muted"></i>
+                                    <span class="fw-semibold"><?= htmlspecialchars($doc['title']) ?></span>
+                                    <span class="badge <?= $badgeColor ?>"><?= $docTypeName ?></span>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <a href="docs/items/<?= htmlspecialchars($doc['filename']) ?>" target="_blank" class="btn btn-outline-secondary btn-sm" title="Anzeigen / Herunterladen">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                    <a href="api/document-delete.php?id=<?= (int)$doc['id'] ?>&item_id=<?= (int)$id ?>" class="btn btn-outline-danger btn-sm" onclick="return confirm('Dokument wirklich löschen?');" title="Löschen">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+
+                <div class="row g-2">
+                    <div class="col-md-8">
+                        <input type="file" name="documents[]" class="form-control" accept=".pdf,.doc,.docx,.txt" multiple>
+                    </div>
+                    <div class="col-md-4">
+                        <select name="doc_type" class="form-select">
+                            <option value="sonstiges" selected>Sonstiges</option>
+                            <option value="rechnung">Rechnung</option>
+                            <option value="bedienungsanleitung">Bedienungsanleitung</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-text">Der ausgewählte Dokumenttyp gilt für alle hier neu hochgeladenen Dateien.</div>
+            </div>
+ 
+            <div class="mb-3">
+                <label class="form-label">Weitere Bilder hinzufügen</label>
+                <input type="file" name="images[]" class="form-control" accept="image/*" multiple>
+            </div>
+
+            <!-- Sektion: Set-Verwaltung -->
+            <div class="card bg-light border-0 p-3 mb-3">
+                <h6 class="text-secondary fw-bold mb-3"><i class="fa-solid fa-layer-group me-2"></i>Set-Verwaltung</h6>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" value="1" id="is_set" name="is_set" <?= !empty($item['is_set']) ? 'checked' : '' ?>>
+                    <label class="form-check-label fw-semibold text-warning-emphasis" for="is_set">
+                        Dieser Gegenstand ist ein Set (enthält mehrere Inhaltsteile)
+                    </label>
+                </div>
+                <div id="setManageButtonContainer" class="<?= !empty($item['is_set']) ? '' : 'd-none' ?>">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#setItemModal">
+                        <i class="fa-solid fa-list-check me-1"></i>Set-Inhalte verwalten
+                    </button>
+                    <?php if (empty($id) || $id <= 0): ?>
+                        <div class="form-text text-muted mt-1">Hinweis: Sie können Inhalte hinzufügen, sobald der Gegenstand einmalig gespeichert wurde.</div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -204,27 +322,26 @@ require_once __DIR__ . '/inc/header.php';
         </form>
 
         <!-- Container für die interaktiven Tag-Pills und das Eingabefeld -->
-        <div class="mb-3 mt-2 border-top pt-3">
+        <div class="mb-3 mt-4 border-top pt-3">
             <div class="d-flex justify-content-between align-items-center">
                 <label class="form-label mb-0">Schlagwörter (Tags)</label>
-                <!-- Visuelles Feedback-Element -->
                 <small id="tagSaveStatus" class="text-muted" style="transition: opacity 0.3s; opacity: 0;">
                     <i class="fa-solid fa-check text-success me-1"></i>Gespeichert
                 </small>
             </div>
-        
+       
             <input type="hidden" id="currentItemId" value="<?= (int)$item['id'] ?>">
 
             <div class="position-relative mt-1">
                 <div id="tagContainer" class="form-control d-flex flex-wrap align-items-center gap-1 p-2" style="min-height: 38px; cursor: text;">
                     <input type="text" id="tagInputField" class="border-0 flex-grow-1 bg-transparent text-body p-0 shadow-none" placeholder="Tag eingeben, mit Komma trennen..." autocomplete="off" style="outline: none; min-width: 120px;">
                 </div>
-            
+           
                 <div id="tagSuggestions" class="dropdown-menu shadow-sm w-100" style="display: none; position: absolute; top: 100%; left: 0; z-index: 1050;"></div>
             </div>
-        
+       
             <input type="hidden" id="tagsHiddenInput" name="tags" value="<?= htmlspecialchars($currentTagsString) ?>">
-        
+       
             <div class="form-text mt-1">Tippen, mit Pfeiltasten wählen &amp; Enter drücken. Klicke auf das × zum Entfernen.</div>
         </div>
     </div>

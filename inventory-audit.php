@@ -4,7 +4,7 @@ require_once __DIR__ . '/cfg/db.php';
 require_once __DIR__ . '/inc/functions.php';
 
 // Alle Lagerorte für das Auswahl-Dropdown abfragen
-$locations =$pdo->query("SELECT id, parent_id, name FROM locations ORDER BY name")->fetchAll();
+$locations = $pdo->query("SELECT id, parent_id, name FROM locations ORDER BY name")->fetchAll();
 
 // Ausgewählten Lagerort aus der URL holen
 $selectedLocationId = isset($_GET['location_id']) && is_numeric($_GET['location_id']) ? (int)$_GET['location_id'] : null;
@@ -12,28 +12,45 @@ $selectedLocationId = isset($_GET['location_id']) && is_numeric($_GET['location_
 $items = [];
 if ($selectedLocationId !== null) {
     // Untergeordnete Lagerorte per Rekursion ermitteln
-    function getSubLocationIds(array $locations, int$parentId): array {
+    function getSubLocationIds(array $locations, int $parentId): array {
         $ids = [$parentId];
-        foreach ($locations as$loc) {
-            if ((int)$loc['parent_id'] ===$parentId) {
+        foreach ($locations as $loc) {
+            if ((int)$loc['parent_id'] === $parentId) {
                 $ids = array_merge($ids, getSubLocationIds($locations, (int)$loc['id']));
             }
         }
         return $ids;
     }
-    $targetLocationIds = getSubLocationIds($locations,$selectedLocationId);
-    
+    $targetLocationIds = getSubLocationIds($locations, $selectedLocationId);
+   
     $placeholders = implode(',', array_fill(0, count($targetLocationIds), '?'));
-    
-    $stmt =$pdo->prepare("
-        SELECT i.id, i.name, i.quantity, i.min_quantity, l.name AS location_name
+   
+    $stmt = $pdo->prepare("
+        SELECT i.id, i.name, i.quantity, i.min_quantity, i.is_set, l.name AS location_name
         FROM inventory_items i
         LEFT JOIN locations l ON l.id = i.location_id
         WHERE i.location_id IN ($placeholders) AND i.is_archived = '0'
         ORDER BY i.name
     ");
     $stmt->execute($targetLocationIds);
-    $items =$stmt->fetchAll();
+    $items = $stmt->fetchAll();
+
+    // Set-Inhalte für gefundene Sets vorab laden, um unnötige Queries in der Schleife zu vermeiden
+    $setIds = array_column(array_filter($items, fn($it) => !empty($it['is_set'])), 'id');
+    $setComponentsMap = [];
+    if (!empty($setIds)) {
+        $setPlaceholders = implode(',', array_fill(0, count($setIds), '?'));
+        $stmtComp = $pdo->prepare("
+            SELECT item_id, name, quantity, sort_order 
+            FROM item_set_items 
+            WHERE item_id IN ($setPlaceholders) 
+            ORDER BY sort_order ASC, id ASC
+        ");
+        $stmtComp->execute($setIds);
+        while ($comp = $stmtComp->fetch(PDO::FETCH_ASSOC)) {
+            $setComponentsMap[$comp['item_id']][] = $comp;
+        }
+    }
 }
 
 require_once __DIR__ . '/inc/header.php';
@@ -45,7 +62,7 @@ require_once __DIR__ . '/inc/header.php';
     </div>
     <div class="card-body">
         <p class="text-muted small">
-            Wähle einen Lagerort aus, um den Ist-Bestand zu prüfen. Mit dem grünen Haken kannst du gefundene Gegenstände direkt aus der Liste ausblenden.
+            Wähle einen Lagerort aus, um den Ist-Bestand zu prüfen. Mit dem grünen Haken kannst du gefundene Gegenstände direkt aus der Liste ausblenden. Bei Sets werden die Inhaltsteile zur Kontrolle unterhalb angezeigt.
         </p>
 
         <!-- Lagerort-Auswahl -->
@@ -53,7 +70,7 @@ require_once __DIR__ . '/inc/header.php';
             <div class="col-md-8">
                 <select name="location_id" class="form-select" onchange="this.form.submit()">
                     <option value="">Bitte Lagerort für die Inventur wählen...</option>
-                    <?php renderLocationOptions($locations, null, 0,$selectedLocationId); ?>
+                    <?php renderLocationOptions($locations, null, 0, $selectedLocationId); ?>
                 </select>
             </div>
             <div class="col-md-4">
@@ -88,10 +105,15 @@ require_once __DIR__ . '/inc/header.php';
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($items as$item): ?>
+                            <?php foreach ($items as $item): ?>
                                 <tr id="row-<?= (int)$item['id'] ?>" class="audit-row">
                                     <td class="ps-3 fw-semibold text-break">
-                                        <?= htmlspecialchars($item['name']) ?>
+                                        <div class="d-flex align-items-center">
+                                            <?php if (!empty($item['is_set'])): ?>
+                                                <i class="fa-solid fa-layer-group text-primary me-2" title="Dies ist ein Set"></i>
+                                            <?php endif; ?>
+                                            <span><?= htmlspecialchars($item['name']) ?></span>
+                                        </div>
                                     </td>
                                     <td class="text-muted small">
                                         <?= htmlspecialchars($item['location_name']) ?>
@@ -120,6 +142,24 @@ require_once __DIR__ . '/inc/header.php';
                                         </div>
                                     </td>
                                 </tr>
+
+                                <!-- Falls es ein Set ist und Inhaltsteile existieren: Unterhalb einrücken -->
+                                <?php if (!empty($item['is_set']) && !empty($setComponentsMap[$item['id']])): ?>
+                                    <tr class="table-light text-muted small audit-row" data-parent-row="<?= (int)$item['id'] ?>">
+                                        <td colspan="4" class="ps-5 py-2">
+                                            <div class="fw-semibold text-secondary mb-1"><i class="fa-solid fa-list-ul me-1"></i>Set-Inhalt (auf Vollständigkeit prüfen):</div>
+                                            <ul class="mb-0 ps-3">
+                                                <?php foreach ($setComponentsMap[$item['id']] as $comp): ?>
+                                                    <li>
+                                                        <span class="text-secondary"><?= htmlspecialchars($comp['name']) ?></span> 
+                                                        <span class="badge bg-secondary text-white ms-1" style="font-size: 0.75rem;">Anzahl: <?= (int)$comp['quantity'] ?></span>
+                                                    </li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
+
                             <?php endforeach; ?>
                         </tbody>
                     </table>

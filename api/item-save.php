@@ -10,13 +10,38 @@ $quantity = (int)($_POST['quantity'] ?? 1);
 $minQuantity = (int)($_POST['min_quantity'] ?? 0);
 $locationId = !empty($_POST['location_id']) ? (int)$_POST['location_id'] : null;
 
+// Weitere Felder auswerten
+$manufacturer = trim($_POST['manufacturer'] ?? '') !== '' ? trim($_POST['manufacturer']) : null;
+$price = !empty($_POST['price']) ? (float)$_POST['price'] : null;
+$purchaseDate = !empty($_POST['purchase_date']) ? $_POST['purchase_date'] : null;
+$purchaseLocation = trim($_POST['purchase_location'] ?? '') !== '' ? trim($_POST['purchase_location']) : null;
+$warrantyMonths = !empty($_POST['warranty_months']) ? (int)$_POST['warranty_months'] : null;
+$isInsured = isset($_POST['is_insured']) ? 1 : 0;
+$isSet = isset($_POST['is_set']) ? 1 : 0;
+$loanTo = trim($_POST['loan_to'] ?? '') !== '' ? trim($_POST['loan_to']) : null;
+$loanDate = !empty($_POST['loan_date']) ? $_POST['loan_date'] : null;
+$onLoan = ($loanTo !== null) ? 1 : 0;
+
+$expirationDate = !empty($_POST['expiration_date']) ? $_POST['expiration_date'] : null;
+$maintenanceInterval = !empty($_POST['maintenance_interval_months']) ? (int)$_POST['maintenance_interval_months'] : null;
+$lastMaintenanceDate = !empty($_POST['last_maintenance_date']) ? trim($_POST['last_maintenance_date']) : null;
+
 if (empty($name)) {
     die('Bezeichnung ist erforderlich');
 }
 
-// 1. Gegenstand in DB anlegen
-$stmt = $pdo->prepare("INSERT INTO inventory_items (name, description, quantity, min_quantity, location_id) VALUES (?, ?, ?, ?, ?)");
-$stmt->execute([$name, $description, $quantity, $minQuantity, $locationId]);
+// 1. Gegenstand in DB anlegen (inkl. aller neuen Spalten)
+$stmt = $pdo->prepare("INSERT INTO inventory_items (
+    name, description, quantity, min_quantity, location_id, 
+    manufacturer, price, purchase_date, purchase_location, warranty_months, is_insured, is_set,
+    loan_to, loan_date, on_loan, expiration_date, maintenance_interval_months, last_maintenance_date
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+$stmt->execute([
+    $name, $description, $quantity, $minQuantity, $locationId,
+    $manufacturer, $price, $purchaseDate, $purchaseLocation, $warrantyMonths, $isInsured, $isSet,
+    $loanTo, $loanDate, $onLoan, $expirationDate, $maintenanceInterval, $lastMaintenanceDate
+]);
 
 $newItemId = (int)$pdo->lastInsertId();
 
@@ -71,9 +96,10 @@ if (!empty($_FILES['documents']['name'][0])) {
 
                 if (move_uploaded_file($tmpName, $docDir . $newFilename)) {
                     $docTitle = pathinfo($originalName, PATHINFO_FILENAME);
+                    $docType = $_POST['doc_type'] ?? 'sonstiges'; // oder pro Dokument wählbar
 
-                    $stmt = $pdo->prepare("INSERT INTO item_documents (item_id, filename, title) VALUES (?, ?, ?)");
-                    $stmt->execute([$newItemId, $newFilename, $docTitle]);
+                    $stmt = $pdo->prepare("INSERT INTO item_documents (item_id, filename, title, doc_type) VALUES (?, ?, ?, ?)");
+                    $stmt->execute([$newItemId, $newFilename, $docTitle, $docType]);
                 }
             }
         }

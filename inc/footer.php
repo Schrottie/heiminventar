@@ -10,6 +10,10 @@
         <div class="fab-submenu-header">
             <i class="fa-solid fa-wrench me-1"></i> Tools
         </div>
+        <a href="print.php" class="fab-sub-item">
+            <i class="fa-solid fa-print"></i>
+            <span>Druck</span>
+        </a>
         <a href="inventory-audit.php" class="fab-sub-item">
             <i class="fa-solid fa-clipboard-check"></i>
             <span>Inventur</span>
@@ -64,7 +68,7 @@
     </a>
 
     <!-- Gegenstand anlegen -->
-    <a href="item-add.php" class="fab-action fab-action-primary" title="Gegenstand anlegen">
+    <a href="add-item.php" class="fab-action fab-action-primary" title="Gegenstand anlegen">
         <i class="fa-solid fa-plus"></i>
         <span class="fab-label">Gegenstand anlegen</span>
     </a>
@@ -98,6 +102,8 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.min.js"></script>
+    
     <!-- 2. Eigene JavaScript-Module -->
      <script>
         window.unseenReleaseContent = <?= json_encode($unseenRelease['content'] ?? '') ?>;
@@ -109,10 +115,7 @@
     <script src="js/settings.js"></script>
     <script src="js/fab.js"></script>
     <script src="js/inventory.js"></script>
-<?php if ($page === 'drag-n-drop.php'): ?>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.min.js"></script>
     <script src="js/drag-n-drop.js"></script>
-<?php endif; ?>
     <script src="js/locations.js"></script>
     <script src="js/tags.js"></script>
     <script src="js/qr.js"></script>

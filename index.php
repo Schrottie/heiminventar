@@ -41,7 +41,7 @@ if ($filterLocationId !== null) {
     $targetLocationIds = getSubLocationIds($allLocations, $filterLocationId);
 }
 
-// Gegenstände abfragen (inklusive aller zugehörigen Tags als JSON oder Array für das Frontend)
+// Gegenstände abfragen (inklusive is_set und aller zugehörigen Tags)
 $params = []; $whereClause = '';
 
 if (!empty($targetLocationIds)) {
@@ -61,6 +61,7 @@ $sql = "
         i.maintenance_interval_months,
         i.last_maintenance_date,
         i.location_id,
+        i.is_set,
         l.name AS location_name,
         img.filename AS image_filename,
         GROUP_CONCAT(t.name SEPARATOR '||') AS item_tags_list
@@ -108,7 +109,7 @@ $expiredCount = 0;
 $maintenanceCount = 0;
 
 foreach ($items as $chk) {
-    if ((int)$chk['min_quantity'] > 0 && (int)$chk['quantity'] <= (int)$chk['min_quantity']) {
+    if ((int)$chk['min_quantity'] >= 0 && (int)$chk['quantity'] < (int)$chk['min_quantity']) {
         $lowStockCount++;
     }
    
@@ -149,7 +150,7 @@ require_once __DIR__ . '/inc/header.php';
 <!-- Meldungsbanner -->
 <?php if (($lowStockCount > 0 || $expiredCount > 0 || $maintenanceCount > 0) && (!isset($_COOKIE['hide_daily_notice']) || $_COOKIE['hide_daily_notice'] !== date('Y-m-d'))): ?>
     <div id="dailyNoticeBanner" class="border rounded-3 p-2 px-3 mb-3 bg-body-tertiary small text-body-secondary shadow-none" style="font-size: 0.875rem;">
-        
+       
         <!-- Header (Schrift links, X rechts) -->
         <div class="d-flex align-items-center justify-content-between pb-1 mb-2">
             <div class="fw-bold text-secondary">
@@ -252,7 +253,7 @@ require_once __DIR__ . '/inc/header.php';
                 <i class="fa-solid fa-tags me-1"></i>Nach Tags filtern:
                 <i class="fa-solid fa-circle-question text-muted ms-1" style="cursor: pointer;" data-bs-toggle="tooltip" data-bs-placement="top" title="Tipp: Tippen oder Vorschlag wählen und mit Enter oder Komma bestätigen. Ab 2 Tags erscheint ein UND/ODER-Modus Schalter."></i>
             </span>
-            
+           
             <!-- UND / ODER Modus Umschalter (wird ab 2 Tags automatisch sichtbar) -->
             <div id="tagModeContainer" class="btn-group btn-group-sm" style="display: none;" role="group">
                 <button type="button" id="modeOrBtn" class="btn btn-outline-primary active">ODER</button>
@@ -265,7 +266,7 @@ require_once __DIR__ . '/inc/header.php';
                 <div id="filterTagContainer" class="form-control d-flex flex-wrap align-items-center gap-1 p-2 bg-transparent text-body" style="min-height: 38px; cursor: text; border-top-right-radius: 0; border-bottom-right-radius: 0;">
                     <input type="text" id="filterTagInput" class="border-0 flex-grow-1 bg-transparent text-body p-0 shadow-none" placeholder="Tag eingeben oder suchen..." autocomplete="off" style="outline: none; min-width: 140px;">
                 </div>
-            
+           
                 <!-- Autocomplete-Dropdown -->
                 <div id="filterTagSuggestions" class="dropdown-menu shadow-sm w-100" style="display: none; position: absolute; top: 100%; left: 0; z-index: 1050;"></div>
             </div>
@@ -284,8 +285,9 @@ require_once __DIR__ . '/inc/header.php';
         $itemId = (int)$item['id'];
         $qty = (int)$item['quantity'];
         $minQty = (int)$item['min_quantity'];
-        $isLowStock = ($minQty > 0 && $qty <= $minQty);
+        $isLowStock = ($minQty >= 0 && $qty < $minQty);
         $isOnLoan = !empty($item['loan_to']);
+        $isSet = !empty($item['is_set']);
        
         $expStatus = getExpirationStatus($item['expiration_date'] ?? null);
         $isExpiredOrWarning = ($expStatus === 'danger' || $expStatus === 'warning') ? '1' : '0';
@@ -295,7 +297,7 @@ require_once __DIR__ . '/inc/header.php';
 
         $path = getLocationPath($allLocations, (int)$item['location_id']);
         $searchTerms = mb_strtolower($item['name'] . ' ' . ($item['location_name'] ?? '') . ' ' . $path . ' ' . ($item['loan_to'] ?? ''));
-        
+       
         // Tags als Array für das data-Attribute aufbereiten
         $itemTagsArray = !empty($item['item_tags_list']) ? explode('||', $item['item_tags_list']) : [];
         $itemTagsJson = htmlspecialchars(json_encode($itemTagsArray), ENT_QUOTES, 'UTF-8');
@@ -332,7 +334,12 @@ require_once __DIR__ . '/inc/header.php';
 
                         <div class="flex-grow-1 mw-0">
                             <h6 class="mb-1 text-break">
-                                <i class="fa-solid fa-box text-primary me-1"></i>
+                                <?php if ($isSet): ?>
+                                    <i class="fa-solid fa-layer-group text-primary me-1" title="Set"></i>
+                                <?php else: ?>
+                                    <i class="fa-solid fa-box text-primary me-1" title="Gegenstand"></i>
+                                <?php endif; ?>
+                               
                                 <?= htmlspecialchars($item['name']) ?>
                                
                                 <span class="d-inline-block">
@@ -359,7 +366,7 @@ require_once __DIR__ . '/inc/header.php';
                                         </span>
                                     <?php endif; ?>
 
-                                    <?php if (!empty($item['expiration_date'])): 
+                                    <?php if (!empty($item['expiration_date'])):
                                         $badgeClass = ($expStatus === 'danger') ? 'bg-danger text-white' : (($expStatus === 'warning') ? 'bg-warning text-dark' : 'text-muted');
                                     ?>
                                         <span class="badge <?= $badgeClass ?>" title="Ablaufdatum: <?= htmlspecialchars($item['expiration_date']) ?>">
@@ -379,9 +386,9 @@ require_once __DIR__ . '/inc/header.php';
                             </h6>
 
                             <small class="d-block text-truncate">
-                                <a class="text-decoration-none text-muted d-inline-block" role="button" 
-                                onclick="toggleLocationPath(this, event)" 
-                                data-short="<?= htmlspecialchars($item['location_name'] ?? 'Kein Lagerort') ?>" 
+                                <a class="text-decoration-none text-muted d-inline-block" role="button"
+                                onclick="toggleLocationPath(this, event)"
+                                data-short="<?= htmlspecialchars($item['location_name'] ?? 'Kein Lagerort') ?>"
                                 data-full="<?= htmlspecialchars($path) ?>">
                                     <i class="fa-solid fa-location-dot me-1"></i>
                                     <span class="location-text"><?= htmlspecialchars($item['location_name'] ?? 'Kein Lagerort') ?></span>
@@ -401,7 +408,6 @@ require_once __DIR__ . '/inc/header.php';
         </div>
     <?php endforeach; ?>
 </div>
-
 
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>

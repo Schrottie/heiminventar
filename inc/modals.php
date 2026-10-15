@@ -1,3 +1,5 @@
+
+<?php if ($page === 'settings.php'): ?>
 <!-- Modal: Benutzer bearbeiten -->
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -74,6 +76,7 @@
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- Modal für QR-Code & Druck -->
 <div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
@@ -116,6 +119,7 @@
     </div>
 </div>
 
+<?php if ($page === 'history.php'): ?>
 <!-- Rollback Bestätigungs-Modal -->
 <div class="modal fade" id="rollbackModal" tabindex="-1" aria-labelledby="rollbackModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -146,6 +150,7 @@
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <?php if ($unseenRelease): ?>
 <!-- Releasemodal -->
@@ -171,6 +176,7 @@
 </div>
 <?php endif; ?>
 
+<?php if ($page === 'archive.php'): ?>
 <!-- Reaktivieren archivierter Items mit Ziel-Lagerort-Auswahl -->
 <div class="modal fade" id="restoreModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -201,28 +207,9 @@
         </div>
     </div>
 </div>
+<?php endif; ?>
 
-<!-- Sicherheitsabfrage zum Archivieren von Items -->
-<div class="modal fade" id="archiveConfirmModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="fa-solid fa-box-archive me-2"></i>Gegenstand archivieren</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Möchtest du den Gegenstand <strong id="archiveItemNameText"></strong> wirklich archivieren?</p>
-                <p class="text-muted small mb-0">Er wird aus dem aktiven Bestand entfernt, kann aber über das Archiv jederzeit wiederhergestellt werden.</p>
-                <input type="hidden" id="archiveTargetId">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                <button type="button" class="btn btn-danger" onclick="executeArchive()">Ja, archivieren</button>
-            </div>
-        </div>
-    </div>
-</div>
-
+<?php if ($page === 'locations.php'): ?>
 <!-- Modal: Lagerort bearbeiten -->
 <div class="modal fade" id="editLocationModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -279,7 +266,7 @@
     </div>
 </div>
 
-<!-- Modal: Lagerort löschen (Sicherheitsabfrage) -->
+<!-- Modal: Lagerort löschen -->
 <div class="modal fade" id="deleteLocationModal" tabindex="-1" aria-labelledby="deleteLocationModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -304,3 +291,81 @@
         </div>
     </div>
 </div>
+<?php endif; ?>
+
+<?php if ($page === 'item.php'): ?>
+<!-- Sicherheitsabfrage zum Archivieren von Items -->
+<div class="modal fade" id="archiveConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-box-archive me-2"></i>Gegenstand archivieren</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Möchtest du den Gegenstand <strong id="archiveItemNameText"></strong> wirklich archivieren?</p>
+                <p class="text-muted small mb-0">Er wird aus dem aktiven Bestand entfernt, kann aber über das Archiv jederzeit wiederhergestellt werden.</p>
+                <input type="hidden" id="archiveTargetId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-danger" onclick="executeArchive()">Ja, archivieren</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Set-Inhalte verwalten -->
+<div class="modal fade" id="setItemModal" tabindex="-1" aria-labelledby="setItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="setItemModalLabel"><i class="fa-solid fa-layer-group me-2"></i>Set-Inhalte verwalten</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Formular zum Hinzufügen eines Inhaltsteils -->
+                <form id="addSetItemForm" class="row g-2 mb-3 align-items-end">
+                    <input type="hidden" id="modalSetItemId" name="item_id" value="<?= (int)($id ?? 0) ?>">
+                    <div class="col-md-7">
+                        <label class="form-label small">Inhaltsteil / Bezeichnung</label>
+                        <input type="text" id="newSetItemName" name="name" class="form-control form-control-sm" placeholder="z.B. Inbusschlüssel 4mm" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">Anzahl</label>
+                        <input type="number" id="newSetItemQty" name="quantity" class="form-control form-control-sm" min="1" value="1" required>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-success btn-sm w-100">
+                            <i class="fa-solid fa-plus me-1"></i>Hinzufügen
+                        </button>
+                    </div>
+                </form>
+
+                <hr>
+
+                <!-- Liste der Set-Inhalte (Sortierbar via SortableJS) -->
+                <p class="text-muted small mb-2"><i class="fa-solid fa-arrows-up-down-left-right me-1"></i>Einträge per Drag &amp; Drop umsortieren:</p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;" class="text-center"><i class="fa-solid fa-grip-vertical"></i></th>
+                                <th>Bezeichnung</th>
+                                <th class="text-center" style="width: 100px;">Anzahl</th>
+                                <th class="text-end" style="width: 80px;">Aktion</th>
+                            </tr>
+                        </thead>
+                        <tbody id="setItemListContainer">
+                            <!-- Per AJAX geladen -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fertig</button>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>

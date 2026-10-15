@@ -368,4 +368,23 @@
         </div>
     </div>
 </div>
+
+<!-- Modal: Dokument löschen bestätigen -->
+<div class="modal fade" id="deleteDocumentModal" tabindex="-1" aria-labelledby="deleteDocumentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteDocumentModalLabel"><i class="fa-solid fa-triangle-exclamation me-2"></i>Dokument löschen</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body">
+                Möchten Sie das Dokument <strong id="deleteDocTitlePlaceholder"></strong> wirklich unwiderruflich löschen?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <a href="#" id="confirmDeleteDocumentBtn" class="btn btn-danger">Ja, Dokument löschen</a>
+            </div>
+        </div>
+    </div>
+</div>
 <?php endif; ?>

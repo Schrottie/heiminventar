@@ -233,11 +233,11 @@ require_once __DIR__ . '/inc/header.php';
             <!-- Dokumenten-Sektion mit bestehender Liste und Upload -->
             <div class="mb-3">
                 <label class="form-label"><i class="fa-solid fa-paperclip me-1"></i>Dokumente &amp; Anleitungen</label>
-                
+               
                 <?php if (!empty($documents)): ?>
                     <div class="list-group mb-2">
                         <?php foreach ($documents as $doc): ?>
-                            <?php 
+                            <?php
                             $badgeColor = match($doc['doc_type']) {
                                 'rechnung' => 'bg-success',
                                 'bedienungsanleitung' => 'bg-info text-dark',
@@ -259,9 +259,12 @@ require_once __DIR__ . '/inc/header.php';
                                     <a href="docs/items/<?= htmlspecialchars($doc['filename']) ?>" target="_blank" class="btn btn-outline-secondary btn-sm" title="Anzeigen / Herunterladen">
                                         <i class="fa-solid fa-eye"></i>
                                     </a>
-                                    <a href="api/document-delete.php?id=<?= (int)$doc['id'] ?>&item_id=<?= (int)$id ?>" class="btn btn-outline-danger btn-sm" onclick="return confirm('Dokument wirklich löschen?');" title="Löschen">
+                                    <!-- Geändert: Öffnet das Modal statt confirm() -->
+                                    <button type="button" class="btn btn-outline-danger btn-sm" 
+                                            onclick="openDocumentDeleteModal(<?= (int)$doc['id'] ?>, <?= (int)$id ?>, '<?= htmlspecialchars($doc['title'], ENT_QUOTES) ?>')" 
+                                            title="Löschen">
                                         <i class="fa-solid fa-trash"></i>
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -282,7 +285,8 @@ require_once __DIR__ . '/inc/header.php';
                 </div>
                 <div class="form-text">Der ausgewählte Dokumenttyp gilt für alle hier neu hochgeladenen Dateien.</div>
             </div>
- 
+
+            <!-- Sektion: Bilderupload -->
             <div class="mb-3">
                 <label class="form-label">Weitere Bilder hinzufügen</label>
                 <input type="file" name="images[]" class="form-control" accept="image/*" multiple>

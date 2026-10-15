@@ -310,3 +310,16 @@ document.addEventListener('DOMContentLoaded', () => {
         maintenanceBtn.addEventListener('click', (e) => { e.preventDefault(); applyFilters('maintenance'); });
     }
 });
+
+function openDocumentDeleteModal(docId, itemId, docTitle) {
+    // Titel in den Modal-Text schreiben
+    document.getElementById('deleteDocTitlePlaceholder').textContent = '"' + docTitle + '"';
+    
+    // Den korrekten Lösch-Link auf den Bestätigen-Button legen
+    const deleteBtn = document.getElementById('confirmDeleteDocumentBtn');
+    deleteBtn.href = 'api/document-delete.php?id=' + docId + '&item_id=' + itemId;
+    
+    // Modal anzeigen
+    var myModal = new bootstrap.Modal(document.getElementById('deleteDocumentModal'));
+    myModal.show();
+}

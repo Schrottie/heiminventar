@@ -297,19 +297,24 @@ require_once __DIR__ . '/inc/header.php';
                                                 <?= !empty($part['price']) ? number_format($part['price'], 2, ',', '.') . ' €' : '—' ?>
                                             </td>
                                             <td class="small">
-                                                <?php if ((int)$part['has_own_invoice'] === 1): ?>
-                                                    <?php if (!empty($part['invoice_filename'])): ?>
-                                                        <a href="docs/items/<?= htmlspecialchars($part['invoice_filename']) ?>" target="_blank" class="text-decoration-none text-success">
-                                                            <i class="fa-solid fa-file-invoice me-1"></i>Eigene Rechnung
-                                                        </a>
-                                                    <?php else: ?>
-                                                        <span class="text-muted"><i class="fa-solid fa-file-invoice me-1"></i>Eigene Rechnung (keine Datei)</span>
-                                                    <?php endif; ?>
-                                                <?php else: ?>
-                                                    <span class="text-muted"><i class="fa-solid fa-link me-1"></i>In Mutterrechnung enthalten</span>
-                                                <?php endif; ?>
+                                            <?php
+                                            if ($part['invoice_status'] === 'parent') {
+                                                echo '<span class="text-muted" title="Auf der Hauptrechnung enthalten"><i class="fa-solid fa-link me-1"></i>In Hauptrechnung</span>';
+                                            } elseif ($part['invoice_status'] === 'none') {
+                                                echo '<span class="text-muted" title="Keine Rechnung vorhanden"><i class="fa-solid fa-ban me-1"></i>Keine Rechnung</span>';
+                                            } else {
+                                                if (!empty($part['invoice_filename'])) {
+                                                    echo '<a href="docs/items/' . htmlspecialchars($part['invoice_filename']) . '" target="_blank" class="text-decoration-none text-success"><i class="fa-solid fa-file-invoice me-1"></i>Eigene Rechnung</a>';
+                                                } else {
+                                                    echo '<span class="text-muted"><i class="fa-solid fa-file-invoice me-1"></i>Eigene Rechnung (keine Datei)</span>';
+                                                }
+                                            }
+                                            ?>
                                             </td>
                                             <td class="text-end pe-3">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="openEditPartModal(<?= htmlspecialchars(json_encode($part), ENT_QUOTES) ?>)" title="Bearbeiten">
+                                                    <i class="fa-solid fa-pen"></i>
+                                                </button>
                                                 <form action="api/part-delete.php" method="POST" class="d-inline" onsubmit="return confirm('Anbauteil wirklich löschen?');">
                                                     <input type="hidden" name="part_id" value="<?= (int)$part['id'] ?>">
                                                     <input type="hidden" name="item_id" value="<?= (int)$id ?>">

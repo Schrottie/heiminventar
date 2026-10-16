@@ -440,59 +440,70 @@
     </div>
 </div>
 
-<!-- Modal: Anbauteil / Zubehör hinzufügen -->
-<div class="modal fade" id="addPartModal" tabindex="-1">
+<!-- Modal: Anbauteil / Zubehör hinzufügen oder bearbeiten -->
+<div class="modal fade" id="partModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <form action="api/part-save.php" method="POST" enctype="multipart/form-data">
+            <form action="api/part-save.php" method="POST" enctype="multipart/form-data" id="partForm">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fa-solid fa-puzzle-piece me-2"></i>Anbauteil / Zubehör hinzufügen</h5>
+                    <h5 class="modal-title" id="partModalTitle"><i class="fa-solid fa-puzzle-piece me-2"></i>Anbauteil hinzufügen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" name="item_id" id="partModalItemId" value="<?= (int)$id ?>">
+                    <input type="hidden" name="item_id" value="<?= (int)$id ?>">
+                    <input type="hidden" name="part_id" id="partIdInput" value="">
 
                     <div class="mb-3">
                         <label class="form-label">Bezeichnung des Anbauteils *</label>
-                        <input type="text" name="name" class="form-control" required placeholder="z. B. Spezial-Sattel, Fahrradcomputer">
+                        <input type="text" name="name" id="partNameInput" class="form-control" required placeholder="z. B. Spezial-Sattel, Fahrradcomputer">
                     </div>
 
                     <div class="row g-2 mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Anzahl</label>
-                            <input type="number" name="quantity" class="form-control" value="1" min="1" required>
+                            <input type="number" name="quantity" id="partQuantityInput" class="form-control" value="1" min="1" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Preis (gesamt oder Stk.) in €</label>
-                            <input type="text" name="price" class="form-control" placeholder="0.00">
+                            <label class="form-label">Preis in €</label>
+                            <input type="text" name="price" id="partPriceInput" class="form-control" placeholder="0.00">
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Rechnungsnachweis</label>
                         <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="invoice_type" id="invoiceTypeOwn" value="own" checked onchange="togglePartInvoiceFields()">
-                            <label class="form-check-label" for="invoiceTypeOwn">
-                                Eigene Rechnung für dieses Anbauteil hochladen
+                            <input class="form-check-input" type="radio" name="invoice_status" id="invStatusOwn" value="own" checked onchange="togglePartInvoiceFields()">
+                            <label class="form-check-label" for="invStatusOwn">
+                                Eigene Rechnung hochladen
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="invoice_status" id="invStatusParent" value="parent" onchange="togglePartInvoiceFields()">
+                            <label class="form-check-label" for="invStatusParent">
+                                Auf der Hauptrechnung des Gegenstands enthalten
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="invoice_type" id="invoiceTypeParent" value="parent" onchange="togglePartInvoiceFields()">
-                            <label class="form-check-label" for="invoiceTypeParent">
-                                Auf der Hauptrechnung des Gegenstands enthalten
+                            <input class="form-check-input" type="radio" name="invoice_status" id="invStatusNone" value="none" onchange="togglePartInvoiceFields()">
+                            <label class="form-check-label" for="invStatusNone">
+                                Keine Rechnung vorhanden
                             </label>
                         </div>
                     </div>
 
-                    <!-- Eigener Rechnungs-Upload (wird ausgeblendet, wenn Mutterrechnung gewählt) -->
+                    <!-- Eigener Rechnungs-Upload -->
                     <div class="mb-3" id="partInvoiceFileContainer">
                         <label class="form-label small text-muted">Rechnungsdatei (PDF / Bild)</label>
+                        <div id="existingPartInvoiceInfo" class="mb-2 small text-success d-none">
+                            <i class="fa-solid fa-file-invoice me-1"></i> Aktuelle Datei: <a href="#" id="existingPartInvoiceLink" target="_blank">Anzeigen</a>
+                            <span class="text-muted ms-2">(Neue Datei wählen zum Ersetzen)</span>
+                        </div>
                         <input type="file" name="invoice_file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="submit" class="btn btn-primary">Anbauteil speichern</button>
+                    <button type="submit" class="btn btn-primary" id="partSubmitBtn">Anbauteil speichern</button>
                 </div>
             </form>
         </div>

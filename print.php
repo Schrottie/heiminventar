@@ -364,10 +364,16 @@ function renderReport() {
                     partsSum += partPrice;
                     
                     let invoiceInfo = '';
-                    if (parseInt(part.has_own_invoice) === 1) {
-                        invoiceInfo = `<span class="text-success" title="Eigene Rechnung für dieses Anbauteil"><i class="fa-solid fa-file-invoice me-1"></i>Eigene Rechnung</span>`;
+                    if (part.invoice_status === 'parent') {
+                        invoiceInfo = `<span class="text-muted" title="Auf der Hauptrechnung des Gegenstands enthalten"><i class="fa-solid fa-link me-1"></i>Inkl.</span>`;
+                    } else if (part.invoice_status === 'none') {
+                        invoiceInfo = `<span class="text-muted" title="Keine Rechnung vorhanden"><i class="fa-solid fa-ban me-1"></i>Nein</span>`;
                     } else {
-                        invoiceInfo = `<span class="text-muted" title="Auf der Hauptrechnung des Gegenstands enthalten"><i class="fa-solid fa-link me-1"></i>In Hauptrechnung</span>`;
+                        if (part.invoice_filename) {
+                            invoiceInfo = `<span class="text-success" title="Eigene Rechnung vorhanden"><i class="fa-solid fa-file-invoice me-1"></i>Ja</span>`;
+                        } else {
+                            invoiceInfo = `<span class="text-muted" title="Eigene Rechnung gewählt (keine Datei hochgeladen)"><i class="fa-solid fa-file-invoice me-1"></i>n.v.</span>`;
+                        }
                     }
 
                     partsRowsHtml += `

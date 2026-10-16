@@ -321,6 +321,10 @@ function runDatabaseMigrations(PDO $pdo): void
             FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
+    // Spalte 'invoice_status' für item_parts ergänzen, falls noch nicht vorhanden
+    if (!$columnExists($pdo, 'item_parts', 'invoice_status')) {
+    $pdo->exec("ALTER TABLE item_parts ADD COLUMN invoice_status VARCHAR(20) NOT NULL DEFAULT 'own';");
+    }
 
     // ///////////////////////////////////////////////////////////
     // 6. Standard-Migrationen ganz normal ausführen (falls Cache nicht greift)

@@ -434,37 +434,52 @@ function submitRestore() {
     });
 }
 
-// Rechnung für Anbauteile --> Switch zwischen in Hauptrechnung
-// enthalten und Eigener Rechnung (Upload)
-function togglePartInvoiceFields() {
-    const isOwn = document.getElementById('invStatusOwn').checked;
-    const container = document.getElementById('partInvoiceFileContainer');
-    container.style.display = isOwn ? 'block' : 'none';
-}
+// Global bereitgestellte Funktionen für Anbauteile
+window.openAddPartModal = function(event) {
+    if (event) event.preventDefault(); // Stoppt jegliches unbeabsichtigtes Standard-Verhalten
 
-function openAddPartModal() {
-    document.getElementById('partModalTitle.innerHTML').textContent = '<i class="fa-solid fa-puzzle-piece me-2"></i>Anbauteil hinzufügen';
+    const modalEl = document.getElementById('partModal');
+    if (!modalEl) {
+        console.error("Modal #partModal nicht gefunden!");
+        return;
+    }
+
+    const titleEl = document.getElementById('partModalTitle');
+    if (titleEl) {
+        titleEl.innerHTML = '<i class="fa-solid fa-puzzle-piece me-2"></i>Anbauteil hinzufügen';
+    }
+    
     document.getElementById('partIdInput').value = '';
     document.getElementById('partNameInput').value = '';
     document.getElementById('partQuantityInput').value = '1';
     document.getElementById('partPriceInput').value = '';
     document.getElementById('invStatusOwn').checked = true;
-    document.getElementById('existingPartInvoiceInfo').classList.add('d-none');
+    
+    const infoDiv = document.getElementById('existingPartInvoiceInfo');
+    if (infoDiv) infoDiv.classList.add('d-none');
+    
     document.getElementById('partSubmitBtn').textContent = 'Anbauteil speichern';
     togglePartInvoiceFields();
     
-    var modal = new bootstrap.Modal(document.getElementById('partModal'));
+    // Übergebe das Element direkt an Bootstrap ohne Doppel-Trigger
+    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     modal.show();
-}
+};
 
-function openEditPartModal(part) {
-    document.getElementById('partModalTitle').innerHTML = '<i class="fa-solid.fa-pen-to-square me-2"></i>Anbauteil bearbeiten';
+window.openEditPartModal = function(part) {
+    const modalEl = document.getElementById('partModal');
+    if (!modalEl) return;
+
+    const titleEl = document.getElementById('partModalTitle');
+    if (titleEl) {
+        titleEl.innerHTML = '<i class="fa-solid fa-pen-to-square me-2"></i>Anbauteil bearbeiten';
+    }
+
     document.getElementById('partIdInput').value = part.id;
     document.getElementById('partNameInput').value = part.name;
     document.getElementById('partQuantityInput').value = part.quantity;
     document.getElementById('partPriceInput').value = part.price !== null ? part.price : '';
     
-    // Status radiolen
     if (part.invoice_status === 'parent') {
         document.getElementById('invStatusParent').checked = true;
     } else if (part.invoice_status === 'none') {
@@ -473,19 +488,35 @@ function openEditPartModal(part) {
         document.getElementById('invStatusOwn').checked = true;
     }
     
-    // Bestehende Datei anzeigen falls vorhanden
     const infoDiv = document.getElementById('existingPartInvoiceInfo');
     if (part.invoice_filename) {
         const link = document.getElementById('existingPartInvoiceLink');
-        link.href = 'docs/items/' + part.invoice_filename;
-        infoDiv.classList.remove('d-none');
+        if (link) link.href = 'docs/items/' + part.invoice_filename;
+        if (infoDiv) infoDiv.classList.remove('d-none');
     } else {
-        infoDiv.classList.add('d-none');
+        if (infoDiv) infoDiv.classList.add('d-none');
     }
 
     document.getElementById('partSubmitBtn').textContent = 'Änderungen speichern';
     togglePartInvoiceFields();
 
-    var modal = new bootstrap.Modal(document.getElementById('partModal'));
+    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     modal.show();
-}
+};
+
+window.togglePartInvoiceFields = function() {
+    const ownRadio = document.getElementById('invStatusOwn');
+    const container = document.getElementById('partInvoiceFileContainer');
+    if (container && ownRadio) {
+        container.style.display = ownRadio.checked ? 'block' : 'none';
+    }
+};
+
+window.confirmDeletePart = function(partId, partName) {
+    document.getElementById('deletePartIdInput').value = partId;
+    document.getElementById('deletePartNameDisplay').textContent = '"' + partName + '"';
+    
+    var modalEl = document.getElementById('deletePartModal');
+    var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    modal.show();
+};

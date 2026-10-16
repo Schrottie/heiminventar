@@ -509,4 +509,27 @@
         </div>
     </div>
 </div>
+
+<!-- Modal: Anbauteil löschen bestätigen -->
+<div class="modal fade" id="deletePartModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation me-2"></i>Anbauteil löschen</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Möchtest du das Anbauteil <strong id="deletePartNameDisplay"></strong> wirklich unwiderruflich löschen?</p>
+            </div>
+            <div class="modal-footer">
+                <form action="api/part-delete.php" method="POST">
+                    <input type="hidden" name="part_id" id="deletePartIdInput">
+                    <input type="hidden" name="item_id" value="<?= (int)$id ?>">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-danger">Unwiderruflich löschen</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 <?php endif; ?>

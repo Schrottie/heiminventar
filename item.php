@@ -264,8 +264,8 @@ require_once __DIR__ . '/inc/header.php';
                         <?php if (!empty($itemParts)): ?>
                             <span class="badge bg-secondary me-2">Zubehör-Wert: <?= number_format($partsTotalPrice, 2, ',', '.') ?> €</span>
                         <?php endif; ?>
-                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addPartModal">
-                            <i class="fa-solid fa-plus me-1"></i>Anbauteil hinzufügen
+                        <button type="button" class="btn btn-outline-primary" onclick="openAddPartModal(event)">
+                            <i class="fa-solid fa-plus me-1"></i> Anbauteil hinzufügen
                         </button>
                     </div>
                 </div>
@@ -315,13 +315,9 @@ require_once __DIR__ . '/inc/header.php';
                                                 <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="openEditPartModal(<?= htmlspecialchars(json_encode($part), ENT_QUOTES) ?>)" title="Bearbeiten">
                                                     <i class="fa-solid fa-pen"></i>
                                                 </button>
-                                                <form action="api/part-delete.php" method="POST" class="d-inline" onsubmit="return confirm('Anbauteil wirklich löschen?');">
-                                                    <input type="hidden" name="part_id" value="<?= (int)$part['id'] ?>">
-                                                    <input type="hidden" name="item_id" value="<?= (int)$id ?>">
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Löschen">
-                                                        <i class="fa-solid fa-trash-can"></i>
-                                                    </button>
-                                                </form>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDeletePart(<?= (int)$part['id'] ?>, '<?= htmlspecialchars($part['name'], ENT_QUOTES) ?>')" title="Löschen">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>

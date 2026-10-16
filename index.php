@@ -198,53 +198,97 @@ require_once __DIR__ . '/inc/header.php';
     </div>
 <?php endif; ?>
 
-<!-- Schnellfilter / Suchleiste & Warn-Buttons -->
+<!-- Schnellfilter / Suchleiste, QR-Button & Desktop-Warn-Buttons in einer Zeile -->
 <div class="row mb-3 g-2 align-items-center">
+    <!-- Suchleiste nimmt den flexiblen Platz ein -->
     <div class="col">
         <div class="input-group">
             <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
             <input type="text" id="quickFilter" class="form-control text-body" placeholder="Inventar durchsuchen...">
         </div>
     </div>
+
+    <!-- QR-Button (immer als reines Icon) -->
     <div class="col-auto">
-        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#scannerModal">
-            <i class="fa-solid fa-camera me-1"></i> QR Scannen
+        <button type="button" class="btn btn-outline-secondary px-3" data-bs-toggle="modal" data-bs-target="#scannerModal" title="QR scannen">
+            <i class="fa-solid fa-qrcode"></i>
         </button>
     </div>
 
-    <?php if ($lowStockCount > 0): ?>
-        <div class="col-auto">
-            <button type="button" id="toggleLowStock" class="btn btn-outline-danger position-relative">
-                <i class="fa-solid fa-triangle-exclamation me-1"></i> Nachbestellen
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                    <?= $lowStockCount ?>
-                </span>
-            </button>
-        </div>
-    <?php endif; ?>
+    <!-- WARN-BUTTONS FÜR DESKTOP & TABLET (Ab d-md-flex: rechts neben dem QR-Button) -->
+    <?php if ($lowStockCount > 0 || $expiredCount > 0 || $maintenanceCount > 0): ?>
+        <div class="col-auto d-none d-md-flex align-items-center gap-2">
+            <?php if ($lowStockCount > 0): ?>
+                <button type="button" id="toggleLowStock_desktop" class="btn btn-outline-danger position-relative" title="Nachbestellen">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        <?= $lowStockCount ?>
+                    </span>
+                </button>
+            <?php endif; ?>
 
-    <?php if ($expiredCount > 0): ?>
-        <div class="col-auto">
-            <button type="button" id="toggleExpired" class="btn btn-outline-warning position-relative">
-                <i class="fa-solid fa-triangle-exclamation me-1"></i> Ablauf/Verfall
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
-                    <?= $expiredCount ?>
-                </span>
-            </button>
-        </div>
-    <?php endif; ?>
+            <?php if ($expiredCount > 0): ?>
+                <button type="button" id="toggleExpired_desktop" class="btn btn-outline-warning position-relative" title="Ablauf/Verfall">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
+                        <?= $expiredCount ?>
+                    </span>
+                </button>
+            <?php endif; ?>
 
-    <?php if ($maintenanceCount > 0): ?>
-        <div class="col-auto">
-            <button type="button" id="toggleMaintenance" class="btn btn-outline-secondary border-info position-relative text-info-emphasis">
-                <i class="fa-solid fa-screwdriver-wrench me-1"></i> Wartung fällig
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info text-dark">
-                    <?= $maintenanceCount ?>
-                </span>
-            </button>
+            <?php if ($maintenanceCount > 0): ?>
+                <button type="button" id="toggleMaintenance_desktop" class="btn btn-outline-secondary border-info position-relative text-info-emphasis" title="Wartung fällig">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info text-dark">
+                        <?= $maintenanceCount ?>
+                    </span>
+                </button>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 </div>
+
+<!-- WARN-BUTTONS FÜR SMARTPHONES (Nur auf kleinen Screens sichtbar: d-md-none, rutschen in eigene Zeile darunter) -->
+<?php if ($lowStockCount > 0 || $expiredCount > 0 || $maintenanceCount > 0): ?>
+    <div class="row mb-3 g-2 d-md-none">
+        <div class="col-12">
+            <div class="row g-2">
+                <?php if ($lowStockCount > 0): ?>
+                    <div class="col-6">
+                        <button type="button" id="toggleLowStock" class="btn btn-outline-danger position-relative w-100">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i> Nachbestellen
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                <?= $lowStockCount ?>
+                            </span>
+                        </button>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($expiredCount > 0): ?>
+                    <div class="col-6">
+                        <button type="button" id="toggleExpired" class="btn btn-outline-warning position-relative w-100">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i> Ablauf/Verfall
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
+                                <?= $expiredCount ?>
+                            </span>
+                        </button>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($maintenanceCount > 0): ?>
+                    <div class="col-6">
+                        <button type="button" id="toggleMaintenance" class="btn btn-outline-secondary border-info position-relative text-info-emphasis w-100">
+                            <i class="fa-solid fa-screwdriver-wrench me-1"></i> Wartung fällig
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info text-dark">
+                                <?= $maintenanceCount ?>
+                            </span>
+                        </button>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
 
 <!-- Interaktive Tag-Filterleiste -->
 <div class="card shadow-sm mb-3">

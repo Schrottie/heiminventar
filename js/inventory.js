@@ -3,9 +3,11 @@
  */
 document.addEventListener('DOMContentLoaded', () => {
     const quickFilterInput = document.getElementById('quickFilter');
-    const lowStockBtn = document.getElementById('toggleLowStock');
-    const expiredBtn = document.getElementById('toggleExpired');
-    const maintenanceBtn = document.getElementById('toggleMaintenance');
+    
+    // Beide Button-Sätze (Desktop & Mobile) ermitteln
+    const lowStockBtns = [document.getElementById('toggleLowStock'), document.getElementById('toggleLowStock_desktop')].filter(Boolean);
+    const expiredBtns = [document.getElementById('toggleExpired'), document.getElementById('toggleExpired_desktop')].filter(Boolean);
+    const maintenanceBtns = [document.getElementById('toggleMaintenance'), document.getElementById('toggleMaintenance_desktop')].filter(Boolean);
 
     // Tag-Filter UI Elemente
     const filterTagContainer = document.getElementById('filterTagContainer');
@@ -217,10 +219,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyFilters(targetFilter = null) {
         const query = quickFilterInput ? quickFilterInput.value.toLowerCase().trim() : '';
 
-        // Prüfen, welcher Button aktuell aktiv ist
-        let lowStockActive = lowStockBtn ? lowStockBtn.classList.contains('active-filter') : false;
-        let expiredActive = expiredBtn ? expiredBtn.classList.contains('active-filter') : false;
-        let maintenanceActive = maintenanceBtn ? maintenanceBtn.classList.contains('active-filter') : false;
+        // Prüfen, welcher Button aktuell aktiv ist (wir prüfen den ersten vorhandenen Button als Referenz)
+        let lowStockActive = lowStockBtns.length > 0 ? lowStockBtns[0].classList.contains('active-filter') : false;
+        let expiredActive = expiredBtns.length > 0 ? expiredBtns[0].classList.contains('active-filter') : false;
+        let maintenanceActive = maintenanceBtns.length > 0 ? maintenanceBtns[0].classList.contains('active-filter') : false;
 
         // Wenn ein spezifischer Filter geklickt wurde
         if (targetFilter !== null) {
@@ -244,26 +246,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (quickFilterInput) quickFilterInput.value = ''; // Suchfeld bei Button-Klick leeren
         }
 
-        // Optischen Zustand der Buttons aktualisieren
-        if (lowStockBtn) {
-            lowStockBtn.classList.toggle('active-filter', lowStockActive);
-            lowStockBtn.classList.toggle('btn-danger', lowStockActive);
-            lowStockBtn.classList.toggle('btn-outline-danger', !lowStockActive);
-        }
-        if (expiredBtn) {
-            expiredBtn.classList.toggle('active-filter', expiredActive);
-            expiredBtn.classList.toggle('btn-warning', expiredActive);
-            expiredBtn.classList.toggle('text-dark', expiredActive);
-            expiredBtn.classList.toggle('btn-outline-warning', !expiredActive);
-        }
-        if (maintenanceBtn) {
-            maintenanceBtn.classList.toggle('active-filter', maintenanceActive);
-            maintenanceBtn.classList.toggle('btn-info', maintenanceActive);
-            maintenanceBtn.classList.toggle('text-dark', maintenanceActive);
-            maintenanceBtn.classList.toggle('btn-outline-secondary', !maintenanceActive);
-            maintenanceBtn.classList.toggle('border-info', !maintenanceActive);
-            maintenanceBtn.classList.toggle('text-info-emphasis', !maintenanceActive);
-        }
+        // Optischen Zustand aller zugehörigen Buttons (Desktop & Mobile) synchronisieren
+        lowStockBtns.forEach(btn => {
+            btn.classList.toggle('active-filter', lowStockActive);
+            btn.classList.toggle('btn-danger', lowStockActive);
+            btn.classList.toggle('btn-outline-danger', !lowStockActive);
+        });
+
+        expiredBtns.forEach(btn => {
+            btn.classList.toggle('active-filter', expiredActive);
+            btn.classList.toggle('btn-warning', expiredActive);
+            btn.classList.toggle('text-dark', expiredActive);
+            btn.classList.toggle('btn-outline-warning', !expiredActive);
+        });
+
+        maintenanceBtns.forEach(btn => {
+            btn.classList.toggle('active-filter', maintenanceActive);
+            btn.classList.toggle('btn-info', maintenanceActive);
+            btn.classList.toggle('text-dark', maintenanceActive);
+            btn.classList.toggle('btn-outline-secondary', !maintenanceActive);
+            btn.classList.toggle('border-info', !maintenanceActive);
+            btn.classList.toggle('text-info-emphasis', !maintenanceActive);
+        });
 
         // Inventar-Elemente durchgehen und filtern
         document.querySelectorAll('.inventory-item').forEach(item => {
@@ -296,20 +300,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Event-Listener verknüpfen
+    // Event-Listener für Suchfeld verknüpfen
     if (quickFilterInput) {
         quickFilterInput.addEventListener('input', () => applyFilters(null));
     }
-    if (lowStockBtn) {
-        lowStockBtn.addEventListener('click', (e) => { e.preventDefault(); applyFilters('lowStock'); });
-    }
-    if (expiredBtn) {
-        expiredBtn.addEventListener('click', (e) => { e.preventDefault(); applyFilters('expired'); });
-    }
-    if (maintenanceBtn) {
-        maintenanceBtn.addEventListener('click', (e) => { e.preventDefault(); applyFilters('maintenance'); });
-    }
+
+    // Event-Listener für alle Warn-Buttons (Desktop & Mobile) verknüpfen
+    lowStockBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => { e.preventDefault(); applyFilters('lowStock'); });
+    });
+    expiredBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => { e.preventDefault(); applyFilters('expired'); });
+    });
+    maintenanceBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => { e.preventDefault(); applyFilters('maintenance'); });
+    });
 });
+
 
 // Modal zum Löschen von Dokuemnten
 function openDocumentDeleteModal(docId, itemId, docTitle) {

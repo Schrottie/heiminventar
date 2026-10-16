@@ -634,6 +634,11 @@ a {
     .hero-section.hero-small {
         height: 45px !important;
     }
+
+    /* 5. Body etwas weiter hoch, da sonst auf Smartphones Leerraum entsteht */
+    html, body {
+        padding-top: 55px;
+    }
 }
 
 /* ==========================================================================

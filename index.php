@@ -41,7 +41,7 @@ if ($filterLocationId !== null) {
     $targetLocationIds = getSubLocationIds($allLocations, $filterLocationId);
 }
 
-// Gegenstände abfragen (inklusive is_set und aller zugehörigen Tags)
+// Gegenstände abfragen (inklusive is_set, Verleih-Zählung aus item_units und aller zugehörigen Tags)
 $params = []; $whereClause = '';
 
 if (!empty($targetLocationIds)) {
@@ -57,14 +57,15 @@ $sql = "
         i.quantity,
         i.min_quantity,
         i.expiration_date,
-        i.loan_to,
         i.maintenance_interval_months,
         i.last_maintenance_date,
         i.location_id,
         i.is_set,
         l.name AS location_name,
         img.filename AS image_filename,
-        GROUP_CONCAT(t.name SEPARATOR '||') AS item_tags_list
+        GROUP_CONCAT(t.name SEPARATOR '||') AS item_tags_list,
+        (SELECT COUNT(*) FROM item_units u WHERE u.item_id = i.id AND u.status = 'lent') AS lent_count,
+        (SELECT GROUP_CONCAT(CONCAT(u.borrower_name, ' (Ex. #', u.unit_number, ')') SEPARATOR ', ') FROM item_units u WHERE u.item_id = i.id AND u.status = 'lent') AS lent_details
     FROM inventory_items i
     LEFT JOIN locations l ON l.id = i.location_id
     LEFT JOIN item_tags it ON it.item_id = i.id
@@ -286,7 +287,8 @@ require_once __DIR__ . '/inc/header.php';
         $qty = (int)$item['quantity'];
         $minQty = (int)$item['min_quantity'];
         $isLowStock = ($minQty >= 0 && $qty < $minQty);
-        $isOnLoan = !empty($item['loan_to']);
+        $lentCount = (int)$item['lent_count'];
+        $isOnLoan = ($lentCount > 0);
         $isSet = !empty($item['is_set']);
        
         $expStatus = getExpirationStatus($item['expiration_date'] ?? null);
@@ -296,9 +298,9 @@ require_once __DIR__ . '/inc/header.php';
         $isMaintenanceDue = ($maintStatus === 'overdue' || $maintStatus === 'warning') ? '1' : '0';
 
         $path = getLocationPath($allLocations, (int)$item['location_id']);
-        $searchTerms = mb_strtolower($item['name'] . ' ' . ($item['location_name'] ?? '') . ' ' . $path . ' ' . ($item['loan_to'] ?? ''));
+        $searchTerms = mb_strtolower($item['name'] . ' ' . ($item['location_name'] ?? '') . ' ' . $path . ' ' . ($item['lent_details'] ?? ''));
        
-        // Tags als Array für das data-Attribute aufbereiten
+        // Tags as Array für das data-Attribute aufbereiten
         $itemTagsArray = !empty($item['item_tags_list']) ? explode('||', $item['item_tags_list']) : [];
         $itemTagsJson = htmlspecialchars(json_encode($itemTagsArray), ENT_QUOTES, 'UTF-8');
 
@@ -361,8 +363,8 @@ require_once __DIR__ . '/inc/header.php';
                                     <?php endif; ?>
 
                                     <?php if ($isOnLoan): ?>
-                                        <span class="badge bg-info text-dark ms-1" title="Verliehen an: <?= htmlspecialchars($item['loan_to']) ?>">
-                                            <i class="fa-solid fa-handshake me-1"></i> Verliehen: <?= htmlspecialchars($item['loan_to']) ?>
+                                        <span class="badge bg-info text-dark ms-1" title="Verliehene Exemplare: <?= htmlspecialchars($item['lent_details']) ?>">
+                                            <i class="fa-solid fa-handshake me-1"></i> Verliehen: <?= $lentCount ?> / <?= $qty ?>
                                         </span>
                                     <?php endif; ?>
 

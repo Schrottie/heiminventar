@@ -387,4 +387,115 @@
         </div>
     </div>
 </div>
+
+<!-- Modal: Exemplar verleihen -->
+<div class="modal fade" id="lendUnitModal" tabindex="-1" aria-labelledby="lendUnitModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form action="api/unit-lend.php" method="post" class="modal-content">
+            <input type="hidden" name="unit_id" id="lendUnitId">
+            <input type="hidden" name="item_id" value="<?= (int)$id ?>">
+            
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="lendUnitModalLabel"><i class="fa-solid fa-handshake me-2"></i>Exemplar <span id="lendUnitNumberDisplay"></span> verleihen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Verliehen an (Name / Person)*</label>
+                    <input type="text" name="borrower_name" class="form-control" required placeholder="z. B. Max Mustermann">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Verleihdatum</label>
+                    <input type="date" name="lent_date" class="form-control" value="<?= date('Y-m-d') ?>">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Notiz (optional)</label>
+                    <textarea name="notes" class="form-control" rows="2" placeholder="Z. B. Telefonnummer oder Rücksprache..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="submit" class="btn btn-warning text-dark fw-semibold">Verleih speichern</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Exemplar zurückbringen -->
+<div class="modal fade" id="returnUnitModal" tabindex="-1" aria-labelledby="returnUnitModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="returnUnitModalLabel"><i class="fa-solid fa-rotate-left me-2"></i>Exemplar ins Lager zurückbringen</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body">
+                Soll das Exemplar <strong id="returnUnitNumberDisplay"></strong> (verliehen an <span id="returnBorrowerDisplay" class="fw-semibold"></span>) wieder als <strong>im Lager verfügbar</strong> markiert werden?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <a href="#" id="confirmReturnUnitBtn" class="btn btn-success">Ja, ins Lager zurück</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Anbauteil / Zubehör hinzufügen -->
+<div class="modal fade" id="addPartModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form action="api/part-save.php" method="POST" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa-solid fa-puzzle-piece me-2"></i>Anbauteil / Zubehör hinzufügen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="item_id" id="partModalItemId" value="<?= (int)$id ?>">
+
+                    <div class="mb-3">
+                        <label class="form-label">Bezeichnung des Anbauteils *</label>
+                        <input type="text" name="name" class="form-control" required placeholder="z. B. Spezial-Sattel, Fahrradcomputer">
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Anzahl</label>
+                            <input type="number" name="quantity" class="form-control" value="1" min="1" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Preis (gesamt oder Stk.) in €</label>
+                            <input type="text" name="price" class="form-control" placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Rechnungsnachweis</label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="invoice_type" id="invoiceTypeOwn" value="own" checked onchange="togglePartInvoiceFields()">
+                            <label class="form-check-label" for="invoiceTypeOwn">
+                                Eigene Rechnung für dieses Anbauteil hochladen
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="invoice_type" id="invoiceTypeParent" value="parent" onchange="togglePartInvoiceFields()">
+                            <label class="form-check-label" for="invoiceTypeParent">
+                                Auf der Hauptrechnung des Gegenstands enthalten
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Eigener Rechnungs-Upload (wird ausgeblendet, wenn Mutterrechnung gewählt) -->
+                    <div class="mb-3" id="partInvoiceFileContainer">
+                        <label class="form-label small text-muted">Rechnungsdatei (PDF / Bild)</label>
+                        <input type="file" name="invoice_file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Anbauteil speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <?php endif; ?>

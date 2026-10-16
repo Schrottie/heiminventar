@@ -87,39 +87,66 @@ section {
                             <i class="fa-solid fa-bars-staggered me-2"></i> Schnellaktionen (Aktions-Button)
                         </h5>
                         <p class="small text-muted mb-3">
-                            Unten rechts befinden sich ein Menübutton, der folgende Schnellaktionen bereitstellt. Die Aktionen sind auf dem Desktop auch über die Tastenkombination <kbd class="bg-dark">Strg</kbd>+<kbd class="bg-dark">M</kbd> erreichbar. Anschließend kann mit den Pfeiltasten <kbd class="bg-dark">↑</kbd> und <kbd>↓</kbd> die gewünschte Aktion ausgewählt und mit <kbd class="bg-dark">Enter</kbd> ausgeführt werden. <kbd class="bg-dark">Esc</kbd> schließt das Menü wieder.
+                            Unten rechts befindet sich ein Menübutton, der wichtige Schnellaktionen und Werkzeuge bereitstellt. Die Aktionen sind auf dem Desktop auch über die Tastenkombination <kbd class="bg-dark">Strg</kbd>+<kbd class="bg-dark">M</kbd> erreichbar. Anschließend kann mit den Pfeiltasten <kbd class="bg-dark">↑</kbd> und <kbd>↓</kbd> die gewünschte Aktion ausgewählt und mit <kbd class="bg-dark">Enter</kbd> ausgeführt werden. <kbd class="bg-dark">Esc</kbd> schließt das Menü wieder.
                         </p>
                         <div class="d-flex flex-column gap-2">
                             <div class="d-flex align-items-center bg-light p-2 rounded">
-                                <span class="badge bg-warning text-dark me-2"><i class="fa-solid fa-boxes-stacked"></i></span>
-                                <span class="small"><strong>Übersicht:</strong> Ruft die Startseite auf.</span>
+                                <span class="badge bg-secondary me-2"><i class="fa-solid fa-house"></i></span>
+                                <span class="small"><strong>Übersicht:</strong> Ruft die Haupt-Bestandsübersicht auf.</span>
                             </div>
                             <div class="d-flex align-items-center bg-light p-2 rounded">
-                                <span class="badge bg-success me-2"><i class="fa-solid fa-plus"></i></span>
-                                <span class="small"><strong>Gegenstand anlegen:</strong> Erfasst einen neuen Gegenstand inklusive Foto und Daten.</span>
+                                <span class="badge fab-action-primary me-2"><i class="fa-solid fa-plus"></i></span>
+                                <span class="small"><strong>Gegenstand anlegen:</strong> Erfasst einen neuen Gegenstand inklusive Foto, Dokumenten und Stammdaten.</span>
                             </div>
                             <div class="d-flex align-items-center bg-light p-2 rounded">
-                                <span class="badge bg-secondary me-2"><i class="fa-solid fa-location-dot"></i></span>
-                                <span class="small"><strong>Lagerorte verwalten:</strong> Verwaltet Räume, Regale und Unter-Standorte.</span>
+                                <span class="badge bg-secondary me-2"><i class="fa-solid fa-sitemap"></i></span>
+                                <span class="small"><strong>Lagerorte:</strong> Verwaltet Räume, Regale und hierarchische Unter-Standorte.</span>
                             </div>
                             <div class="d-flex align-items-center bg-light p-2 rounded">
-                                <span class="badge bg-danger me-2"><i class="fa-solid fa-shuffle"></i></span>
-                                <span class="small"><strong>Verschiebebahnhof:</strong> Verschiebt Gegenstände schnell an einen neuen Ort.</span>
-                            </div>
-                            <div class="d-flex align-items-center bg-light p-2 rounded">
-                                <span class="badge bg-light me-2"><i class="fa-solid fa-gear"></i></span>
+                                <span class="badge bg-secondary me-2"><i class="fa-solid fa-gear"></i></span>
                                 <span class="small"><strong>Einstellungen:</strong> Anpassen von Theme, Vorschaubildern, Passwortschutz und Benutzern.</span>
                             </div>
                             <div class="d-flex align-items-center bg-light p-2 rounded">
-                                <span class="badge bg-info me-2"><i class="fa-solid fa-clock-rotate-left"></i></span>
-                                <span class="small"><strong>Protokoll:</strong> Übersicht über die letzten Änderungen an Gegenständen, inklusive Rücksetzoption.</span>
+                                <span class="badge bg-secondary me-2"><i class="fa-solid fa-chart-pie"></i></span>
+                                <span class="small"><strong>Dashboard:</strong> Grafische Auswertungen und Kennzahlen zum Inventar.</span>
                             </div>
                             <div class="d-flex align-items-center bg-light p-2 rounded">
-                                <span class="badge bg-dark me-2"><i class="fa-solid fa-trash"></i></span>
-                                <span class="small"><strong>Archiv:</strong> Übersicht über archivierte Gegenstände inklusive Reaktivierungsoption.</span>
+                                <span class="badge bg-secondary me-2"><i class="fa-solid fa-wrench"></i></span>
+                                <span class="small"><strong>Tools-Menü:</strong> Öffnet ein Untermenü mit erweiterten Werkzeugen:</span>
+                            </div>
+                            <div class="ms-4 d-flex flex-column gap-2">
+                                <div class="d-flex align-items-center bg-light p-2 rounded">
+                                    <span class="badge bg-secondary me-2"><i class="fa-solid fa-print"></i></span>
+                                    <span class="small"><strong>Druck:</strong> Öffnet den flexiblen Berichts- und Druckgenerator für Inventar- und Versicherungslisten.</span>
+                                </div>
+                                <div class="d-flex align-items-center bg-light p-2 rounded">
+                                    <span class="badge bg-secondary me-2"><i class="fa-solid fa-clipboard-check"></i></span>
+                                    <span class="small"><strong>Inventur:</strong> Startet die Bestandsprüfung und Compliance-Kontrolle (inkl. Set-Inhalten).</span>
+                                </div>
+                                <div class="d-flex align-items-center bg-light p-2 rounded">
+                                    <span class="badge bg-secondary me-2"><i class="fa-solid fa-arrows-up-down-left-right"></i></span>
+                                    <span class="small"><strong>Verschiebebahnhof:</strong> Ermöglicht schnelles, visuelles Verschieben von Lagerorten.</span>
+                                </div>
+                                <div class="d-flex align-items-center bg-light p-2 rounded">
+                                    <span class="badge bg-secondary me-2"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                                    <span class="small"><strong>Protokoll:</strong> Zeigt die letzten Änderungen und bietet Rücksetzoptionen.</span>
+                                </div>
+                                <div class="d-flex align-items-center bg-light p-2 rounded">
+                                    <span class="badge bg-secondary me-2"><i class="fa-solid fa-box-archive"></i></span>
+                                    <span class="small"><strong>Archiv:</strong> Listet archivierte Gegenstände zur Reaktivierung.</span>
+                                </div>
+                                <div class="d-flex align-items-center bg-light p-2 rounded">
+                                    <span class="badge bg-secondary me-2"><i class="fa-solid fa-file-arrow-down"></i></span>
+                                    <span class="small"><strong>Import / Export:</strong> Datenaustausch und Sicherung.</span>
+                                </div>
+                                <div class="d-flex align-items-center bg-light p-2 rounded">
+                                    <span class="badge bg-secondary me-2"><i class="fa-brands fa-square-github"></i></span>
+                                    <span class="small"><strong>Release-Notes:</strong> Informationen zu aktuellen Aktualisierungen.</span>
+                                </div>
                             </div>
                         </div>
                     </section>
+
 
                     <hr class="my-1 text-black-50">
 
@@ -368,7 +395,7 @@ section {
                                 <strong>Schnelle Korrekturen:</strong> Abweichungen können direkt im Zuge der Prüfung eingesehen und über die Artikelbearbeitung angepasst werden.
                             </li>
                         </ul>
-                    </section>
+                    </section> 
 
                     <hr class="my-1 text-black-50">
 

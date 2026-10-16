@@ -9,8 +9,8 @@ if ($itemId <= 0) {
     die('Ungültige ID');
 }
 
-// 0. Vorherigen Zustand des Artikels für Vergleich und Logging abfragen (inkl. der neuen Felder)
-$stmtOld = $pdo->prepare("SELECT name, description, quantity, min_quantity, location_id, expiration_date, price, loan_to, loan_date, purchase_date, purchase_location, manufacturer, warranty_months, is_insured FROM inventory_items WHERE id = ?");
+// 0. Vorherigen Zustand des Artikels für Vergleich und Logging abfragen (inkl. is_bulk)
+$stmtOld = $pdo->prepare("SELECT name, description, quantity, min_quantity, location_id, expiration_date, price, loan_to, loan_date, purchase_date, purchase_location, manufacturer, warranty_months, is_insured, is_bulk FROM inventory_items WHERE id = ?");
 $stmtOld->execute([$itemId]);
 $oldItem = $stmtOld->fetch();
 
@@ -63,6 +63,7 @@ $manufacturer = isset($_POST['manufacturer']) ? (trim($_POST['manufacturer']) !=
 $warrantyMonths = isset($_POST['warranty_months']) ? (int)$_POST['warranty_months'] : (int)$oldItem['warranty_months'];
 $isInsured = isset($_POST['is_insured']) ? 1 : 0;
 $isSet = isset($_POST['is_set']) ? 1 : 0;
+$isBulk = isset($_POST['is_bulk']) ? 1 : 0; // Schüttgut / Massenartikel Umschalter
 $maintenanceInterval = !empty($_POST['maintenance_interval_months']) ? (int)$_POST['maintenance_interval_months'] : null;
 $lastMaintenanceDate = !empty($_POST['last_maintenance_date']) ? trim($_POST['last_maintenance_date']) : null;
 
@@ -72,19 +73,23 @@ if ($hasNameField && $name === '') {
 }
 
 if ($hasNameField) {
-    $stmt = $pdo->prepare("UPDATE inventory_items SET 
-        name = ?, description = ?, quantity = ?, min_quantity = ?, location_id = ?, 
-        expiration_date = ?, price = ?, on_loan = ?, loan_to = ?, loan_date = ?, 
-        purchase_date = ?, purchase_location = ?, manufacturer = ?, warranty_months = ?, is_insured = ?, is_set = ?,
-        maintenance_interval_months = ?, last_maintenance_date = ? 
+    $stmt = $pdo->prepare("UPDATE inventory_items SET
+        name = ?, description = ?, quantity = ?, min_quantity = ?, location_id = ?,
+        expiration_date = ?, price = ?, on_loan = ?, loan_to = ?, loan_date = ?,
+        purchase_date = ?, purchase_location = ?, manufacturer = ?, warranty_months = ?, is_insured = ?, is_set = ?, is_bulk = ?,
+        maintenance_interval_months = ?, last_maintenance_date = ?
         WHERE id = ?");
 
     $stmt->execute([
-        $name, $description, $quantity, $minQuantity, $locationId, 
-        $expirationDate, $price, $onLoan, $loanTo, $loanDate, 
-        $purchaseDate, $purchaseLocation, $manufacturer, $warrantyMonths, $isInsured, $isSet,
+        $name, $description, $quantity, $minQuantity, $locationId,
+        $expirationDate, $price, $onLoan, $loanTo, $loanDate,
+        $purchaseDate, $purchaseLocation, $manufacturer, $warrantyMonths, $isInsured, $isSet, $isBulk,
         $maintenanceInterval, $lastMaintenanceDate, $itemId
     ]);
+
+    // Einheiten (item_units) passend zu quantity und is_bulk synchronisieren
+    syncItemUnits($pdo, $itemId, $quantity);
+
     // --- PROTOKOLLIERUNG DER STAMMDATEN-ÄNDERUNGEN ---
 
     // A) Bestandsänderung
@@ -128,6 +133,12 @@ if ($hasNameField) {
     if ($oldItem['loan_to'] !== $loanTo) {
         $logActionText = empty($loanTo) ? 'Gegenstand zurückgegeben' : 'Gegenstand verliehen an: ' . $loanTo;
         logInventoryAction($pdo, $itemId, $name, 'updated', 0, $quantity, $logActionText, 'loan_to', $oldItem['loan_to'], $loanTo);
+    }
+
+    // I) Schüttgut-Status geändert
+    if ((int)$oldItem['is_bulk'] !== $isBulk) {
+        $bulkText = $isBulk ? 'Als Schüttgut / Massenartikel markiert' : 'Einzelverfolgung aktiviert';
+        logInventoryAction($pdo, $itemId, $name, 'updated', 0, $quantity, $bulkText, 'is_bulk', (string)$oldItem['is_bulk'], (string)$isBulk);
     }
 }
 
@@ -181,12 +192,12 @@ if (!empty($_FILES['documents']['name'][0])) {
                
                 if (move_uploaded_file($tmpName, $docDir . $newFilename)) {
                     $docTitle = pathinfo($originalName, PATHINFO_FILENAME);
-                    $docType = $_POST['doc_type'] ?? 'sonstiges'; 
+                    $docType = $_POST['doc_type'] ?? 'sonstiges';
 
                     $stmt = $pdo->prepare("INSERT INTO item_documents (item_id, filename, title, doc_type) VALUES (?, ?, ?, ?)");
                     $stmt->execute([$itemId, $newFilename, $docTitle, $docType]);
-                    
-                    $uploadedDocsCount++; // HIER GEÄNDERT: Zähler hochzählen
+                   
+                    $uploadedDocsCount++;
                 }
             }
         }

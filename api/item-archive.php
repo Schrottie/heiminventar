@@ -13,6 +13,17 @@ if (!$itemId) {
     exit;
 }
 
+// Prüfen, ob noch Einheiten für diesen Artikel verliehen sind
+$stmtLentCheck = $pdo->prepare("SELECT COUNT(*) FROM item_units WHERE item_id = ? AND status = 'lent'");
+$stmtLentCheck->execute([$itemId]);
+$lentUnitsCount = (int)$stmtLentCheck->fetchColumn();
+
+if ($lentUnitsCount > 0) {
+    // Archivierung blockieren und mit Fehlermeldung zurückleiten
+    header("Location: ../item.php?id=" . $itemId . "&error=cannot_archive_lent");
+    exit;
+}
+
 try {
     // 1. Aktuelle Item-Daten für das Logging abfragen (Name, etc.)
     $stmt = $pdo->prepare("SELECT id, name, is_archived FROM inventory_items WHERE id = ?");

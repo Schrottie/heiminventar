@@ -18,6 +18,7 @@ $purchaseLocation = trim($_POST['purchase_location'] ?? '') !== '' ? trim($_POST
 $warrantyMonths = !empty($_POST['warranty_months']) ? (int)$_POST['warranty_months'] : null;
 $isInsured = isset($_POST['is_insured']) ? 1 : 0;
 $isSet = isset($_POST['is_set']) ? 1 : 0;
+$isBulk = isset($_POST['is_bulk']) ? 1 : 0; // Schüttgut / Massenartikel Umschalter
 $loanTo = trim($_POST['loan_to'] ?? '') !== '' ? trim($_POST['loan_to']) : null;
 $loanDate = !empty($_POST['loan_date']) ? $_POST['loan_date'] : null;
 $onLoan = ($loanTo !== null) ? 1 : 0;
@@ -30,20 +31,23 @@ if (empty($name)) {
     die('Bezeichnung ist erforderlich');
 }
 
-// 1. Gegenstand in DB anlegen (inkl. aller neuen Spalten)
+// 1. Gegenstand in DB anlegen (inkl. is_bulk)
 $stmt = $pdo->prepare("INSERT INTO inventory_items (
-    name, description, quantity, min_quantity, location_id, 
-    manufacturer, price, purchase_date, purchase_location, warranty_months, is_insured, is_set,
+    name, description, quantity, min_quantity, location_id,
+    manufacturer, price, purchase_date, purchase_location, warranty_months, is_insured, is_set, is_bulk,
     loan_to, loan_date, on_loan, expiration_date, maintenance_interval_months, last_maintenance_date
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
 $stmt->execute([
     $name, $description, $quantity, $minQuantity, $locationId,
-    $manufacturer, $price, $purchaseDate, $purchaseLocation, $warrantyMonths, $isInsured, $isSet,
+    $manufacturer, $price, $purchaseDate, $purchaseLocation, $warrantyMonths, $isInsured, $isSet, $isBulk,
     $loanTo, $loanDate, $onLoan, $expirationDate, $maintenanceInterval, $lastMaintenanceDate
 ]);
 
 $newItemId = (int)$pdo->lastInsertId();
+
+// Einheiten (item_units) passend zu quantity und is_bulk synchronisieren
+syncItemUnits($pdo, $newItemId, $quantity);
 
 // Logging für die Erstellung ausführen
 logInventoryAction(
@@ -96,7 +100,7 @@ if (!empty($_FILES['documents']['name'][0])) {
 
                 if (move_uploaded_file($tmpName, $docDir . $newFilename)) {
                     $docTitle = pathinfo($originalName, PATHINFO_FILENAME);
-                    $docType = $_POST['doc_type'] ?? 'sonstiges'; // oder pro Dokument wählbar
+                    $docType = $_POST['doc_type'] ?? 'sonstiges';
 
                     $stmt = $pdo->prepare("INSERT INTO item_documents (item_id, filename, title, doc_type) VALUES (?, ?, ?, ?)");
                     $stmt->execute([$newItemId, $newFilename, $docTitle, $docType]);

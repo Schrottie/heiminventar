@@ -38,22 +38,30 @@ require_once __DIR__ . '/inc/header.php';
                 <textarea name="description" class="form-control" rows="3"></textarea>
             </div>
 
-            <div class="row g-3 mb-3">
-                <div class="col-md-4">
-                    <label class="form-label">Menge</label>
-                    <input type="number" name="quantity" class="form-control" min="0" value="1">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Mindestbestand</label>
-                    <input type="number" name="min_quantity" class="form-control" min="0" value="0">
-                    <div class="form-text">0 = Keine Warnung</div>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Lagerort</label>
+            <div class="row g-3 mb-3 align-items-start">
+                <div class="col-md-3">
+                    <label class="form-label text-danger fw-bold">Lagerort</label>
                     <select name="location_id" class="form-select">
                         <option value="">Bitte auswählen...</option>
-                        <?php renderLocationOptions($locations); ?>
+                        <?php renderLocationOptions($locations, null, 0, (int)$item['location_id']); ?>
                     </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Mindestbestand</label>
+                    <input type="number" name="min_quantity" class="form-control" min="0" value="<?= (int)($item['min_quantity'] ?? 0) ?>">
+                    <div class="form-text">0 = Kein Mindestbestand</div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Aktuelle Menge</label>
+                    <input type="number" name="quantity" class="form-control" min="0" value="<?= (int)$item['quantity'] ?>">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label d-block text-truncate">&nbsp;</label>
+                    <div class="form-check form-switch pt-2">
+                        <input class="form-check-input" type="checkbox" role="switch" id="isBulkCheck" name="is_bulk" value="1" <?= !empty($item['is_bulk']) ? 'checked' : '' ?>>
+                        <label class="form-check-label fw-semibold small" for="isBulkCheck">Schüttgut / Massenartikel</label>
+                    </div>
+                    <div class="form-text" style="font-size: 0.75rem;">Keine Einzelverfolgung</div>
                 </div>
             </div>
 
@@ -87,21 +95,6 @@ require_once __DIR__ . '/inc/header.php';
                         <label class="form-check-label fw-semibold text-warning-emphasis" for="is_insured">
                             Für Versicherungsliste markieren (versicherungsrelevant)
                         </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sektion: Verleih-Status -->
-            <div class="card bg-light border-0 p-3 mb-3">
-                <h6 class="text-secondary fw-bold mb-3"><i class="fa-solid fa-handshake-angle me-2"></i>Verleih-Status</h6>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label for="loan_to" class="form-label">Verliehen an</label>
-                        <input type="text" class="form-control" id="loan_to" name="loan_to" placeholder="Leer, wenn im Lager">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="loan_date" class="form-label">Verliehen seit</label>
-                        <input type="date" class="form-control" id="loan_date" name="loan_date">
                     </div>
                 </div>
             </div>

@@ -1,4 +1,3 @@
-
 <?php
 // Konfiguration und Hilfsfunktionen einbinden
 require_once __DIR__ . '/cfg/db.php';
@@ -31,8 +30,8 @@ foreach ($allLocations as$loc) {
 
 // ALLE nicht archivierten Gegenstände einmalig laden (inkl. Standort, Bilder, Versicherungs-Flag)
 $sql = "
-    SELECT 
-        i.id, i.name, i.quantity, i.price, i.purchase_date, i.purchase_location, 
+    SELECT
+        i.id, i.name, i.quantity, i.price, i.purchase_date, i.purchase_location,
         i.manufacturer, i.is_insured, i.is_set, i.location_id,
         l.name AS location_name,
         img.filename AS image_filename
@@ -49,18 +48,27 @@ $sql = "
 $items = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
 // Dokumente für alle Gegenstände laden
-$itemDocumentsMap = [];
+$itemDocumentsMap = [];$itemPartsMap = [];
 if (!empty($items)) {
     $itemIds = array_column($items, 'id');
     $docPlaceholders = implode(',', array_fill(0, count($itemIds), '?'));
+    
+    // Dokumente laden
     $stmtDocs =$pdo->prepare("SELECT id, item_id, filename, title, doc_type FROM item_documents WHERE item_id IN ($docPlaceholders)");
     $stmtDocs->execute($itemIds);
     while ($doc = $stmtDocs->fetch(PDO::FETCH_ASSOC)) {$itemDocumentsMap[$doc['item_id']][] =$doc;
     }
+
+    // Anbauteile laden
+    $stmtParts =$pdo->prepare("SELECT * FROM item_parts WHERE item_id IN ($docPlaceholders) ORDER BY sort_order ASC, id ASC");
+    $stmtParts->execute($itemIds);
+    while ($part = $stmtParts->fetch(PDO::FETCH_ASSOC)) {$itemPartsMap[$part['item_id']][] =$part;
+    }
 }
 
-// Dokumente an die Items binden für das JS-Array
-foreach ($items as &$it) {$it['documents'] = $itemDocumentsMap[$it['id']] ?? [];
+// Dokumente und Anbauteile an die Items binden für das JS-Array
+foreach ($items as &$it) {
+    $it['documents'] =$itemDocumentsMap[$it['id']] ?? [];$it['parts'] = $itemPartsMap[$it['id']] ?? [];
 }
 unset($it);
 
@@ -78,12 +86,12 @@ require_once __DIR__ . '/inc/header.php';
     </div>
     <div class="card-body">
         <div id="printFilterForm">
-            
+           
             <div class="row g-3 mb-3">
                 <!-- Berichtstyp -->
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Berichtsart</label>
-                    <select id="reportTypeSelect" class="form-select" onchange="renderReport()">
+                    <select id="reportTypeSelect" class="form-select" onchange="onReportTypeChange()">
                         <option value="insurance" selected>Versicherungsliste (Nur versicherungsrelevante Artikel)</option>
                         <option value="standard">Standard-Inventardruck (Kompaktkarten)</option>
                     </select>
@@ -95,6 +103,18 @@ require_once __DIR__ . '/inc/header.php';
                         <input class="form-check-input" type="checkbox" value="1" id="all_locations" checked onchange="toggleLocationInputs()">
                         <label class="form-check-label fw-semibold" for="all_locations">
                             Über alle Lagerorte hinweg drucken
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Option für Einzelauswahl (nur bei Versicherungsliste aktivierbar) -->
+            <div class="row g-3 mb-3" id="individualSelectionWrapper">
+                <div class="col-12">
+                    <div class="form-check border p-2 rounded bg-light">
+                        <input class="form-check-input ms-1" type="checkbox" id="enable_individual_selection" onchange="toggleIndividualSelectionMode()">
+                        <label class="form-check-label fw-semibold ms-2" for="enable_individual_selection">
+                            <i class="fa-solid fa-list-check me-1 text-primary"></i> Einzelauswahl aktivieren (Gegenstände individuell für den Druck an- oder abwählen)
                         </label>
                     </div>
                 </div>
@@ -150,6 +170,43 @@ const allItems = <?= json_encode($items) ?>;
 const locationsMap = <?= json_encode($locationsMap) ?>;
 const storedLocationOptions = `<?= $locationOptionsHtml ?>`;
 
+// State für die Einzelauswahl (gespeicherte IDs der abgewählten Items)
+let excludedItemIds = new Set();
+let isIndividualModeActive = false;
+
+function onReportTypeChange() {
+    const reportType = document.getElementById('reportTypeSelect').value;
+    const indSelectionWrapper = document.getElementById('individualSelectionWrapper');
+    
+    if (reportType === 'insurance') {
+        indSelectionWrapper.style.display = 'block';
+    } else {
+        indSelectionWrapper.style.display = 'none';
+        document.getElementById('enable_individual_selection').checked = false;
+        isIndividualModeActive = false;
+        excludedItemIds.clear();
+    }
+    renderReport();
+}
+
+function toggleIndividualSelectionMode() {
+    isIndividualModeActive = document.getElementById('enable_individual_selection').checked;
+    if (!isIndividualModeActive) {
+        excludedItemIds.clear();
+    }
+    renderReport();
+}
+
+function handleItemCheckboxChange(itemId, checkbox) {
+    itemId = parseInt(itemId);
+    if (checkbox.checked) {
+        excludedItemIds.delete(itemId);
+    } else {
+        excludedItemIds.add(itemId);
+    }
+    renderReport(); // Aktualisiert Zähler & Gesamtsummen in Echtzeit
+}
+
 function toggleLocationInputs() {
     const isChecked = document.getElementById('all_locations').checked;
     const container = document.getElementById('locationSelectorContainer');
@@ -165,7 +222,7 @@ function addLocationDropdown() {
     const wrapper = document.getElementById('locationDropdownsWrapper');
     const div = document.createElement('div');
     div.className = 'input-group location-row';
-    
+   
     div.innerHTML = `
         <select name="location_ids[]" class="form-select location-filter-select" onchange="renderReport()">
             <option value="">Bitte Lagerort wählen...</option>
@@ -188,7 +245,7 @@ function removeLocationRow(button) {
 function renderReport() {
     const reportType = document.getElementById('reportTypeSelect').value;
     const allLocationsChecked = document.getElementById('all_locations').checked;
-    
+   
     // 1. Ausgewählte Lagerort-IDs einsammeln
     let targetLocationIds = [];
     if (!allLocationsChecked) {
@@ -198,16 +255,15 @@ function renderReport() {
             if (sel.value) selectedIds.push(parseInt(sel.value));
         });
 
-        // Untergeordnete IDs via locationsMap ermitteln
         selectedIds.forEach(locId => {
             if (locationsMap[locId]) {
                 targetLocationIds = targetLocationIds.concat(locationsMap[locId].sub_ids);
             }
         });
-        targetLocationIds = [...new Set(targetLocationIds)]; // Duplikate entfernen
+        targetLocationIds = [...new Set(targetLocationIds)];
     }
 
-    // 2. Gegenstände filtern
+    // 2. Gegenstände filtern (Inkl. Einzelauswahl)
     const filteredItems = allItems.filter(item => {
         // Versicherungsfilter
         if (reportType === 'insurance' && parseInt(item.is_insured) !== 1) {
@@ -220,10 +276,14 @@ function renderReport() {
                 return false;
             }
         }
+        // Wenn Einzelauswahl aktiv ist und die ID abgewählt wurde -> Abgewählte Artikel komplett ausblenden!
+        if (isIndividualModeActive && excludedItemIds.has(parseInt(item.id))) {
+            return false;
+        }
         return true;
     });
 
-    // Anzahl aktualisieren
+    // Anzahl der gedruckten Items aktualisieren
     document.getElementById('itemCountDisplay').textContent = filteredItems.length;
     document.getElementById('printReportTitle').textContent = (reportType === 'insurance') ? 'Versicherungsliste' : 'Inventarbericht';
 
@@ -251,7 +311,7 @@ function renderReport() {
                 docsHtml += `</div>`;
             }
 
-            let imageHtml = item.image_filename 
+            let imageHtml = item.image_filename
                 ? `<img src="img/items/${escapeHtml(item.image_filename)}" class="rounded object-fit-cover" style="width: 70px; height: 70px;" alt="Bild">`
                 : `<div class="bg-light border rounded d-flex align-items-center justify-content-center text-muted" style="width: 70px; height: 70px; font-size: 1.2rem;"><i class="fa-solid fa-box"></i></div>`;
 
@@ -271,7 +331,7 @@ function renderReport() {
                                     <a href="item.php?id=${item.id}" target="_blank" class="print-item-link">${escapeHtml(item.name)}</a>
                                 </h6>
                                 <div class="small text-muted mb-1">
-                                    <i class="fa-solid fa-location-dot me-1"></i>${escapeHtml(item.location_name || 'Kein Lagerort')} 
+                                    <i class="fa-solid fa-location-dot me-1"></i>${escapeHtml(item.location_name || 'Kein Lagerort')}
                                     | <span class="fw-semibold">Menge: ${item.quantity}</span>${mfrText}
                                 </div>
                                 ${(item.price || item.purchase_date) ? `<div class="small text-muted mb-1">${priceText}${purchaseDateText}</div>` : ''}
@@ -285,49 +345,102 @@ function renderReport() {
         html += `</div>`;
         container.innerHTML = html;
 
-    } else {
-        // Versicherungsliste als Tabelle
+        } else {
+        // Versicherungsliste als Tabelle (inkl. Anbauteile & optionaler Checkboxen)
         let totalSum = 0;
         let rowsHtml = '';
 
-        filteredItems.forEach(item => {
-            const singlePrice = parseFloat(item.price || 0);
-            const quantity = parseInt(item.quantity || 1);
-            const rowTotal = singlePrice * quantity;
-            totalSum += rowTotal;
+                filteredItems.forEach(item => {
+            const itemId = parseInt(item.id);
+            const basePrice = parseFloat(item.price || 0);
+            
+            // Anbauteile für dieses Item summieren
+            let partsSum = 0;
+            let partsRowsHtml = '';
+            
+            if (item.parts && item.parts.length > 0) {
+                item.parts.forEach(part => {
+                    const partPrice = parseFloat(part.price || 0);
+                    partsSum += partPrice;
+                    
+                    let invoiceInfo = '';
+                    if (parseInt(part.has_own_invoice) === 1) {
+                        invoiceInfo = `<span class="text-success" title="Eigene Rechnung für dieses Anbauteil"><i class="fa-solid fa-file-invoice me-1"></i>Eigene Rechnung</span>`;
+                    } else {
+                        invoiceInfo = `<span class="text-muted" title="Auf der Hauptrechnung des Gegenstands enthalten"><i class="fa-solid fa-link me-1"></i>In Hauptrechnung</span>`;
+                    }
+
+                    partsRowsHtml += `
+                        <tr class="small text-muted border-0">
+                            <td class="ps-4" colspan="2">
+                                <i class="fa-solid fa-puzzle-piece me-1 opacity-50"></i> ${escapeHtml(part.name)}
+                                ${parseInt(part.quantity) > 1 ? `<span class="badge bg-secondary ms-1">Anz: ${part.quantity}</span>` : ''}
+                            </td>
+                            <td class="text-center">—</td>
+                            <td class="text-end">${partPrice > 0 ? formatMoney(partPrice) + ' €' : '—'}</td>
+                            <td class="text-end">—</td>
+                            <td class="text-center">—</td>
+                            <td><em>Zubehör</em></td>
+                            <td class="text-center">${invoiceInfo}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            const itemTotalValue = basePrice + partsSum;
+            totalSum += itemTotalValue;
+
+            // Optional Checkbox Spalte für den Einzelauswahl-Modus (no-print sorgt dafür, dass die Checkbox auf dem Papier unsichtbar ist)
+            let checkboxCell = '';
+            if (isIndividualModeActive) {
+                checkboxCell = `
+                    <td class="text-center no-print">
+                        <input class="form-check-input item-print-checkbox" type="checkbox" value="${itemId}" checked onchange="handleItemCheckboxChange(${itemId}, this)">
+                    </td>
+                `;
+            }
 
             let hasInvoice = item.documents && item.documents.some(d => d.doc_type === 'rechnung');
             let invoiceBadge = hasInvoice ? `<span class="badge bg-success">Ja</span>` : `<span class="badge bg-secondary">Nein</span>`;
 
+            // Hauptartikel Zeile
             rowsHtml += `
-                <tr>
-                    <td class="fw-semibold">
+                <tr class="fw-semibold">
+                    ${checkboxCell}
+                    <td>
                         <a href="item.php?id=${item.id}" target="_blank" class="print-item-link">${escapeHtml(item.name)}</a>
                     </td>
                     <td class="small text-muted">${escapeHtml(item.location_name || '-')}</td>
-                    <td class="text-center">${quantity}</td>
-                    <td class="text-end">${singlePrice > 0 ? formatMoney(singlePrice) + ' €' : '-'}</td>
-                    <td class="text-end fw-semibold">${rowTotal > 0 ? formatMoney(rowTotal) + ' €' : '-'}</td>
+                    <td class="text-center">1</td>
+                    <td class="text-end">${basePrice > 0 ? formatMoney(basePrice) + ' €' : '-'}</td>
+                    <td class="text-end fw-semibold">${itemTotalValue > 0 ? formatMoney(itemTotalValue) + ' €' : '-'}</td>
                     <td class="text-center small">${escapeHtml(item.purchase_date || '-')}</td>
                     <td class="small">${escapeHtml(item.purchase_location || '-')}</td>
                     <td class="text-center">${invoiceBadge}</td>
                 </tr>
             `;
+
+            // Anbauteile-Zeilen direkt darunter einfügen
+            rowsHtml += partsRowsHtml;
         });
+
+        let checkboxHeader = isIndividualModeActive ? `<th class="text-center no-print" style="width: 40px;"><i class="fa-solid fa-check"></i></th>` : '';
+        let colspanVal = isIndividualModeActive ? 5 : 4;
 
         container.innerHTML = `
             <div class="table-responsive">
                 <table class="table table-bordered table-sm align-middle print-table">
                     <thead class="table-light">
                         <tr>
+                            ${checkboxHeader}
                             <th>Gegenstand</th>
                             <th>Lagerort</th>
-                            <th class="text-center" style="width: 70px;">Anzahl</th>
-                            <th class="text-end" style="width: 100px;">Kaufpreis (Stk.)</th>
+                            <th class="text-center" style="width: 60px;">Anzahl</th>
+                            <th class="text-end" style="width: 100px;">Basiswert</th>
                             <th class="text-end" style="width: 100px;">Gesamtwert</th>
-                            <th class="text-center" style="width: 100px;">Kaufdatum</th>
+                            <th class="text-center" style="width: 90px;">Kaufdatum</th>
                             <th>Kaufort / Händler</th>
-                            <th class="text-center" style="width: 90px;">Rechnung?</th>
+                            <th class="text-center" style="width: 85px;">Rechnung?</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -335,7 +448,7 @@ function renderReport() {
                     </tbody>
                     <tfoot class="table-light fw-bold">
                         <tr>
-                            <td colspan="4" class="text-end">Gesamtsumme aller Artikel:</td>
+                            <td colspan="${colspanVal}" class="text-end">Gesamtsumme (ausgewählte Artikel inkl. Zubehör):</td>
                             <td class="text-end">${formatMoney(totalSum)} €</td>
                             <td colspan="3"></td>
                         </tr>
@@ -358,7 +471,7 @@ function formatMoney(amount) {
 
 // Initialer Aufruf beim Laden der Seite
 document.addEventListener('DOMContentLoaded', () => {
-    renderReport();
+    onReportTypeChange();
 });
 </script>
 

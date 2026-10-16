@@ -4,6 +4,7 @@
  */
 function runDatabaseMigrations(PDO $pdo): void
 {
+    // ///////////////////////////////////////////////////////////
     // 1. Basis-Tabellen sicherstellen (läuft immer)
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -30,6 +31,7 @@ function runDatabaseMigrations(PDO $pdo): void
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
+    // ///////////////////////////////////////////////////////////
     // 2. Hilfsfunktion: Prüfen ob eine Spalte in einer Tabelle existiert
     $columnExists = function(PDO$pdo, string $table, string$column): bool {
         try {
@@ -41,6 +43,7 @@ function runDatabaseMigrations(PDO $pdo): void
         }
     };
 
+    // ///////////////////////////////////////////////////////////
     // 3. Definition aller Schema-Migrationen
     $migrations = [
         '001_create_base_tables' => "
@@ -197,13 +200,19 @@ function runDatabaseMigrations(PDO $pdo): void
 
         '021_add_fields' => "
            -- Spaltenprüfung erfolgt unten
+        ",
+
+        '022_loan_system' => "
+           -- Spaltenprüfung erfolgt unten
         "
     ];
 
+    // ///////////////////////////////////////////////////////////
     // 4. Cache-Check basierend auf dem Array
     $cacheFile = __DIR__ . '/../cfg/.migration_cache';
     $currentHash = md5(serialize($migrations));
 
+    // ///////////////////////////////////////////////////////////
     // 5. UNABHÄNGIG VOM CACHE: Strukturelle Integrität prüfen und nachziehen (Selbstheilung)
     // Das fängt übersprungene Updates oder gelöschte Spalten ab!
     
@@ -280,7 +289,40 @@ function runDatabaseMigrations(PDO $pdo): void
         $pdo->exec("ALTER TABLE item_documents 
             ADD COLUMN doc_type VARCHAR(50) NOT NULL DEFAULT 'sonstiges' AFTER title;");
     }
+    // Dedizierte Einheiten- und Verleih-Verwaltung (item_units)
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS item_units (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            item_id INT NOT NULL,
+            unit_number INT NOT NULL DEFAULT 1,
+            status ENUM('available', 'lent') NOT NULL DEFAULT 'available',
+            borrower_name VARCHAR(255) DEFAULT NULL,
+            lent_date DATE DEFAULT NULL,
+            notes TEXT DEFAULT NULL,
+            FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+    // Spalte 'is_bulk' in inventory_items ergänzen, falls noch nicht vorhanden
+    if (!$columnExists($pdo, 'inventory_items', 'is_bulk')) {
+        $pdo->exec("ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS is_bulk TINYINT(1) NOT NULL DEFAULT 0;");
+    }
+    // Tabelle für Anbauteile/Zubehörteile
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS item_parts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            item_id INT NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            quantity INT NOT NULL DEFAULT 1,
+            price DECIMAL(10,2) DEFAULT NULL,
+            has_own_invoice TINYINT(1) NOT NULL DEFAULT 1,
+            invoice_filename VARCHAR(255) DEFAULT NULL,
+            sort_order INT NOT NULL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
 
+    // ///////////////////////////////////////////////////////////
     // 6. Standard-Migrationen ganz normal ausführen (falls Cache nicht greift)
     if (file_exists($cacheFile) && file_get_contents($cacheFile) ===$currentHash) {
         return;

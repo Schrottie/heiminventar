@@ -272,3 +272,81 @@ function syncAppReleases(PDO $pdo): void {
         ]);
     }
 }
+
+/**
+ * Synchronisiert die Einheiten (item_units) passend zur quantity eines Items 
+ * und sorgt für eine lückenlose Durchnummerierung.
+ */
+function syncItemUnits(PDO $pdo, int $itemId, int $newQuantity): void {
+    
+    // Prüfen, ob der Artikel ein Bulk- / Schüttgut-Artikel ist
+    $stmtCheck = $pdo->prepare("SELECT is_bulk FROM inventory_items WHERE id = ?");
+    $stmtCheck->execute([$itemId]);
+    if ($stmtCheck->fetchColumn() == 1) {
+        // Keine Einzel-Units für Schüttgut anlegen
+        return;
+    }
+
+    if ($newQuantity < 0) {
+        $newQuantity = 0;
+    }
+
+    // 1. Aktuelle Einheiten abfragen
+    $stmt = $pdo->prepare("SELECT id, status, unit_number FROM item_units WHERE item_id = ? ORDER BY unit_number ASC");
+    $stmt->execute([$itemId]);
+    $units = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    $currentCount = count($units);
+
+    if ($currentCount < $newQuantity) {
+        // Einheiten hinzufügen, wenn die Menge erhöht wurde
+        $diff = $newQuantity - $currentCount;
+        $maxNumStmt = $pdo->prepare("SELECT MAX(unit_number) FROM item_units WHERE item_id = ?");
+        $maxNumStmt->execute([$itemId]);
+        $nextNum = (int)$maxNumStmt->fetchColumn() + 1;
+
+        $insertStmt = $pdo->prepare("INSERT INTO item_units (item_id, unit_number, status) VALUES (?, ?, 'available')");
+        for ($i = 0; $i < $diff; $i++) {
+            $insertStmt->execute([$itemId, $nextNum++]);
+        }
+    } elseif ($currentCount > $newQuantity) {
+        // Einheiten reduzieren: Zuerst 'available' (verfügbare) Einheiten von hinten löschen
+        $diff = $currentCount - $newQuantity;
+        
+        $availableUnits = array_filter($units, fn($u) => $u['status'] === 'available');
+        $lentUnits = array_filter($units, fn($u) => $u['status'] === 'lent');
+
+        $delStmt = $pdo->prepare("DELETE FROM item_units WHERE id = ?");
+
+        // Erst verfügbare Exemplare abbauen (von höchster Nummer abwärts)
+        usort($availableUnits, fn($a, $b) => $b['unit_number'] <=> $a['unit_number']);
+        foreach ($availableUnits as $u) {
+            if ($diff > 0) {
+                $delStmt->execute([$u['id']]);
+                $diff--;
+            }
+        }
+
+        // Falls immer noch reduziert werden muss (Notfall, falls mehr verliehen waren als die neue Gesamtmenge), auch verliehene abbauen
+        if ($diff > 0) {
+            usort($lentUnits, fn($a, $b) => $b['unit_number'] <=> $a['unit_number']);
+            foreach ($lentUnits as $u) {
+                if ($diff > 0) {
+                    $delStmt->execute([$u['id']]);
+                    $diff--;
+                }
+            }
+        }
+    }
+
+    // 2. Alle verbleibenden Einheiten lückenlos von 1 bis $newQuantity durchnummerieren
+    $stmtRemaining = $pdo->prepare("SELECT id FROM item_units WHERE item_id = ? ORDER BY unit_number ASC, id ASC");
+    $stmtRemaining->execute([$itemId]);
+    $remainingIds = $stmtRemaining->fetchAll(PDO::FETCH_COLUMN);
+
+    $updateNumStmt = $pdo->prepare("UPDATE item_units SET unit_number = ? WHERE id = ?");
+    $unitNum = 1;
+    foreach ($remainingIds as $unitId) {
+        $updateNumStmt->execute([$unitNum++, $unitId]);
+    }
+}

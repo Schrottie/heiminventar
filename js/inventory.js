@@ -324,3 +324,120 @@ function openDocumentDeleteModal(docId, itemId, docTitle) {
     var myModal = new bootstrap.Modal(document.getElementById('deleteDocumentModal'));
     myModal.show();
 }
+
+// Verleihmodal öffnen
+function openLendModal(unitId, itemId, unitNumber) {
+    document.getElementById('lendUnitId').value = unitId;
+    document.getElementById('lendUnitNumberDisplay').textContent = '#' + unitNumber;
+    var myModal = new bootstrap.Modal(document.getElementById('lendUnitModal'));
+    myModal.show();
+}
+
+// Verleihrückgabe
+function openReturnUnitModal(unitId, itemId, unitNumber, borrowerName) {
+    document.getElementById('returnUnitNumberDisplay').textContent = '#' + unitNumber;
+    document.getElementById('returnBorrowerDisplay').textContent = borrowerName;
+    
+    const returnBtn = document.getElementById('confirmReturnUnitBtn');
+    returnBtn.href = 'api/unit-return.php?unit_id=' + unitId + '&item_id=' + itemId;
+    
+    var myModal = new bootstrap.Modal(document.getElementById('returnUnitModal'));
+    myModal.show();
+}
+
+// Archivieren modal
+let currentArchiveItemId = null;
+
+function openArchiveModal(itemId, itemName) {
+    currentArchiveItemId = itemId;
+    document.getElementById('archiveItemNameText').textContent = itemName;
+    
+    var myModal = new bootstrap.Modal(document.getElementById('archiveConfirmModal'));
+    myModal.show();
+}
+
+function executeArchive() {
+    if (!currentArchiveItemId) return;
+    
+    // Per fetch an den API-Endpoint senden, um JSON-Fehler sauber abzufangen
+    fetch('api/item-archive.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: currentArchiveItemId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Bei Erfolg direkt zur Startseite oder ins Archiv weiterleiten
+            window.location.href = 'index.php?archived=1';
+        } else {
+            // Falls ein Fehler auftritt (z.B. wegen Verleih): 
+            // Direkt auf item.php umleiten, damit der Warnhinweis greift!
+            window.location.href = 'item.php?id=' + currentArchiveItemId + '&error=cannot_archive_lent';
+        }
+    })
+    .catch(error => {
+        console.error('Fehler:', error);
+        // Fallback-Weiterleitung zur Detailseite
+        window.location.href = 'item.php?id=' + currentArchiveItemId + '&error=cannot_archive_lent';
+    });
+}
+
+// Archivierten Gegenstand reaktivieren
+let currentRestoreItemId = null;
+
+function openRestoreModal(itemId, itemName) {
+    currentRestoreItemId = itemId;
+    document.getElementById('restoreItemName').textContent = itemName;
+    
+    // Dropdown-Auswahl beim Öffnen zurücksetzen
+    document.getElementById('restoreLocationSelect').value = '';
+    
+    var myModal = new bootstrap.Modal(document.getElementById('restoreModal'));
+    myModal.show();
+}
+
+function submitRestore() {
+    if (!currentRestoreItemId) return;
+    
+    const locationId = document.getElementById('restoreLocationSelect').value;
+    if (!locationId) {
+        alert('Bitte wähle einen Ziel-Lagerort aus.');
+        return;
+    }
+    
+    // Per fetch an den API-Endpoint senden (z. B. api/restore-item.php)
+    fetch('api/item-restore.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+            id: currentRestoreItemId, 
+            location_id: locationId 
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Nach erfolgreicher Reaktivierung die Seite neu laden (oder direkt zur Detailseite)
+            window.location.reload();
+        } else {
+            alert('Fehler beim Reaktivieren: ' + (data.error || 'Unbekannter Fehler'));
+        }
+    })
+    .catch(error => {
+        console.error('Fehler:', error);
+        alert('Ein Netzwerkfehler ist aufgetreten.');
+    });
+}
+
+// Rechnung für Anbauteile --> Switch zwischen in Hauptrechnung
+// enthalten und Eigener Rechnung (Upload)
+function togglePartInvoiceFields() {
+    const isOwn = document.getElementById('invoiceTypeOwn').checked;
+    const container = document.getElementById('partInvoiceFileContainer');
+    container.style.display = isOwn ? 'block' : 'none';
+}

@@ -331,7 +331,7 @@ a {
     z-index: 1050;
 }
 
-/* Haupt-Auslöser-Button */
+/* Haupt-Auslöser-Button (Sitzt immer frei und ungehindert unten) */
 .fab-main {
     width: 58px;
     height: 58px;
@@ -346,6 +346,7 @@ a {
     font-size: 1.35rem;
     cursor: pointer;
     transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+    z-index: 1052; /* Liegt garantiert immer ganz oben */
 }
 
 .fab-main:hover {
@@ -371,9 +372,9 @@ a {
     display: block;
 }
 
-/* Basis-Design der Aktions-Buttons */
+/* Basis-Design der Aktions-Buttons (Standardmäßig komplett aus dem Layout entfernt) */
 .fab-action {
-    display: flex;
+    display: none; /* Wichtig: Nimmt im geschlossenen Zustand ZERO Platz weg */
     align-items: center;
     gap: 0.75rem;
     white-space: nowrap;
@@ -387,13 +388,9 @@ a {
     text-decoration: none;
     font-size: 0.95rem;
     font-weight: 500;
-    
-    /* Animation beim Ein-/Ausblenden */
     opacity: 0;
-    pointer-events: none;
     transform: scale(0.8) translateY(15px);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    order: -1; /* Liegen im Flex-Layout oberhalb des Hauptbuttons */
 }
 
 .fab-action:hover {
@@ -414,10 +411,10 @@ a {
     border-color: #5a32a3;
 }
 
-/* Anzeigestatus im geöffneten Container */
+/* Anzeigestatus im geöffneten Container: Werden wieder als Flex-Elemente eingeblendet */
 .fab-container.open .fab-action {
+    display: flex;
     opacity: 1;
-    pointer-events: auto;
     transform: scale(1) translateY(0);
 }
 
@@ -436,7 +433,7 @@ a {
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     padding: 8px;
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: 4px;
     
@@ -450,6 +447,7 @@ a {
 
 .fab-submenu.open {
     opacity: 1;
+    display: flex;
     pointer-events: auto;
     transform: translateX(0) scale(1);
 }

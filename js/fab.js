@@ -10,6 +10,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!fabContainer || !fabMainBtn) return;
 
+    // Menü öffnen/schließen als globale Variable innerhalb des Scopes oder an window hängend
+    window.toggleFab = function(open) {
+        const shouldOpen = open !== undefined ? open : !fabContainer.classList.contains('open');
+       
+        if (shouldOpen) {
+            fabContainer.classList.add('open');
+            if (fabBackdrop) fabBackdrop.classList.add('active');
+        } else {
+            fabContainer.classList.remove('open');
+            if (fabBackdrop) fabBackdrop.classList.remove('active');
+            closeToolsSubmenu();
+        }
+    };
+
     // Haupt-Aktionsbuttons ermitteln
     const getMainFabItems = () => {
         return Array.from(fabContainer.querySelectorAll('.fab-action')).filter(btn => {

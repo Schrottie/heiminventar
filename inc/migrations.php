@@ -204,6 +204,14 @@ function runDatabaseMigrations(PDO $pdo): void
 
         '022_loan_system' => "
            -- Spaltenprüfung erfolgt unten
+        ",
+
+        '023_part_system' => "
+           -- Tabelle wird unten gebaut, sofern nicht vorhanden
+        ",
+
+        '024_fiedl_added_for_part_system' => "
+           -- Spaltenprüfung erfolgt unten
         "
     ];
 

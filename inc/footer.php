@@ -49,12 +49,6 @@
         <i class="fa-solid fa-chevron-left ms-auto fab-arrow"></i>
     </button>
 
-    <!-- Dashboard -->
-    <a href="dashboard.php" class="fab-action" title="Dashboard">
-        <i class="fa-solid fa-chart-pie"></i>
-        <span class="fab-label">Dashboard</span>
-    </a>
-
     <!-- Einstellungen -->
     <a href="settings.php" class="fab-action" title="Einstellungen">
         <i class="fa-solid fa-gear"></i>
@@ -71,6 +65,12 @@
     <a href="add-item.php" class="fab-action fab-action-primary" title="Gegenstand anlegen">
         <i class="fa-solid fa-plus"></i>
         <span class="fab-label">Gegenstand anlegen</span>
+    </a>
+
+    <!-- Dashboard -->
+    <a href="dashboard.php" class="fab-action" title="Dashboard">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span class="fab-label">Dashboard</span>
     </a>
 
     <!-- Übersicht -->

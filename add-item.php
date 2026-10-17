@@ -53,7 +53,7 @@ require_once __DIR__ . '/inc/header.php';
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Aktuelle Menge</label>
-                    <input type="number" name="quantity" class="form-control" min="0" value="<?= (int)$item['quantity'] ?>">
+                    <input type="number" name="quantity" class="form-control" min="0" value="1">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label d-block text-truncate">&nbsp;</label>

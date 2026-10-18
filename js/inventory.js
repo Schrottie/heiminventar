@@ -528,19 +528,23 @@ window.confirmDeletePart = function(partId, partName) {
     modal.show();
 };
 
-window.openImageDeleteModal = function(imageId, itemId) {
-    const modalEl = document.getElementById('deleteImageModal');
-    if (!modalEl) {
-        // Fallback falls kein Modal vorhanden ist
-        if (confirm('Möchtest du dieses Bild wirklich löschen?')) {
-            window.location.href = `api/image-delete.php?id=${imageId}&item_id=${itemId}`;
-        }
+function openImageDeleteModal(imageId, itemId) {
+    // Falls du ein Bootstrap-Modal verwendest, das z.B. die ID 'deleteImageModal' hat:
+    const modalElement = document.getElementById('imageDeleteModal');
+    if (!modalElement) {
+        console.error('Bild-Lösch-Modal nicht gefunden!');
         return;
     }
-    
-    document.getElementById('deleteImageIdInput').value = imageId;
-    document.getElementById('deleteImageItemIdInput').value = itemId;
 
-    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-    modal.show();
-};
+    // Übergabe der IDs an das Formular innerhalb des Modals (falls vorhanden)
+    const inputImageId = modalElement.querySelector('input[name="image_id"]');
+    const inputItemId = modalElement.querySelector('input[name="item_id"]');
+    
+    if (inputImageId) inputImageId.value = imageId;
+    if (inputItemId) inputItemId.value = itemId;
+
+    // Modal via Bootstrap öffnen
+    const deleteModal = new bootstrap.Modal(modalElement);
+    deleteModal.show();
+}
+

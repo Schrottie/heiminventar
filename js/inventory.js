@@ -527,3 +527,20 @@ window.confirmDeletePart = function(partId, partName) {
     var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
     modal.show();
 };
+
+window.openImageDeleteModal = function(imageId, itemId) {
+    const modalEl = document.getElementById('deleteImageModal');
+    if (!modalEl) {
+        // Fallback falls kein Modal vorhanden ist
+        if (confirm('Möchtest du dieses Bild wirklich löschen?')) {
+            window.location.href = `api/image-delete.php?id=${imageId}&item_id=${itemId}`;
+        }
+        return;
+    }
+    
+    document.getElementById('deleteImageIdInput').value = imageId;
+    document.getElementById('deleteImageItemIdInput').value = itemId;
+
+    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+};

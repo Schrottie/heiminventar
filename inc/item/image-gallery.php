@@ -3,8 +3,8 @@
     <h6 class="text-secondary fw-bold mb-3"><i class="fa-solid fa-images me-2"></i>Bilder</h6>
 
     <?php if (!empty($images)): ?>
-        <div class="row g-2 mb-3">
-            <?php foreach ($images as$image): ?>
+        <div class="row g-2 mb-3" id="imageGalleryContainer">
+            <?php foreach ($images as $image): ?>
                 <?php $isMain = !empty($image['is_main']); ?>
                 <div class="col-6 col-md-3">
                     <div class="card h-100 bg-white <?= $isMain ? 'border-warning shadow-sm' : 'border-0' ?>">
@@ -38,10 +38,50 @@
         </div>
     <?php endif; ?>
 
-    <!-- Upload für neue Bilder -->
+    <!-- Upload für neue Bilder (AJAX) -->
     <div>
-        <label for="item_images" class="form-label small text-muted">Neue Bilder hinzufügen</label>
-        <input type="file" name="images[]" id="item_images" class="form-control" accept="image/*" multiple>
-        <div class="form-text">Du kannst mehrere Bilddateien gleichzeitig auswählen (JPG, PNG, WEBP).</div>
+        <label for="item_images_ajax" class="form-label small text-muted">Neue Bilder hinzufügen</label>
+        <div class="input-group">
+            <input type="file" id="item_images_ajax" class="form-control" accept="image/*" multiple onchange="uploadItemImages(<?= (int)$item['id'] ?>)">
+            <span class="input-group-text" id="uploadSpinner" style="display: none;">
+                <i class="fa-solid fa-spinner fa-spin text-primary"></i>
+            </span>
+        </div>
+        <div class="form-text">Wähle Bilder aus – sie werden sofort automatisch hochgeladen.</div>
     </div>
 </div>
+
+<script>
+function uploadItemImages(itemId) {
+    const fileInput = document.getElementById('item_images_ajax');
+    if (fileInput.files.length === 0) return;
+
+    const formData = new FormData();
+    formData.append('itemId', itemId);
+    for (let i = 0; i < fileInput.files.length; i++) {
+        formData.append('images[]', fileInput.files[i]);
+    }
+
+    document.getElementById('uploadSpinner').style.display = 'flex';
+
+    fetch('api/item-image-upload.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('uploadSpinner').style.display = 'none';
+        if (data.success) {
+            // Seite sanft aktualisieren, um die neuen Bilder direkt anzuzeigen
+            window.location.reload();
+        } else {
+            alert('Fehler beim Upload: ' + (data.error || 'Unbekannter Fehler'));
+        }
+    })
+    .catch(error => {
+        document.getElementById('uploadSpinner').style.display = 'none';
+        console.error('Error:', error);
+        alert('Ein Netzwerkfehler ist aufgetreten.');
+    });
+}
+</script>

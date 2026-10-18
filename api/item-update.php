@@ -25,15 +25,17 @@ if (isset($_POST['action_set_main_image']) || isset($_GET['action_set_main_image
         $pdo->prepare("UPDATE item_images SET is_main = 0 WHERE item_id = ?")->execute([$itemId]);
         $pdo->prepare("UPDATE item_images SET is_main = 1 WHERE id = ? AND item_id = ?")->execute([$imageId, $itemId]);
        
-        logInventoryAction(
-            $pdo,
-            $itemId,
-            $oldItem['name'],
-            'updated',
-            0,
-            (int)$oldItem['quantity'],
-            'Hauptbild geändert'
-        );
+        if (function_exists('logInventoryAction')) {
+            logInventoryAction(
+                $pdo,
+                $itemId,
+                $oldItem['name'],
+                'updated',
+                0,
+                (int)$oldItem['quantity'],
+                'Hauptbild geändert'
+            );
+        }
     }
     header("Location: ../item.php?id=" . $itemId);
     exit;
@@ -79,14 +81,16 @@ if ($hasNameField) {
     $stmt = $pdo->prepare("UPDATE inventory_items SET
         name = ?, description = ?, quantity = ?, min_quantity = ?, location_id = ?,
         expiration_date = ?, price = ?, on_loan = ?, loan_to = ?, loan_date = ?,
-        purchase_date = ?, purchase_location = ?, manufacturer = ?, warranty_months = ?, is_insured = ?, is_set = ?, is_bulk = ?,
+        purchase_date = ?, purchase_location = ?, manufacturer = ?, warranty_months = ?, 
+        is_insured = ?, is_set = ?, is_bulk = ?,
         maintenance_interval_months = ?, last_maintenance_date = ?
         WHERE id = ?");
 
     $stmt->execute([
         $name, $description, $quantity, $minQuantity, $locationId,
         $expirationDate, $price, $onLoan, $loanTo, $loanDate,
-        $purchaseDate, $purchaseLocation, $manufacturer, $warrantyMonths, $isInsured, $isSet, $isBulk,
+        $purchaseDate, $purchaseLocation, $manufacturer, $warrantyMonths, 
+        $isInsured, $isSet, $isBulk,
         $maintenanceInterval, $lastMaintenanceDate, $itemId
     ]);
 
@@ -156,6 +160,9 @@ if (!empty($_FILES['documents']['name'][0])) {
                 if (move_uploaded_file($tmpName, $docDir . $newFilename)) {
                     $docTitle = pathinfo($originalName, PATHINFO_FILENAME);
                     $docType = $_POST['doc_type'] ?? 'sonstiges';
+                    if (!in_array($docType, ['rechnung', 'bedienungsanleitung', 'sonstiges'])) {
+                        $docType = 'sonstiges';
+                    }
 
                     $stmt = $pdo->prepare("INSERT INTO item_documents (item_id, filename, title, doc_type) VALUES (?, ?, ?, ?)");
                     $stmt->execute([$itemId, $newFilename, $docTitle, $docType]);
@@ -171,6 +178,12 @@ if (!empty($_FILES['documents']['name'][0])) {
     }
 }
 
-// Weiterleiten nach dem Speichern
-header("Location: ../item.php?id=" . $itemId . "&success=1");
+// Dynamische Weiterleitung je nach gedrücktem Button
+$action = $_POST['action'] ?? 'save';
+
+if ($action === 'save_and_close') {
+    header("Location: ../index.php?success=1");
+} else {
+    header("Location: ../item.php?id=" . $itemId . "&success=1");
+}
 exit;

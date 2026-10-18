@@ -144,7 +144,7 @@ require_once __DIR__ . '/inc/header.php';
 
             <?php require_once __DIR__ . '/inc/item/additional-parts.php'; ?>
 
-        <?php require_once __DIR__ . '/inc/item/amount-n-loans.php'; ?>
+         n  <?php require_once __DIR__ . '/inc/item/amount-n-loans.php'; ?>
 
             <?php require_once __DIR__ . '/inc/item/dates.php'; ?>
 

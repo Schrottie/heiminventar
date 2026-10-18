@@ -132,8 +132,6 @@ require_once __DIR__ . '/inc/header.php';
 
     <div class="card-body">
 
-            <?php require_once __DIR__ . '/inc/item/image-gallery.php'; ?>
-
         <!-- Formular für Gegenstandsdaten -->
         <form action="api/item-update.php" method="post" enctype="multipart/form-data">
             <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
@@ -147,6 +145,8 @@ require_once __DIR__ . '/inc/header.php';
             <?php require_once __DIR__ . '/inc/item/additional-parts.php'; ?>
 
             <?php require_once __DIR__ . '/inc/item/dates.php'; ?>
+
+            <?php require_once __DIR__ . '/inc/item/image-gallery.php'; ?>
 
             <?php require_once __DIR__ . '/inc/item/imageupload.php'; ?>
 

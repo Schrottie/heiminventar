@@ -1,5 +1,5 @@
 <!-- Sektion: Schlagwörter (Tags) -->
-<div class="card bg-light border-0 p-3 mb-3 gap-2">
+<div class="card bg-light border-0 p-3 mb-3 mt-2">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="text-secondary fw-bold mb-0">
             <i class="fa-solid fa-tags me-2"></i>Schlagwörter (Tags)

@@ -1,6 +1,3 @@
-        <!-- Formular für Gegenstandsdaten -->
-        <form action="api/item-update.php" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
 
             <div class="row g-3 mb-3">
                 <div class="col-md-8">

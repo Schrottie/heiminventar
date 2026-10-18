@@ -338,63 +338,7 @@ require_once __DIR__ . '/inc/header.php';
                 </div>
             </div>
 
-        <?php if (!(int)$item['is_bulk']): ?>
-            <!-- Exemplar- & Verleih-Sektion -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <span class="fw-bold"><i class="fa-solid fa-boxes-stacked me-2"></i>Exemplare &amp; Verleih-Status</span>
-                    <span class="badge bg-secondary">Gesamt: <?= count($itemUnits) ?> Stk.</span>
-                </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
-                        <?php if (empty($itemUnits)): ?>
-                            <div class="p-3 text-muted text-center small">Keine Exemplare erfasst.</div>
-                        <?php else: ?>
-                            <?php foreach ($itemUnits as $unit): ?>
-                                <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <span class="badge bg-dark">Exemplar #<?= (int)$unit['unit_number'] ?></span>
-                                        <?php if ($unit['status'] === 'lent'): ?>
-                                            <div>
-                                                <span class="badge bg-warning text-dark me-1">Verliehen</span>
-                                                <span class="fw-semibold small">An: <?= htmlspecialchars($unit['borrower_name']) ?></span>
-                                                <span class="text-muted small ms-1">(seit <?= htmlspecialchars($unit['lent_date']) ?>)</span>
-                                                <?php if (!empty($unit['notes'])): ?>
-                                                    <div class="text-muted" style="font-size: 0.75rem;"><?= htmlspecialchars($unit['notes']) ?></div>
-                                                <?php endif; ?>
-                                            </div>
-                                        <?php else: ?>
-                                            <span class="badge bg-success">Im Lager (Verfügbar)</span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div>
-                                        <?php if ($unit['status'] === 'lent'): ?>
-                                            <button type="button" class="btn btn-outline-success btn-sm" 
-                                                    onclick="openReturnUnitModal(<?= (int)$unit['id'] ?>, <?= (int)$id ?>, <?= (int)$unit['unit_number'] ?>, '<?= htmlspecialchars($unit['borrower_name'], ENT_QUOTES) ?>')" 
-                                                    title="Ins Lager zurückbringen">
-                                                <i class="fa-solid fa-rotate-left me-1"></i>Zurück
-                                            </button>
-                                        <?php else: ?>
-                                            <button type="button" class="btn btn-outline-warning btn-sm" onclick="openLendModal(<?= (int)$unit['id'] ?>, <?= (int)$id ?>, <?= (int)$unit['unit_number'] ?>)" title="Exemplar verleihen">
-                                                <i class="fa-solid fa-handshake me-1"></i>Verleihen
-                                            </button>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-        <?php else: ?>
-            <!-- Hinweis für Schüttgut -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-body text-muted small py-3">
-                    <i class="fa-solid fa-info-circle me-1"></i> <strong>Schüttgut / Massenartikel:</strong> Für diesen Gegenstand ist keine Einzelstück- oder Verleih-Verfolgung aktiv.
-                </div>
-            </div>
-        <?php endif; ?>
-
+        <?php require_once __DIR__ . '/inc/item/amount-n-loans.php'; ?>
 
             <div class="row g-3 mb-3">
                 <!-- Ablaufdatum -->
@@ -429,86 +373,11 @@ require_once __DIR__ . '/inc/header.php';
                 </div>
             </div>
 
-            <!-- Dokumenten-Sektion mit bestehender Liste und Upload -->
-            <div class="mb-3">
-                <label class="form-label"><i class="fa-solid fa-paperclip me-1"></i>Dokumente &amp; Anleitungen</label>
-               
-                <?php if (!empty($documents)): ?>
-                    <div class="list-group mb-2">
-                        <?php foreach ($documents as $doc): ?>
-                            <?php
-                            $badgeColor = match($doc['doc_type']) {
-                                'rechnung' => 'bg-success',
-                                'bedienungsanleitung' => 'bg-info text-dark',
-                                default => 'bg-secondary'
-                            };
-                            $docTypeName = match($doc['doc_type']) {
-                                'rechnung' => 'Rechnung',
-                                'bedienungsanleitung' => 'Anleitung',
-                                default => 'Sonstiges'
-                            };
-                            ?>
-                            <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-file-lines text-muted"></i>
-                                    <span class="fw-semibold"><?= htmlspecialchars($doc['title']) ?></span>
-                                    <span class="badge <?= $badgeColor ?>"><?= $docTypeName ?></span>
-                                </div>
-                                <div class="d-flex gap-1">
-                                    <a href="docs/items/<?= htmlspecialchars($doc['filename']) ?>" target="_blank" class="btn btn-outline-secondary btn-sm" title="Anzeigen / Herunterladen">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </a>
-                                    <!-- Geändert: Öffnet das Modal statt confirm() -->
-                                    <button type="button" class="btn btn-outline-danger btn-sm" 
-                                            onclick="openDocumentDeleteModal(<?= (int)$doc['id'] ?>, <?= (int)$id ?>, '<?= htmlspecialchars($doc['title'], ENT_QUOTES) ?>')" 
-                                            title="Löschen">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
+            <?php require_once __DIR__ . '/inc/item/documents.php'; ?>
 
-                <div class="row g-2">
-                    <div class="col-md-8">
-                        <input type="file" name="documents[]" class="form-control" accept=".pdf,.doc,.docx,.txt" multiple>
-                    </div>
-                    <div class="col-md-4">
-                        <select name="doc_type" class="form-select">
-                            <option value="sonstiges" selected>Sonstiges</option>
-                            <option value="rechnung">Rechnung</option>
-                            <option value="bedienungsanleitung">Bedienungsanleitung</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-text">Der ausgewählte Dokumenttyp gilt für alle hier neu hochgeladenen Dateien.</div>
-            </div>
+            <?php require_once __DIR__ . '/inc/item/imageupload.php'; ?>
 
-            <!-- Sektion: Bilderupload -->
-            <div class="mb-3">
-                <label class="form-label">Weitere Bilder hinzufügen</label>
-                <input type="file" name="images[]" class="form-control" accept="image/*" multiple>
-            </div>
-
-            <!-- Sektion: Set-Verwaltung -->
-            <div class="card bg-light border-0 p-3 mb-3">
-                <h6 class="text-secondary fw-bold mb-3"><i class="fa-solid fa-layer-group me-2"></i>Set-Verwaltung</h6>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" value="1" id="is_set" name="is_set" <?= !empty($item['is_set']) ? 'checked' : '' ?>>
-                    <label class="form-check-label fw-semibold text-warning-emphasis" for="is_set">
-                        Dieser Gegenstand ist ein Set (enthält mehrere Inhaltsteile)
-                    </label>
-                </div>
-                <div id="setManageButtonContainer" class="<?= !empty($item['is_set']) ? '' : 'd-none' ?>">
-                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#setItemModal">
-                        <i class="fa-solid fa-list-check me-1"></i>Set-Inhalte verwalten
-                    </button>
-                    <?php if (empty($id) || $id <= 0): ?>
-                        <div class="form-text text-muted mt-1">Hinweis: Sie können Inhalte hinzufügen, sobald der Gegenstand einmalig gespeichert wurde.</div>
-                    <?php endif; ?>
-                </div>
-            </div>
+            <?php require_once __DIR__ . '/inc/item/set-management.php'; ?>
 
             <!-- Schaltflächen zum Speichern & Navigation -->
             <div class="d-flex flex-wrap gap-2">
@@ -524,29 +393,7 @@ require_once __DIR__ . '/inc/header.php';
             </div>
         </form>
 
-        <!-- Container für die interaktiven Tag-Pills und das Eingabefeld -->
-        <div class="mb-3 mt-4 border-top pt-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <label class="form-label mb-0">Schlagwörter (Tags)</label>
-                <small id="tagSaveStatus" class="text-muted" style="transition: opacity 0.3s; opacity: 0;">
-                    <i class="fa-solid fa-check text-success me-1"></i>Gespeichert
-                </small>
-            </div>
-       
-            <input type="hidden" id="currentItemId" value="<?= (int)$item['id'] ?>">
-
-            <div class="position-relative mt-1">
-                <div id="tagContainer" class="form-control d-flex flex-wrap align-items-center gap-1 p-2" style="min-height: 38px; cursor: text;">
-                    <input type="text" id="tagInputField" class="border-0 flex-grow-1 bg-transparent text-body p-0 shadow-none" placeholder="Tag eingeben, mit Komma trennen..." autocomplete="off" style="outline: none; min-width: 120px;">
-                </div>
-           
-                <div id="tagSuggestions" class="dropdown-menu shadow-sm w-100" style="display: none; position: absolute; top: 100%; left: 0; z-index: 1050;"></div>
-            </div>
-       
-            <input type="hidden" id="tagsHiddenInput" name="tags" value="<?= htmlspecialchars($currentTagsString) ?>">
-       
-            <div class="form-text mt-1">Tippen, mit Pfeiltasten wählen &amp; Enter drücken. Klicke auf das × zum Entfernen.</div>
-        </div>
+    <?php require_once __DIR__ . '/inc/item/tags.php'; ?>
     </div>
 </div>
 

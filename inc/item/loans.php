@@ -47,3 +47,10 @@
                 </div>
             </div>
         <?php else: ?>
+            <!-- Hinweis für Schüttgut -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-muted small py-3">
+                    <i class="fa-solid fa-info-circle me-1"></i> <strong>Schüttgut / Massenartikel:</strong> Für diesen Gegenstand ist keine Einzelstück- oder Verleih-Verfolgung aktiv.
+                </div>
+            </div>
+        <?php endif; ?>

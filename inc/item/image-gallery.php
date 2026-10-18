@@ -1,5 +1,5 @@
 <!-- Sektion: Bilder -->
-<div class="card bg-light border-0 p-3 mb-3">
+<div class="card bg-light border-0 p-3 mb-3 mt-3">
     <h6 class="text-secondary fw-bold mb-3"><i class="fa-solid fa-images me-2"></i>Bilder</h6>
 
     <?php if (!empty($images)): ?>

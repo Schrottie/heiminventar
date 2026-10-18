@@ -10,7 +10,7 @@ if ($itemId <= 0) {
 }
 
 // 0. Vorherigen Zustand des Artikels für Vergleich und Logging abfragen
-$stmtOld = $pdo->prepare("SELECT name, description, quantity, min_quantity, location_id, expiration_date, price, loan_to, loan_date, purchase_date, purchase_location, manufacturer, warranty_months, is_insured, is_set, is_bulk, expiration_date, maintenance_interval_months, last_maintenance_date FROM inventory_items WHERE id = ?");
+$stmtOld = $pdo->prepare("SELECT name, description, quantity, min_quantity, location_id, price, loan_to, loan_date, purchase_date, purchase_location, manufacturer, warranty_months, is_insured, is_set, is_bulk, expiration_date, maintenance_interval_months, last_maintenance_date FROM inventory_items WHERE id = ?");
 $stmtOld->execute([$itemId]);
 $oldItem = $stmtOld->fetch();
 
@@ -91,17 +91,23 @@ if ($hasNameField) {
     ]);
 
     // Einheiten (item_units) passend zu quantity und is_bulk synchronisieren
-    syncItemUnits($pdo, $itemId, $quantity);
+    if (function_exists('syncItemUnits')) {
+        syncItemUnits($pdo, $itemId, $quantity);
+    }
 
     // Protokollierung der Hauptänderung
-    logInventoryAction($pdo, $itemId, $name, 'updated', 0, $quantity, 'Gegenstand bearbeitet');
+    if (function_exists('logInventoryAction')) {
+        logInventoryAction($pdo, $itemId, $name, 'updated', 0, $quantity, 'Gegenstand bearbeitet');
+    }
 }
 
 // 3. Bilder-Upload verarbeiten
 $uploadedImagesCount = 0;
 if (!empty($_FILES['images']['name'][0])) {
     $imgDir = __DIR__ . '/../img/items/';
-    ensureDirectoryExists($imgDir);
+    if (function_exists('ensureDirectoryExists')) {
+        ensureDirectoryExists($imgDir);
+    }
 
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM item_images WHERE item_id = ? AND is_main = 1");
     $stmt->execute([$itemId]);
@@ -125,7 +131,7 @@ if (!empty($_FILES['images']['name'][0])) {
         }
     }
 
-    if ($uploadedImagesCount > 0) {
+    if ($uploadedImagesCount > 0 && function_exists('logInventoryAction')) {
         logInventoryAction($pdo, $itemId, $name, 'updated', 0, $quantity, $uploadedImagesCount . ' neue(s) Bild(er) hochgeladen');
     }
 }
@@ -134,7 +140,9 @@ if (!empty($_FILES['images']['name'][0])) {
 $uploadedDocsCount = 0;
 if (!empty($_FILES['documents']['name'][0])) {
     $docDir = __DIR__ . '/../docs/items/';
-    ensureDirectoryExists($docDir);
+    if (function_exists('ensureDirectoryExists')) {
+        ensureDirectoryExists($docDir);
+    }
 
     foreach ($_FILES['documents']['tmp_name'] as $key => $tmpName) {
         if ($_FILES['documents']['error'][$key] === UPLOAD_ERR_OK) {
@@ -158,33 +166,11 @@ if (!empty($_FILES['documents']['name'][0])) {
         }
     }
 
-    if ($uploadedDocsCount > 0) {
+    if ($uploadedDocsCount > 0 && function_exists('logInventoryAction')) {
         logInventoryAction($pdo, $itemId, $name, 'updated', 0, $quantity, $uploadedDocsCount . ' neue(s) Dokument(e) hochgeladen');
     }
 }
 
 // Weiterleiten nach dem Speichern
 header("Location: ../item.php?id=" . $itemId . "&success=1");
-exit;
-ename, title, doc_type) VALUES (?, ?, ?, ?)");
-                    $stmt->execute([$itemId, $newFilename, $docTitle, $docType]);
-                   
-                    $uploadedDocsCount++;
-                }
-            }
-        }
-    }
-
-    if ($uploadedDocsCount > 0) {
-        logInventoryAction($pdo, $itemId, $name, 'updated', 0, $quantity, $uploadedDocsCount . ' neue(s) Dokument(e) hochgeladen');
-    }
-}
-
-$action = $_POST['action'] ?? 'save';
-
-if ($action === 'save_and_close') {
-    header("Location: ../index.php?success=1");
-} else {
-    header("Location: ../item.php?id=" . $itemId . "&success=1");
-}
 exit;

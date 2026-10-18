@@ -469,6 +469,58 @@ require_once __DIR__ . '/inc/header.php';
                                 <i class="fa-solid fa-box text-primary me-1" title="Gegenstand"></i>
                             <?php endif; ?>
                            
+    <?php foreach ($items as $item): ?>
+        <?php
+        $itemId = (int)$item['id'];
+        $qty = (int)$item['quantity'];
+        $minQty = (int)$item['min_quantity'];
+        $isLowStock = ($minQty >= 0 && $qty < $minQty);
+        $lentCount = (int)$item['lent_count'];
+        $isOnLoan = ($lentCount > 0);
+        $isSet = !empty($item['is_set']);
+       
+        $expStatus = getExpirationStatus($item['expiration_date'] ?? null);
+        $isExpiredOrWarning = ($expStatus === 'danger' || $expStatus === 'warning') ? '1' : '0';
+
+        $maintStatus = getMaintenanceStatus($item['maintenance_interval_months'] ?? 0, $item['last_maintenance_date'] ?? null);
+        $isMaintenanceDue = ($maintStatus === 'overdue' || $maintStatus === 'warning') ? '1' : '0';
+
+        $path = getLocationPath($allLocations, (int)$item['location_id']);
+        $searchTerms = mb_strtolower($item['name'] . ' ' . ($item['location_name'] ?? '') . ' ' . $path . ' ' . ($item['lent_details'] ?? ''));
+       
+        // Tags as Array für das data-Attribute aufbereiten
+        $itemTagsArray = !empty($item['item_tags_list']) ? explode('||', $item['item_tags_list']) : [];
+        $itemTagsJson = htmlspecialchars(json_encode($itemTagsArray), ENT_QUOTES, 'UTF-8');
+
+        $hasImage = $showImages && !empty($item['image_filename']);
+
+        // Styling für Karte je nach Status
+        $cardStyleClass = '';
+        if ($isLowStock) {
+            $cardStyleClass = 'border-danger-subtle bg-danger-subtle bg-opacity-10';
+        } elseif ($isOnLoan) {
+            $cardStyleClass = 'border-info-subtle bg-info-subtle bg-opacity-10';
+        }
+        ?>
+
+        <div class="card shadow-sm mb-2 inventory-item <?= $cardStyleClass ?>"
+             data-search="<?= htmlspecialchars($searchTerms) ?>"
+             data-tags="<?= $itemTagsJson ?>"
+             data-low-stock="<?= $isLowStock ? '1' : '0' ?>"
+             data-expired="<?= $isExpiredOrWarning ?>"
+             data-maintenance="<?= $isMaintenanceDue ?>">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                   
+                    <!-- Linker Bereich: Name, Badges & Lagerort -->
+                    <div class="flex-grow-1 me-3 mw-0">
+                        <h6 class="mb-1 text-break">
+                            <?php if ($isSet): ?>
+                                <i class="fa-solid fa-layer-group text-primary me-1" title="Set"></i>
+                            <?php else: ?>
+                                <i class="fa-solid fa-box text-primary me-1" title="Gegenstand"></i>
+                            <?php endif; ?>
+                           
                             <?= htmlspecialchars($item['name']) ?>
                            
                             <span class="d-inline-block">

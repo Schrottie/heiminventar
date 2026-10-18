@@ -10,7 +10,7 @@ if ($itemId <= 0) {
 }
 
 // 0. Vorherigen Zustand des Artikels für Vergleich und Logging abfragen (inkl. is_bulk)
-$stmtOld = $pdo->prepare("SELECT name, description, quantity, min_quantity, location_id, expiration_date, price, loan_to, loan_date, purchase_date, purchase_location, manufacturer, warranty_months, is_insured, is_bulk FROM inventory_items WHERE id = ?");
+$stmtOld = $pdo->prepare("SELECT name, description, quantity, min_quantity, location_id, expiration_date, price, loan_to, loan_date, purchase_date, purchase_location, manufacturer, warranty_months, is_insured, is_set, is_bulk FROM inventory_items WHERE id = ?");
 $stmtOld->execute([$itemId]);
 $oldItem = $stmtOld->fetch();
 

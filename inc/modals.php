@@ -532,4 +532,28 @@
         </div>
     </div>
 </div>
+
+<!-- Modal zum Löschen von Bildern -->
+<div class="modal fade" id="imageDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="api/item-image-delete.php" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">Bild löschen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Mist du sicher, dass du dieses Bild unwiderruflich löschen möchtest?</p>
+                    <input type="hidden" name="image_id" id="modal_image_id">
+                    <input type="hidden" name="item_id" id="modal_item_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-danger">Löschen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <?php endif; ?>

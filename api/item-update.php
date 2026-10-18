@@ -125,78 +125,7 @@ if ($action === 'save_and_close') {
     header("Location: ../item.php?id=" . $itemId . "&success=1");
 }
 exit;
- $tmpName) {
-        if (isset($_FILES['documents']['error'][$key]) && $_FILES['documents']['error'][$key] === UPLOAD_ERR_OK && is_uploaded_file($tmpName)) {
-            $originalName = $_FILES['documents']['name'][$key];
-            $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-           
-            $allowedExts = ['pdf', 'doc', 'docx', 'txt', 'xls', 'xlsx'];
-            if (in_array($ext, $allowedExts)) {
-                $newFilename = 'doc_' . $itemId . '_' . time() . '_' . uniqid() . '.' . $ext;
-               
-                if (move_uploaded_file($tmpName, $docDir . $newFilename)) {
-                    $docTitle = pathinfo($originalName, PATHINFO_FILENAME);
-                    $docType = $_POST['doc_type'] ?? 'sonstiges';
-                    if (!in_array($docType, ['rechnung', 'bedienungsanleitung', 'sonstiges'])) {
-                        $docType = 'sonstiges';
-                    }
-
-                    try {
-                        $stmt = $pdo->prepare("INSERT INTO item_documents (item_id, filename, title, doc_type) VALUES (?, ?, ?, ?)");
-                        $stmt->execute([$itemId, $newFilename, $docTitle, $docType]);
-                        $uploadedDocsCount++;
-                    } catch (PDOException $e) {
-                        // Ignorieren
-                    }
-                }
-            }
-        }
-    }
-
-    if ($uploadedDocsCount > 0) {
-        $currentItemName = isset($name) ? $name : $oldItem['name'];
-        $currentQty = isset($quantity) ? $quantity : (int)$oldItem['quantity'];
-        logInventoryAction($pdo, $itemId, $currentItemName, 'updated', 0, $currentQty, $uploadedDocsCount . ' neue(s) Dokument(e) hochgeladen');
-    }
-}
-
-// 5. Weiterleitung je nach Button
-$action = $_POST['action'] ?? 'save';
-
-if ($action === 'save_and_close') {
-    header("Location: ../index.php?success=1");
-} else {
-    header("Location: ../item.php?id=" . $itemId . "&success=1");
-}
-exit;
-   $originalName = $_FILES['documents']['name'][$key];
-            $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-           
-            $allowedExts = ['pdf', 'doc', 'docx', 'txt', 'xls', 'xlsx'];
-            if (in_array($ext, $allowedExts)) {
-                $newFilename = 'doc_' . $itemId . '_' . time() . '_' . uniqid() . '.' . $ext;
-               
-                if (move_uploaded_file($tmpName, $docDir . $newFilename)) {
-                    $docTitle = pathinfo($originalName, PATHINFO_FILENAME);
-                    $docType = $_POST['doc_type'] ?? 'sonstiges';
-                    if (!in_array($docType, ['rechnung', 'bedienungsanleitung', 'sonstiges'])) {
-                        $docType = 'sonstiges';
-                    }
-
-                    try {
-                        $stmt = $pdo->prepare("INSERT INTO item_documents (item_id, filename, title, doc_type) VALUES (?, ?, ?, ?)");
-                        $stmt->execute([$itemId, $newFilename, $docTitle, $docType]);
-                        $uploadedDocsCount++;
-                    } catch (PDOException $e) {
-                        // Ignorieren / Weitermachen bei Duplikat
-                    }
-                }
-            }
-        }
-    }
-
-    if ($uploadedDocsCount > 0) {
-        $currentItemName = isset($name) ? $name : $oldItem['name'];
+: $oldItem['name'];
         $currentQty = isset($quantity) ? $quantity : (int)$oldItem['quantity'];
         logInventoryAction($pdo, $itemId, $currentItemName, 'updated', 0, $currentQty, $uploadedDocsCount . ' neue(s) Dokument(e) hochgeladen');
     }

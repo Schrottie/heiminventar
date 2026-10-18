@@ -222,7 +222,7 @@ require_once __DIR__ . '/inc/header.php';
                 <h6 class="text-secondary fw-bold mb-3"><i class="fa-solid fa-file-invoice-dollar me-2"></i>Anschaffung &amp; Versicherung</h6>
                 <div class="row g-3">
                     <div class="col-md-3">
-                        <label for="price" class="form-label">Anschaffungspreis (€)</label>
+                        <label for="price" class="form-label">Kaufpreis (€)</label>
                         <div class="input-group">
                             <input type="number" step="0.01" min="0" class="form-control" id="price" name="price" value="<?= htmlspecialchars($item['price'] ?? '') ?>">
                             <span class="input-group-text">€</span>

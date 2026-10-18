@@ -1,57 +1,50 @@
-<!-- Sektion: Anbauteile & Zubehör -->
+<!-- Sektion: Anschaffung & Versicherung -->
 <div class="card bg-light border-0 p-3 mb-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="text-secondary fw-bold mb-0">
-            <i class="fa-solid fa-puzzle-piece me-2"></i>Anbauteile &amp; Zubehör
-        </h6>
-        <!-- Button zum Hinzufügen (nutzt deine globale Funktion ohne data-bs-toggle Konflikt) -->
-        <button type="button" class="btn btn-sm btn-primary" onclick="openAddPartModal(event)">
-            <i class="fa-solid fa-plus me-1"></i>Anbauteil hinzufügen
-        </button>
+    <h6 class="text-secondary fw-bold mb-3">
+        <i class="fa-solid fa-file-invoice-dollar me-2"></i>Anschaffung &amp; Versicherung
+    </h6>
+    
+    <div class="row g-3">
+        <!-- Kaufpreis -->
+        <div class="col-md-3">
+            <label for="price" class="form-label small text-muted">Kaufpreis (€)</label>
+            <div class="input-group">
+                <input type="number" step="0.01" min="0" class="form-control" id="price" name="price" value="<?= htmlspecialchars($item['price'] ?? '') ?>" placeholder="0,00">
+                <span class="input-group-text">€</span>
+            </div>
+        </div>
+
+        <!-- Kaufdatum -->
+        <div class="col-md-3">
+            <label for="purchase_date" class="form-label small text-muted">Kaufdatum</label>
+            <div class="input-group">
+                <input type="date" class="form-control" id="purchase_date" name="purchase_date" value="<?= htmlspecialchars($item['purchase_date'] ?? '') ?>">
+                <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('purchase_date').value = '';" title="Datum leeren">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Kaufort / Händler -->
+        <div class="col-md-3">
+            <label for="purchase_location" class="form-label small text-muted">Kaufort / Händler</label>
+            <input type="text" class="form-control" id="purchase_location" name="purchase_location" value="<?= htmlspecialchars($item['purchase_location'] ?? '') ?>" placeholder="z.B. Hornbach Berlin">
+        </div>
+
+        <!-- Garantie -->
+        <div class="col-md-3">
+            <label for="warranty_months" class="form-label small text-muted">Garantie (Monate)</label>
+            <input type="number" min="0" class="form-control" id="warranty_months" name="warranty_months" value="<?= !empty($item['warranty_months']) ? (int)$item['warranty_months'] : '' ?>" placeholder="z.B. 24">
+        </div>
     </div>
 
-    <!-- Bestehende Anbauteile-Liste (wird ausgegeben, wenn Teile vorhanden sind) -->
-    <?php if (!empty($itemParts)): ?>
-        <div class="list-group mb-3">
-            <?php foreach ($itemParts as $part): ?>
-                <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3 bg-white">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-puzzle-piece text-muted"></i>
-                        <span class="fw-semibold"><?= htmlspecialchars($part['name']) ?></span>
-                        <span class="badge bg-secondary">Menge: <?= (int)$part['quantity'] ?></span>
-                        <?php if ($part['price'] !== null): ?>
-                            <span class="badge bg-light text-dark border"><?= number_format($part['price'], 2, ',', '.') ?> €</span>
-                        <?php endif; ?>
-                        
-                        <!-- Rechnungs-Status Badge -->
-                        <?php if ($part['invoice_status'] === 'parent'): ?>
-                            <span class="badge bg-secondary" title="Auf Hauptrechnung">Hauptrechnung</span>
-                        <?php elseif ($part['invoice_status'] === 'none'): ?>
-                            <span class="badge bg-light text-dark border" title="Keine Rechnung">Keine Rechnung</span>
-                        <?php else: ?>
-                            <span class="badge bg-success" title="Eigene Rechnung">Eigene Rechnung</span>
-                        <?php endif; ?>
-                    </div>
-                    
-                    <div class="d-flex gap-1">
-                        <?php if (!empty($part['invoice_filename'])): ?>
-                            <a href="docs/items/<?= htmlspecialchars($part['invoice_filename']) ?>" target="_blank" class="btn btn-outline-secondary btn-sm" title="Rechnung anzeigen">
-                                <i class="fa-solid fa-file-invoice"></i>
-                            </a>
-                        <?php endif; ?>
-                        <!-- Bearbeiten-Button -->
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="openEditPartModal(<?= htmlspecialchars(json_encode($part), ENT_QUOTES) ?>)" title="Bearbeiten">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <!-- Löschen-Button (ruft das schicke Bestätigungs-Modal auf) -->
-                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="confirmDeletePart(<?= (int)$part['id'] ?>, '<?= htmlspecialchars($part['name'], ENT_QUOTES) ?>')" title="Löschen">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            <?php endforeach; ?>
+    <!-- Versicherungseinstellung -->
+    <div class="mt-3 pt-2 border-top border-secondary-subtle">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="1" id="is_insured" name="is_insured" <?= !empty($item['is_insured']) ? 'checked' : '' ?>>
+            <label class="form-check-label fw-semibold text-warning-emphasis" for="is_insured">
+                Für Versicherungsliste markieren (versicherungsrelevant)
+            </label>
         </div>
-    <?php else: ?>
-        <p class="text-muted small mb-0">Bisher sind keine Anbauteile oder Zubehörkomponenten hinterlegt.</p>
-    <?php endif; ?>
+    </div>
 </div>

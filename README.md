@@ -129,7 +129,7 @@ Um das Verzeichnis `/var/www/html/inventory` automatisch mit diesem Repository s
 
 ---
 
-## Demo
+## 🎛️ Demo
 
 Unter [https://maik-bischoff.de/heiminventar/](https://maik-bischoff.de/heiminventar/index.php) gibt es eine (eingeschränkte) Demo.
 

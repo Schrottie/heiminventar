@@ -129,6 +129,10 @@ Um das Verzeichnis `/var/www/html/inventory` automatisch mit diesem Repository s
 
 ---
 
+## Demo
+
+Unter [https://maik-bischoff.de/heiminventar/](https://maik-bischoff.de/heiminventar/index.php) gibt es eine (eingeschränkte) Demo.
+
 ## 📄 Lizenz
 
 Dieses Projekt ist unter der **MIT-Lizenz** veröffentlich – freie Nutzung, Anpassung und Weitergabe für private und kommerzielle Zwecke.

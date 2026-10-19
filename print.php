@@ -399,6 +399,7 @@ function renderReport() {
 
     } else {
        // Versicherungsliste als Tabelle
+        window.currentPrintItems = filteredItems;
         let totalSum = 0;
         let rowsHtml = '';
 
@@ -406,6 +407,10 @@ function renderReport() {
             const itemId = parseInt(item.id);
             const basePrice = parseFloat(item.price || 0);
             const insuredQty = item.insured_quantity;
+            
+            // Prüfen, ob das Item aktuell ausgeschlossen ist
+            const isExcluded = excludedItemIds.has(itemId);
+            const rowClassState = isExcluded ? 'table-active text-muted opacity-50 excluded-row' : 'fw-semibold';
            
             let partsSum = 0;
             let partsRowsHtml = '';
@@ -429,8 +434,9 @@ function renderReport() {
                         }
                     }
 
+                    // Zubehör-Teile gehören zum Hauptartikel und erhalten eine Verknüpfungs-Klasse
                     partsRowsHtml += `
-                        <tr class="small text-muted border-0">
+                        <tr class="small text-muted border-0 part-row-${itemId} ${isExcluded ? 'excluded-row' : ''}">
                             <td class="ps-4 text-break" colspan="2">
                                 <i class="fa-solid fa-puzzle-piece me-1 opacity-50"></i> ${escapeHtml(part.name)}
                                 ${parseInt(part.quantity) > 1 ? `<span class="badge bg-secondary ms-1">Anz: ${part.quantity}</span>` : ''}
@@ -449,14 +455,18 @@ function renderReport() {
             const unitTotalValue = basePrice + partsSum;
             const itemTotalInsuredValue = item.total_price_insured;
 
-            totalSum += itemTotalInsuredValue;
+            // Gesamtsumme im Footer wird optional live angepasst oder bleibt unberührt (je nach Wunsch)
+            if (!isExcluded) {
+                totalSum += itemTotalInsuredValue;
+            }
 
             let checkboxCell = '';
             if (isIndividualModeActive) {
-                let isChecked = !excludedItemIds.has(itemId) ? 'checked' : '';
+                let isChecked = !isExcluded ? 'checked' : '';
+                // Wir übergeben die itemId an eine neue Funktion togglePrintExclusion(itemId, checkbox)
                 checkboxCell = `
                     <td class="text-center no-print">
-                        <input class="form-check-input item-print-checkbox" type="checkbox" value="${itemId}" ${isChecked} onchange="handleItemCheckboxChange(${itemId}, this)">
+                        <input class="form-check-input item-print-checkbox" type="checkbox" value="${itemId}" ${isChecked} onchange="togglePrintExclusion(${itemId}, this)">
                     </td>
                 `;
             }
@@ -470,7 +480,7 @@ function renderReport() {
             }
 
             rowsHtml += `
-                <tr class="fw-semibold">
+                <tr class="${rowClassState} main-row-${itemId}">
                     ${checkboxCell}
                     <td class="text-break">
                         <a href="item.php?id=${item.id}" class="print-item-link">${itemNameDisplay}</a>
@@ -512,8 +522,8 @@ function renderReport() {
                     </tbody>
                     <tfoot class="table-light fw-bold">
                         <tr>
-                            <td colspan="${colspanVal}" class="text-end">Gesamtsumme (versicherungsrelevante Gegenstände inkl. Zubehör):</td>
-                            <td class="text-end">${formatMoney(totalSum)} €</td>
+                            <td colspan="${colspanVal}" class="text-end">Gesamtsumme (versicherte Artikel inkl. Zubehör):</td>
+                            <td class="text-end" id="insuranceTotalSum">${formatMoney(totalSum)} €</td>
                             <td colspan="3"></td>
                         </tr>
                     </tfoot>
@@ -522,6 +532,44 @@ function renderReport() {
         `;
     }
 }
+
+function togglePrintExclusion(itemId, checkbox) {
+    const mainRow = document.querySelector(`.main-row-${itemId}`);
+    const partRows = document.querySelectorAll(`.part-row-${itemId}`);
+
+    if (checkbox.checked) {
+        excludedItemIds.delete(itemId);
+        if (mainRow) {
+            mainRow.classList.remove('table-active', 'text-muted', 'opacity-50', 'excluded-row');
+            mainRow.classList.add('fw-semibold');
+        }
+        partRows.forEach(row => row.classList.remove('excluded-row'));
+    } else {
+        excludedItemIds.add(itemId);
+        if (mainRow) {
+            mainRow.classList.remove('fw-semibold');
+            mainRow.classList.add('table-active', 'text-muted', 'opacity-50', 'excluded-row');
+        }
+        partRows.forEach(row => row.classList.add('excluded-row'));
+    }
+
+    // --- Gesamtsumme korrekt über die global gesicherten Items berechnen ---
+    let newTotalSum = 0;
+    if (typeof window.currentPrintItems !== 'undefined') {
+        window.currentPrintItems.forEach(item => {
+            const id = parseInt(item.id);
+            if (!excludedItemIds.has(id)) {
+                newTotalSum += parseFloat(item.total_price_insured || 0);
+            }
+        });
+    }
+
+    const totalSumElement = document.getElementById('insuranceTotalSum');
+    if (totalSumElement) {
+        totalSumElement.textContent = formatMoney(newTotalSum) + ' €';
+    }
+}
+
 
 function escapeHtml(str) {
     if (!str) return '';

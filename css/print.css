@@ -57,7 +57,7 @@
         display: none !important;
     }
 
-        /* --- Standard-Druck (Karten-Grid: exakt 2 Spalten nebeneinander auf voller Breite) --- */
+    /* --- Standard-Druck (Karten-Grid: exakt 2 Spalten nebeneinander auf voller Breite) --- */
     #reportOutputContainer .row {
         display: flex !important;
         flex-wrap: wrap !important;
@@ -121,6 +121,12 @@
     .print-table tfoot td {
         background-color: #eaeaea !important;
         font-weight: bold !important;
+    }
+    
+    /* Ausgeschlossene Zeilen beim Drucken komplett unsichtbar machen */
+    tr.excluded-row {
+        display: none !important;
+        visibility: hidden !important;
     }
 
     /* Links im Druck ohne Farbe/Unterstreichung */

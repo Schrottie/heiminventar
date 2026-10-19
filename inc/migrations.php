@@ -212,6 +212,12 @@ function runDatabaseMigrations(PDO $pdo): void
 
         '024_fiedl_added_for_part_system' => "
            -- Spaltenprüfung erfolgt unten
+        ",
+
+        '025_release_1_1_0' => "
+        ",
+
+        '026_release_1_1_1' => "
         "
     ];
 

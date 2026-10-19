@@ -1,58 +1,72 @@
 <?php
 require_once __DIR__ . '/../cfg/db.php';
+require_once __DIR__ . '/../inc/functions.php';
 
-// CSV-Header für den Download senden (verhindert das .php-Problem)
+// Dateiname für den Download festlegen
+$filename = 'inventar_export_' . date('Y-m-d_H-i-s') . '.csv';
+
 header('Content-Type: text/csv; charset=utf-8');
-header('Content-Disposition: attachment; filename="inventar_export_' . date('Y-m-d') . '.csv"');
+header('Content-Disposition: attachment; filename="' . $filename . '"');
 
-// Ausgabestream öffnen
+// BOM für Excel UTF-8 Kompatibilität
+echo "\xEF\xBB\xBF";
+
 $output = fopen('php://output', 'w');
 
-// UTF-8 BOM für Excel-Kompatibilität schreiben
-fwrite($output, "\xEF\xBB\xBF");
-
-// Kopfzeile schreiben (inkl. lagerort_id und Lagerort)
+// Header-Zeile mit allen relevanten Attributen schreiben
 fputcsv($output, [
+    'ID',
     'Bezeichnung',
+    'Hersteller',
     'Beschreibung',
     'Menge',
     'Mindestbestand',
+    'Schuettgut',
     'Preis',
+    'Kaufdatum',
+    'Kaufort',
+    'Garantie_Monate',
+    'Versichert',
     'Ablaufdatum',
-    'Verliehen an',
-    'lagerort_id',
-    'Lagerort'
+    'Wartung_Intervall_Monate',
+    'Letzte_Wartung',
+    'Lagerort_ID',
+    'Lagerort',
+    'Erstellt_Am'
 ], ';');
 
-// Alle aktiven Gegenstände aus der Datenbank abfragen (inkl. Lagerort-Name)
-$stmt = $pdo->query("
+// Alle Items inkl. Lagerort-Namen abrufen
+$sql = "
     SELECT 
-        i.name, 
-        i.description, 
-        i.quantity, 
-        i.min_quantity, 
-        i.price, 
-        i.expiration_date, 
-        i.loan_to, 
-        i.location_id,
-        l.name AS location_name
-    FROM inventory_items i
-    LEFT JOIN locations l ON l.id = i.location_id
-    WHERE i.is_archived = '0'
+        i.*, 
+        l.name AS location_name 
+    FROM inventory_items i 
+    LEFT JOIN locations l ON l.id = i.location_id 
+    WHERE i.is_archived = '0' 
     ORDER BY i.name ASC
-");
+";
+$stmt = $pdo->query($sql);
 
 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
     fputcsv($output, [
+        $row['id'],
         $row['name'],
+        $row['manufacturer'],
         $row['description'],
         $row['quantity'],
         $row['min_quantity'],
-        $row['price'],
+        $row['is_bulk'] ? 'Ja' : 'Nein',
+        $row['price'] !== null ? number_format($row['price'], 2, ',', '') : '',
+        $row['purchase_date'],
+        $row['purchase_location'],
+        $row['warranty_months'],
+        $row['is_insured'] ? 'Ja' : 'Nein',
         $row['expiration_date'],
-        $row['loan_to'],
+        $row['maintenance_interval_months'],
+        $row['last_maintenance_date'],
         $row['location_id'],
-        $row['location_name']
+        $row['location_name'],
+        $row['created_at']
     ], ';');
 }
 

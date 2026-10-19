@@ -15,6 +15,8 @@
         $isMaintenanceDue = ($maintStatus === 'overdue' || $maintStatus === 'warning') ? '1' : '0';
 
         $path = getLocationPath($allLocations, (int)$item['location_id']);
+        $hasLocationPath = (!empty($item['location_name']) && $path !== $item['location_name']);
+
         $searchTerms = mb_strtolower($item['name'] . ' ' . ($item['location_name'] ?? '') . ' ' . $path . ' ' . ($item['lent_details'] ?? ''));
        
         // Tags as Array für das data-Attribute aufbereiten
@@ -71,7 +73,7 @@
                                 <?php endif; ?>
 
                                 <?php if ($isOnLoan): ?>
-                                    <span class="badge bg-info text-dark ms-1" title="Verliehene Exemplare: <?= htmlspecialchars($item['lent_details']) ?>">
+                                    <span class="badge bg-info text-dark ms-1" title="Verliehene Exemplare: <?= $lentCount ?> / <?= $qty ?>">
                                         <i class="fa-solid fa-handshake me-1"></i> Verliehen: <?= $lentCount ?> / <?= $qty ?>
                                     </span>
                                 <?php endif; ?>
@@ -100,7 +102,7 @@
                             onclick="toggleLocationPath(this, event)"
                             data-short="<?= htmlspecialchars($item['location_name'] ?? 'Kein Lagerort') ?>"
                             data-full="<?= htmlspecialchars($path) ?>">
-                                <i class="fa-solid fa-location-dot me-1"></i>
+                                <i class="fa-solid <?= $hasLocationPath ? 'fa-sitemap' : 'fa-location-dot' ?> me-1" <?= $hasLocationPath ? 'title="Verschachtelter Lagerort"' : '' ?>></i>
                                 <span class="location-text"><?= htmlspecialchars($item['location_name'] ?? 'Kein Lagerort') ?></span>
                             </a>
                         </small>

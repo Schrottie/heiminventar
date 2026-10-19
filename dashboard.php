@@ -85,7 +85,7 @@ require_once __DIR__ . '/inc/header.php';
     </div>
     <div>
         <a href="index.php" class="btn btn-outline-secondary">
-            <i class="fa-solid fa-arrow-left me-1"></i>Zurück zur Übersicht
+            <i class="fa-solid fa-arrow-left me-1"></i>Zur Übersicht
         </a>
     </div>
 </div>

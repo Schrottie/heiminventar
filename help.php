@@ -31,7 +31,7 @@ section {
             <p class="text-muted mb-0">Ausführliche Dokumentation und Anleitungen zur Inventar- und Lagerortverwaltung.</p>
         </div>
         <a href="index.php" class="btn btn-outline-secondary">
-            <i class="fa-solid fa-arrow-left me-1"></i>Zurück zur Übersicht
+            <i class="fa-solid fa-arrow-left me-1"></i>Zur Übersicht
         </a>
     </div>
 
@@ -43,12 +43,13 @@ section {
                     <i class="fa-solid fa-list me-2"></i>Inhalt
                 </div>
                 <div class="list-group list-group-flush small">
-                    <a href="#search" class="list-group-item list-group-item-action"><i class="fa-solid fa-magnifying-glass me-2"></i>Schnellsuche &amp; Filter</a>
+                    <a href="#search" class="list-group-item list-group-item-action"><i class="fa-solid fa-magnifying-glass me-2"></i>Inventar-Ansichten, Live-Filter &amp; Intelligente Suche</a>
                     <a href="#fab" class="list-group-item list-group-item-action"><i class="fa-solid fa-bars-staggered me-2"></i>Schnellaktionen (FAB)</a>
                     <a href="#qrcode" class="list-group-item list-group-item-action"><i class="fa-solid fa-qrcode me-2"></i> QR-Codes &amp; Etiketten</a>
                     <a href="#design" class="list-group-item list-group-item-action"><i class="fa-solid fa-palette me-2"></i>Design &amp; Vorschaubilder</a>
                     <a href="#items" class="list-group-item list-group-item-action"><i class="fa-solid fa-pen-to-square me-2"></i>Gegenstände bearbeiten &amp; archivieren</a>
                     <a href="#sets" class="list-group-item list-group-item-action"><i class="fa-solid fa-layer-group me-2"></i>Set-Verwaltung</a>
+                    <a href="#parts" class="list-group-item list-group-item-action"><i class="fa-solid fa-puzzle-piece me-2"></i>Anbauteile &amp; Zubehör</a>
                     <a href="#tags" class="list-group-item list-group-item-action"><i class="fa-solid fa-tags me-2"></i>Tag-System &amp; Filterung</a>
                     <a href="#locations" class="list-group-item list-group-item-action"><i class="fa-solid fa-folder-tree me-2"></i>Lagerortverwaltung</a>
                     <a href="#shuffle" class="list-group-item list-group-item-action"><i class="fa-solid fa-shuffle me-2"></i>Verschiebebahnhof</a>
@@ -69,15 +70,33 @@ section {
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4 p-md-5">
 
-                    <!-- Schnellsuche -->
+                    <!-- Schnellsuche, Filter & Umfassende Suche -->
                     <section id="search" class="mb-5">
                         <h5 class="text-danger d-flex align-items-center fw-bold">
-                            <i class="fa-solid fa-magnifying-glass me-2"></i> Schnellsuche &amp; Filter
+                            <i class="fa-solid fa-magnifying-glass me-2"></i> Inventar-Ansichten, Live-Filter &amp; Intelligente Suche
                         </h5>
-                        <p class="small text-muted mb-0">
-                            Über das Suchfeld <strong>„QuickFilter“</strong> oben wird die Inventarliste in Echtzeit gefiltert. Es kann nach Name, Seriennummer, Kategorie oder Standort gesucht werden. Über die Schaltfläche <strong>„Nachbestellen“</strong> lassen sich mit einem Klick alle Gegenstände filtern, deren Mindestbestand unterschritten ist.
+                        <p class="small text-muted mb-2">
+                            Das System bietet zwei flexible Modi für die Bestandsübersicht, um sowohl bei kleinen als auch sehr großen Inventaren die maximale Performance und Übersicht zu gewährleisten:
                         </p>
+                        <ul class="small text-muted ps-3 mb-0">
+                            <li class="mb-1">
+                                <strong>Live-Filterbare Liste (Standard):</strong> Lädt die vollständige Liste in den Browser und filtert Artikel in Echtzeit bei der Eingabe. Über Schnellfilter-Badges lassen sich Bestandsunterschreitungen (Mindestbestand), Verleihstatus oder Ablaufdaten direkt per Klick einblenden.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Umfassende Suche mit Paginierung:</strong> Speziell für sehr große Bestände konzipiert. Um Ladezeiten zu minimieren, werden hier erst nach Eingabe eines Suchbegriffs Treffer geladen (aufgeteilt in übersichtliche Blöcke zu je 10 Gegenständen).
+                            </li>
+                            <li class="mb-1">
+                                <strong>Flexible AND/OR-Suchlogik:</strong> Mehrere Suchbegriffe (getrennt durch Leerzeichen, Komma oder Semikolon) werden standardmäßig als ODER-Verknüpfung gewertet. Durch die Verwendung von <code>+</code>, <code>&amp;</code> oder <code>und</code> erzwingen Sie eine präzise UND-Verknüpfung.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Erweiterter Suchradius:</strong> Die umfassende Suche durchsucht parallel Namen, Beschreibungen, Hersteller, Kauforte, verknüpfte Tags sowie Lagerort-Namen.
+                            </li>
+                            <li>
+                                <strong>Standort-Hierarchien:</strong> Verschachtelte Lagerorte werden durch ein dynamisches Sitemap-Icon gekennzeichnet; per Klick lässt sich der vollständige Strukturpfad einblenden.
+                            </li>
+                        </ul>
                     </section>
+
 
                     <hr class="my-1 text-black-50">
 
@@ -189,6 +208,17 @@ section {
                                 <strong>Vorschaubilder in der Übersicht:</strong> Legt fest, ob in der Inventarübersicht Miniaturbilder angezeigt werden. Bei Deaktivierung zeigt die Übersicht eine kompaktere Textkarten-Ansicht.
                             </li>
                         </ul>
+                        <p>
+                            Weiterhin kann das verhalten der Startseite geändert werden:
+                        </p>
+                        <ul>
+                            <li>
+                                <strong>Startseite:</strong> Soll beim Aufruf des Systems mit der Übersicht oder mit dem Dashboard gestartet werden?
+                            </li>
+                            <li>
+                                <strong>Übersicht:</strong> Soll die Übersicht als filterbare Liste oder als Suchseite geöffnet werden?
+                            </li>
+                        </ul>
                     </section>
 
                     <hr class="my-1 text-black-50">
@@ -256,7 +286,34 @@ section {
                                 <strong>Inventur-Audit-Ansicht:</strong> Set-Komponenten werden in Audit- und Bestandsprüfungsansichten direkt inline angezeigt, um die Vollständigkeit (Compliance-Prüfung) unkompliziert zu kontrollieren.
                             </li>
                         </ul>
-                    </section>   
+                    </section>                       
+                    
+                    <hr class="my-1 text-black-50">
+
+                    <!-- Anbauteile-Verwaltung -->
+                    <section id="parts" class="mb-5">
+                        <h5 class="text-danger d-flex align-items-center fw-bold">
+                            <i class="fa-solid fa-puzzle-piece me-2"></i> Anbauteile &amp; Zubehör
+                        </h5>
+                        <p class="small text-muted mb-2">
+                            Erweiterungen, Zubehörteile oder Komponenten eines Gegenstands können direkt als Anbauteile gepflegt werden:
+                        </p>
+                        <ul class="small text-muted ps-3 mb-0">
+                            <li class="mb-1">
+                                <strong>Strukturierte Zuordnung:</strong> Auf der Detailseite eines Artikels lassen sich beliebig viele Unterkomponenten (z. B. Objektiv, Akku, Wechselkopf) mit Bezeichnung und Stückzahl hinzufügen.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Finanzielle Integration (Preise):</strong> Jedes Anbauteil kann mit einem eigenen Preis versehen werden, welcher automatisch in den Gesamtwert des Hauptgegenstands einfließt.
+                            </li>
+                            <li class="mb-1">
+                                <strong>Rechnungs-Status:</strong> Für jedes Teil lässt sich individuell festlegen, ob es auf der Hauptrechnung enthalten ist, eine eigene Rechnung besitzt oder gar keine benötigt/hat.
+                            </li>
+                            <li>
+                                <strong>Berücksichtigung im Druck:</strong> In der Versicherungs- und Standarddruckansicht werden Anbauteile übersichtlich unter dem Hauptartikel aufgeführt und bei Preissummen voll berücksichtigt.
+                            </li>
+                        </ul>
+                    </section>
+
 
                     <hr class="my-1 text-black-50">                 
 

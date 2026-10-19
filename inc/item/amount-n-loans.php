@@ -20,7 +20,7 @@
                                 <div>
                                     <span class="badge bg-warning text-dark me-1">Verliehen</span>
                                     <span class="fw-semibold small">An: <?= htmlspecialchars($unit['borrower_name']) ?></span>
-                                    <span class="text-muted small ms-1">(seit <?= htmlspecialchars($unit['lent_date']) ?>)</span>
+                                    <span class="text-muted small ms-1">(seit <?= htmlspecialchars(!empty($unit['lent_date']) ? date('d.m.Y', strtotime($unit['lent_date'])) : '') ?>)</span>
                                     <?php if (!empty($unit['notes'])): ?>
                                         <div class="text-muted" style="font-size: 0.75rem;"><?= htmlspecialchars($unit['notes']) ?></div>
                                     <?php endif; ?>

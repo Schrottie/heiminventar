@@ -31,7 +31,7 @@ require_once __DIR__ . '/inc/header.php';
             <p class="text-muted mb-0">Übersicht aller archivierten Gegenstände. Sie können jederzeit reaktiviert werden.</p>
         </div>
         <a href="index.php" class="btn btn-outline-secondary">
-            <i class="fa-solid fa-arrow-left me-1"></i>Zurück zur Übersicht
+            <i class="fa-solid fa-arrow-left me-1"></i>Zur Übersicht
         </a>
     </div>
 

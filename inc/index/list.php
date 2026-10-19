@@ -22,7 +22,10 @@
             <i class="fa-solid fa-qrcode"></i>
         </button>
     </div>
-
+<?php
+// Sicherstellen, dass standardmäßig 'list' aktiv ist, falls kein oder ein ungültiger Modus übergeben wurde
+$currentMode = (isset($_GET['mode']) && $_GET['mode'] === 'search') ? 'search' : 'list';
+?>
     <!-- Modus-Umschalter (Liste vs Suche direkt im Header für schnellen Wechsel) -->
     <div class="col-auto">
         <div class="btn-group" role="group" aria-label="Ansicht Modus">
@@ -35,7 +38,7 @@
         </div>
     </div>
 
-    <!-- WARN-BUTTONS FÜR DESKTOP & TABLET -->
+    <!-- Warnbuttons für Desktop & Tablets -->
     <?php if ($lowStockCount > 0 || $expiredCount > 0 || $maintenanceCount > 0): ?>
         <div class="col-auto d-none d-md-flex align-items-center gap-2">
             <?php if ($lowStockCount > 0): ?>
@@ -68,7 +71,7 @@
     <?php endif; ?>
 </div>
 
-<!-- WARN-BUTTONS FÜR SMARTPHONES -->
+<!-- Warnbuttons für Smartphones -->
 <?php if ($lowStockCount > 0 || $expiredCount > 0 || $maintenanceCount > 0): ?>
     <div class="row mb-3 g-2 d-md-none">
         <div class="col-12">

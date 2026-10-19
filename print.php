@@ -332,10 +332,21 @@ function renderReport() {
                     let badgeClass = 'bg-secondary text-white';
                     if (doc.doc_type === 'rechnung') badgeClass = 'bg-success text-white';
                     if (doc.doc_type === 'bedienungsanleitung') badgeClass = 'bg-info text-dark';
-                    docsHtml += `<span class="badge ${badgeClass}" style="font-size: 0.65rem;">${escapeHtml(doc.title)} (${doc.doc_type})</span>`;
+                    
+                    // Dokumententitel auf max. 15 Zeichen kürzen (mit Ellipsis, falls länger)
+                    let docTitle = doc.title || '';
+                    if (docTitle.length > 15) {
+                        docTitle = docTitle.substring(0, 15) + '…';
+                    }
+                    
+                    // Dokumententyp mit Großbuchstaben beginnen lassen (z.B. "Rechnung", "Bedienungsanleitung")
+                    let docTypeFormatted = doc.doc_type ? doc.doc_type.charAt(0).toUpperCase() + doc.doc_type.slice(1) : '';
+
+                    docsHtml += `<span class="badge ${badgeClass}" style="font-size: 0.65rem;" title="${escapeHtml(doc.title)}">${escapeHtml(docTitle)} (${escapeHtml(docTypeFormatted)})</span>`;
                 });
                 docsHtml += `</div>`;
             }
+
 
             let imageHtml = item.image_filename
                 ? `<img src="img/items/${escapeHtml(item.image_filename)}" class="rounded object-fit-cover" style="width: 70px; height: 70px;" alt="Bild">`

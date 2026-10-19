@@ -2,119 +2,63 @@
 require_once __DIR__ . '/../cfg/db.php';
 require_once __DIR__ . '/../inc/functions.php';
 
-$action = $_POST['action'] ?? 'save';
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: ../index.php');
+    exit;
+}
 
 $name = trim($_POST['name'] ?? '');
-$description = trim($_POST['description'] ?? '');
-$quantity = (int)($_POST['quantity'] ?? 1);
-$minQuantity = (int)($_POST['min_quantity'] ?? 0);
+if ($name === '') {
+    die('Bezeichnung darf nicht leer sein.');
+}
+
+$manufacturer = trim($_POST['manufacturer'] ?? '') !== '' ? trim($_POST['manufacturer']) : null;
+$description = trim($_POST['description'] ?? '') !== '' ? trim($_POST['description']) : null;
 $locationId = !empty($_POST['location_id']) ? (int)$_POST['location_id'] : null;
 
-// Weitere Felder auswerten
-$manufacturer = trim($_POST['manufacturer'] ?? '') !== '' ? trim($_POST['manufacturer']) : null;
-$price = !empty($_POST['price']) ? (float)$_POST['price'] : null;
-$purchaseDate = !empty($_POST['purchase_date']) ? $_POST['purchase_date'] : null;
-$purchaseLocation = trim($_POST['purchase_location'] ?? '') !== '' ? trim($_POST['purchase_location']) : null;
-$warrantyMonths = !empty($_POST['warranty_months']) ? (int)$_POST['warranty_months'] : null;
-$isInsured = isset($_POST['is_insured']) ? 1 : 0;
-$isSet = isset($_POST['is_set']) ? 1 : 0;
-$isBulk = isset($_POST['is_bulk']) ? 1 : 0; // Schüttgut / Massenartikel Umschalter
-$loanTo = trim($_POST['loan_to'] ?? '') !== '' ? trim($_POST['loan_to']) : null;
-$loanDate = !empty($_POST['loan_date']) ? $_POST['loan_date'] : null;
-$onLoan = ($loanTo !== null) ? 1 : 0;
+// Standardwerte für neue Gegenstände
+$quantity = 1;
+$minQuantity = 0;
+$isBulk = 0;
 
-$expirationDate = !empty($_POST['expiration_date']) ? $_POST['expiration_date'] : null;
-$maintenanceInterval = !empty($_POST['maintenance_interval_months']) ? (int)$_POST['maintenance_interval_months'] : null;
-$lastMaintenanceDate = !empty($_POST['last_maintenance_date']) ? trim($_POST['last_maintenance_date']) : null;
+try {
+    // In die Datenbank einfügen
+    $stmt = $pdo->prepare("INSERT INTO inventory_items 
+        (name, manufacturer, description, location_id, quantity, min_quantity, is_bulk, created_at) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
 
-if (empty($name)) {
-    die('Bezeichnung ist erforderlich');
-}
+    $stmt->execute([
+        $name,
+        $manufacturer,
+        $description,
+        $locationId,
+        $quantity,
+        $minQuantity,
+        $isBulk
+    ]);
 
-// 1. Gegenstand in DB anlegen (inkl. is_bulk)
-$stmt = $pdo->prepare("INSERT INTO inventory_items (
-    name, description, quantity, min_quantity, location_id,
-    manufacturer, price, purchase_date, purchase_location, warranty_months, is_insured, is_set, is_bulk,
-    loan_to, loan_date, on_loan, expiration_date, maintenance_interval_months, last_maintenance_date
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $newItemId = (int)$pdo->lastInsertId();
 
-$stmt->execute([
-    $name, $description, $quantity, $minQuantity, $locationId,
-    $manufacturer, $price, $purchaseDate, $purchaseLocation, $warrantyMonths, $isInsured, $isSet, $isBulk,
-    $loanTo, $loanDate, $onLoan, $expirationDate, $maintenanceInterval, $lastMaintenanceDate
-]);
-
-$newItemId = (int)$pdo->lastInsertId();
-
-// Einheiten (item_units) passend zu quantity und is_bulk synchronisieren
-syncItemUnits($pdo, $newItemId, $quantity);
-
-// Logging für die Erstellung ausführen
-logInventoryAction(
-    $pdo,
-    $newItemId,
-    $name,
-    'created',
-    $quantity,
-    $quantity,
-    'Gegenstand neu angelegt'
-);
-
-// 2. Bilder-Upload verarbeiten
-if (!empty($_FILES['images']['name'][0])) {
-    $imgDir = __DIR__ . '/../img/items/';
-    ensureDirectoryExists($imgDir);
-
-    $isFirstImage = true;
-    foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
-        if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK) {
-            $ext = strtolower(pathinfo($_FILES['images']['name'][$key], PATHINFO_EXTENSION));
-            if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'])) {
-                $newFilename = 'item_' . $newItemId . '_' . time() . '_' . uniqid() . '.' . $ext;
-
-                if (move_uploaded_file($tmpName, $imgDir . $newFilename)) {
-                    $isMain = $isFirstImage ? 1 : 0;
-                    $isFirstImage = false;
-
-                    $stmt = $pdo->prepare("INSERT INTO item_images (item_id, filename, is_main) VALUES (?, ?, ?)");
-                    $stmt->execute([$newItemId, $newFilename, $isMain]);
-                }
-            }
-        }
+    // Einheiten synchronisieren, falls die Funktion existiert
+    if (function_exists('syncItemUnits')) {
+        syncItemUnits($pdo, $newItemId, $quantity);
     }
-}
 
-// 3. Dokumenten-Upload verarbeiten
-if (!empty($_FILES['documents']['name'][0])) {
-    $docDir = __DIR__ . '/../docs/items/';
-    ensureDirectoryExists($docDir);
-
-    foreach ($_FILES['documents']['tmp_name'] as $key => $tmpName) {
-        if ($_FILES['documents']['error'][$key] === UPLOAD_ERR_OK) {
-            $originalName = $_FILES['documents']['name'][$key];
-            $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-
-            $allowedExts = ['pdf', 'doc', 'docx', 'txt'];
-            if (in_array($ext, $allowedExts)) {
-                $newFilename = 'doc_' . $newItemId . '_' . time() . '_' . uniqid() . '.' . $ext;
-
-                if (move_uploaded_file($tmpName, $docDir . $newFilename)) {
-                    $docTitle = pathinfo($originalName, PATHINFO_FILENAME);
-                    $docType = $_POST['doc_type'] ?? 'sonstiges';
-
-                    $stmt = $pdo->prepare("INSERT INTO item_documents (item_id, filename, title, doc_type) VALUES (?, ?, ?, ?)");
-                    $stmt->execute([$newItemId, $newFilename, $docTitle, $docType]);
-                }
-            }
-        }
+    // Protokollieren
+    if (function_exists('logInventoryAction')) {
+        logInventoryAction($pdo, $newItemId, $name, 'created', $quantity, $quantity, 'Gegenstand angelegt');
     }
-}
 
-// 4. Weiterleitung je nach gedrücktem Button
-if ($action === 'save_and_next') {
-    header("Location: ../add-item.php?success=1");
-} else {
-    // Direkt zur Detail-Bearbeitungsseite weiterleiten
-    header("Location: ../item.php?id=" . $newItemId . "&success=1");
+    // Weiterleitung basierend auf dem Button
+    $action = $_POST['action'] ?? 'save';
+    if ($action === 'save_and_next') {
+        header("Location: ../item-add.php?success=1");
+    } else {
+        // Direkt zur Detailseite des neuen Artikels springen, um dort weitere Angaben zu machen
+        header("Location: ../item.php?id=" . $newItemId . "&success=1");
+    }
+    exit;
+
+} catch (PDOException $e) {
+    die('Fehler beim Speichern des Gegenstands: ' . htmlspecialchars($e->getMessage()));
 }
-exit;

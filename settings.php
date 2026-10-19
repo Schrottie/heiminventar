@@ -5,15 +5,8 @@ require_once __DIR__ . '/inc/header.php';
 // Access Control: Falls Login aktiv ist, dürfen nur Admins die Seite aufrufen
 if (function_exists('isLoginEnabled') && isLoginEnabled()) {
     if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
-        // Option A: Weiterleitung zur Startseite oder Login
         header('Location: index.php');
         exit;
-        
-        /* 
-        // Option B: Alternativ Abbruch mit Fehlermeldung:
-        http_response_code(403);
-        die('Zugriff verweigert. Diese Funktion steht nur Administratoren zur Verfügung.');
-        */
     }
 }
 
@@ -23,16 +16,27 @@ $msgError = '';
 // --- FORMULAR VERARBEITUNG ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    
-    // 1. Theme, Bilder-Anzeige & Auth-Status
+    // 1. Systemeinstellungen (Theme, Bilder, Startseite, Übersichts-Modus & Auth-Status)
     if (isset($_POST['action_save_settings'])) {
         $theme = $_POST['theme'] ?? $settings['theme'] ?? 'light';
         $showImagesVal = $_POST['show_images'] ?? $settings['show_images'] ?? '1';
+        $startPageVal = $_POST['start_page'] ?? $settings['start_page'] ?? 'dashboard';
+        $overviewModeVal = $_POST['overview_mode'] ?? $settings['overview_mode'] ?? 'filter';
         $authEnabledVal = $_POST['auth_enabled'] ?? $settings['auth_enabled'] ?? '0';
 
         $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
         $stmt->execute(['theme', $theme]);
         $stmt->execute(['show_images', $showImagesVal]);
+        $stmt->execute(['start_page', $startPageVal]);
+        $stmt->execute(['overview_mode', $overviewModeVal]);
         $stmt->execute(['auth_enabled', $authEnabledVal]);
+
+        // Falls es ein AJAX-Request war, direkt mit JSON antworten
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true]);
+            exit;
+        }
 
         header("Location: settings.php?success=1");
         exit;
@@ -101,10 +105,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Benutzerliste abrufen
 $users = $pdo->query("SELECT * FROM users ORDER BY is_default DESC, id ASC")->fetchAll();
-
-// Prüfen, ob NUR der Default-User existiert / aktiv ist
-$totalUsersCount = count($users);
-$onlyDefaultUser = ($totalUsersCount === 1 && $users[0]['is_default'] == 1);
 ?>
 
 <div class="row justify-content-center">
@@ -117,157 +117,73 @@ $onlyDefaultUser = ($totalUsersCount === 1 && $users[0]['is_default'] == 1);
             <div class="alert alert-danger alert-dismissible fade show"><i class="fa-solid fa-triangle-exclamation me-2"></i><?= htmlspecialchars($msgError) ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
         <?php endif; ?>
 
-        <!-- Karte 1: Einstellungen -->
+        <!-- Karte 1: Systemeinstellungen (Allgemein & Sicherheit) -->
         <div class="card shadow-sm mb-4">
             <div class="card-header"><i class="fa-solid fa-sliders me-2"></i>Systemeinstellungen</div>
             <div class="card-body p-4">
                 <form action="settings.php" method="POST" id="settingsForm">
                     <input type="hidden" name="action_save_settings" value="1">
                
-                    <!-- Theme Einstellung -->
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">Erscheinungsbild</label>
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <input type="radio" class="btn-check auto-submit" name="theme" id="themeLight" value="light" <?= (($settings['theme'] ?? 'light') === 'light') ? 'checked' : '' ?>>
-                                <label class="btn btn-outline-secondary w-100 p-3 text-center" for="themeLight">
-                                    <i class="fa-solid fa-sun fa-2x mb-2 text-warning d-block"></i>Hell
-                                </label>
-                            </div>
-                            <div class="col-6">
-                                <input type="radio" class="btn-check auto-submit" name="theme" id="themeDark" value="dark" <?= (($settings['theme'] ?? 'light') === 'dark') ? 'checked' : '' ?>>
-                                <label class="btn btn-outline-secondary w-100 p-3 text-center" for="themeDark">
-                                    <i class="fa-solid fa-moon fa-2x mb-2 text-primary d-block"></i>Dunkel
-                                </label>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Block 1: Allgemeine Einstellungen (Theme, Bilder, Startseite, Übersichts-Modus) -->
+                    <?php require_once __DIR__ . '/inc/settings/general.php'; ?>
 
                     <hr class="my-4">
 
-                    <!-- Bilder-Anzeige Einstellung (zwei große Schaltflächen) -->
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">Bilder & Medien</label>
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <input type="radio" class="btn-check auto-submit" name="show_images" id="imagesDisabled" value="0" <?= (($settings['show_images'] ?? '1') === '0') ? 'checked' : '' ?>>
-                                <label class="btn btn-outline-secondary w-100 p-3 text-center" for="imagesDisabled">
-                                    <i class="fa-solid fa-image-portrait fa-2x mb-2 text-secondary d-block"></i>Deaktiviert
-                                </label>
-                            </div>
-                            <div class="col-6">
-                                <input type="radio" class="btn-check auto-submit" name="show_images" id="imagesEnabled" value="1" <?= (($settings['show_images'] ?? '1') === '1') ? 'checked' : '' ?>>
-                                <label class="btn btn-outline-secondary w-100 p-3 text-center" for="imagesEnabled">
-                                    <i class="fa-solid fa-image fa-2x mb-2 text-success d-block"></i>Aktiviert
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-text mt-2">
-                            <i class="fa-solid fa-circle-info me-1"></i> Wenn diese Option aktiviert ist, werden Vorschaubilder (sofern vorhanden) in der Übersicht angezeigt.
-                        </div>
-                    </div>
+                    <!-- Block 2: Sicherheit & Zugriff -->
+                    <?php require_once __DIR__ . '/inc/settings/security.php'; ?>
 
-                    <hr class="my-4">
-
-                    <!-- Passwortschutz Einstellung -->
-                    <div class="mb-2">
-                        <label class="form-label fw-bold">Passwortschutz / Zugriffsbeschränkung</label>
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <input type="radio" class="btn-check auto-submit" name="auth_enabled" id="authDisabled" value="0" <?= (($settings['auth_enabled'] ?? '0') === '0') ? 'checked' : '' ?>>
-                                <label class="btn btn-outline-secondary w-100 p-3 text-center" for="authDisabled">
-                                    <i class="fa-solid fa-lock-open fa-2x mb-2 text-secondary d-block"></i>Deaktiviert
-                                </label>
-                            </div>
-                            <div class="col-6">
-                                <input type="radio" class="btn-check" name="auth_enabled" id="authEnabled" value="1" <?= (($settings['auth_enabled'] ?? '0') === '1') ? 'checked' : '' ?>>
-                                <label class="btn btn-outline-secondary w-100 p-3 text-center" for="authEnabled">
-                                    <i class="fa-solid fa-shield-halved fa-2x mb-2 text-danger d-block"></i>Aktiviert
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-text mt-2">
-                            <i class="fa-solid fa-circle-info me-1"></i> Wenn das System öffentlich zugänglich ist (z.B. im Internet), sollte der Passwortschutz aktiviert werden, um unbefugten Zugriff zu verhindern.
-                        </div>
-                    </div>
                 </form>
             </div>
         </div>
 
         <!-- Karte 2: Benutzerverwaltung -->
-        <div class="card shadow-sm">
-            <div class="card-header"><i class="fa-solid fa-users me-2"></i>Benutzerverwaltung</div>
-            <div class="card-body p-4">
-               
-                <h6 class="fw-bold mb-3">Registrierte Benutzer</h6>
-                <div class="list-group mb-4">
-                    <?php foreach ($users as $u): ?>
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong><?= htmlspecialchars($u['username']) ?></strong>
-                                <span class="badge bg-<?= $u['role'] === 'admin' ? 'danger' : 'secondary' ?> ms-1"><?= ucfirst($u['role']) ?></span>
-                                <?php if ($u['is_default']): ?>
-                                    <span class="badge bg-warning text-dark ms-1">Default</span>
-                                <?php endif; ?>
-                                <?php if (!$u['is_active']): ?>
-                                    <span class="badge bg-outline-danger text-danger border ms-1">Deaktiviert</span>
-                                <?php endif; ?>
-                            </div>
-
-                            <div class="d-flex gap-1">
-                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editUserModal" data-userid="<?= $u['id'] ?>" data-username="<?= htmlspecialchars($u['username']) ?>" data-role="<?= $u['role'] ?>" title="Benutzer bearbeiten">
-                                    <i class="fa-solid fa-pen"></i>
-                                </button>
-
-                                <form method="POST" action="settings.php">
-                                    <input type="hidden" name="action_toggle_user" value="1">
-                                    <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
-                                    <input type="hidden" name="target_status" value="<?= $u['is_active'] ? '0' : '1' ?>">
-                                    <button type="submit" class="btn btn-sm btn-<?= $u['is_active'] ? 'outline-warning' : 'outline-success' ?>" title="<?= $u['is_active'] ? 'Deaktivieren' : 'Aktivieren' ?>">
-                                        <i class="fa-solid fa-power-off"></i>
-                                    </button>
-                                </form>
-
-                                <?php if (!$u['is_default']): ?>
-                                    <form method="POST" action="settings.php" onsubmit="return confirm('Benutzer unwiderruflich löschen?');">
-                                        <input type="hidden" name="action_delete_user" value="1">
-                                        <input type="hidden" name="delete_user_id" value="<?= $u['id'] ?>">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>
-                                    </form>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-
-                <hr>
-
-                <!-- Neuen Benutzer anlegen -->
-                <h6 class="fw-bold mb-3">Neuen Benutzer anlegen</h6>
-                <form method="POST" action="settings.php" class="row g-2">
-                    <input type="hidden" name="action_create_user" value="1">
-                    <div class="col-12 col-md-4">
-                        <input type="text" class="form-control" name="new_username" placeholder="Benutzername" required>
-                    </div>
-                    <div class="col-12 col-md-4">
-                        <input type="password" class="form-control" name="new_password" placeholder="Passwort" required>
-                    </div>
-                    <div class="col-12 col-md-2">
-                        <select class="form-select" name="role">
-                            <option value="user">User</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </div>
-                    <div class="col-12 col-md-2">
-                        <button type="submit" class="btn btn-success w-100"><i class="fa-solid fa-plus me-1"></i>Anlegen</button>
-                    </div>
-                </form>
-
-            </div>
-        </div>
+        <?php require_once __DIR__ . '/inc/settings/users.php'; ?>
 
     </div>
 </div>
 
+<!-- Live-Update Skript für den Menü-Link via AJAX -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const settingsForm = document.getElementById('settingsForm');
+    if (!settingsForm) return;
+
+    settingsForm.querySelectorAll('.auto-submit').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const formData = new FormData(settingsForm);
+
+            fetch('settings.php', {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    const startPage = settingsForm.querySelector('input[name="start_page"]:checked')?.value;
+                    const overviewMode = settingsForm.querySelector('input[name="overview_mode"]:checked')?.value;
+                    updateMenuOverviewLink(startPage, overviewMode);
+                }
+            })
+            .catch(error => console.error('Fehler beim Speichern der Einstellungen:', error));
+        });
+    });
+});
+
+function updateMenuOverviewLink(startPage, overviewMode) {
+    const overviewLinks = document.querySelectorAll('a[href*="index.php"]');
+    overviewLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href.includes('index.php') && !href.includes('item.php')) {
+            if (startPage === 'dashboard') {
+                link.setAttribute('href', 'index.php?mode=' + (overviewMode || 'filter'));
+            } else {
+                link.setAttribute('href', 'index.php');
+            }
+        }
+    });
+}
+</script>
+
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>
+

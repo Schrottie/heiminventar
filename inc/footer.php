@@ -62,7 +62,7 @@
     </a>
 
     <!-- Gegenstand anlegen -->
-    <a href="add-item.php" class="fab-action fab-action-primary" title="Gegenstand anlegen">
+    <a href="item-add.php" class="fab-action fab-action-primary" title="Gegenstand anlegen">
         <i class="fa-solid fa-plus"></i>
         <span class="fab-label">Gegenstand anlegen</span>
     </a>
@@ -73,8 +73,16 @@
         <span class="fab-label">Dashboard</span>
     </a>
 
+<?php
+// Ermitteln, ob Dashboard die Startseite ist
+$isDashboardStart = (($settings['start_page'] ?? 'dashboard') === 'dashboard');
+// Der Link zur Übersicht führt zwingend zum konfigurierten Modus, 
+// wenn das Dashboard die Startseite ist, damit man die Übersicht auch erzwingen kann.
+$overviewLink = $isDashboardStart ? 'index.php?mode=' . ($settings['overview_mode'] ?? 'filter') : 'index.php';
+?>
+
     <!-- Übersicht -->
-    <a href="index.php" class="fab-action" title="Übersicht">
+    <a href="<?= $overviewLink ?>" class="fab-action" title="Übersicht">
         <i class="fa-solid fa-house"></i>
         <span class="fab-label">Übersicht</span>
     </a>

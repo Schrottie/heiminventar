@@ -43,3 +43,42 @@ function hideDailyNotice() {
     tomorrow.setHours(23, 59, 59, 999);
     document.cookie = "hide_daily_notice=" + new Date().toISOString().slice(0,10) + "; path=/; expires=" + tomorrow.toUTCString();
 }
+
+// Such- bzw. Fiulterzustand der Übersicht sichern und wiederherstellen
+document.addEventListener("DOMContentLoaded", function() {
+    const searchInput = document.querySelector('input[name="q"], #quickFilter');
+    
+    // 1. Suchbegriff wiederherstellen (falls vorhanden und Feld leer ist)
+    if (searchInput) {
+        // Prüfen, ob URL gerade keinen Suchparameter hat, aber im Storage noch einer liegt
+        const urlParams = new URLSearchParams(window.location.search);
+        if (!urlParams.has('q') && localStorage.getItem('inventory_last_search')) {
+            const savedQuery = localStorage.getItem('inventory_last_search');
+            searchInput.value = savedQuery;
+            
+            // Wenn es das Schnellfilter-Feld ist, direkt auslösen
+            if (searchInput.id === 'quickFilter' && typeof filterTable === 'function') {
+                filterTable();
+            }
+        }
+
+        // Bei Eingabe den Suchbegriff im Storage merken
+        searchInput.addEventListener('input', function() {
+            localStorage.setItem('inventory_last_search', this.value);
+        });
+
+        // Beim Absenden der Suche ebenfalls sichern
+        const searchForm = searchInput.closest('form');
+        if (searchForm) {
+            searchForm.addEventListener('submit', function() {
+                localStorage.setItem('inventory_last_search', searchInput.value);
+            });
+        }
+    }
+
+    // 2. Filter-Tags oder Ansichts-Modus im Storage halten
+    const currentMode = new URLSearchParams(window.location.search).get('mode');
+    if (currentMode) {
+        localStorage.setItem('inventory_last_mode', currentMode);
+    }
+});

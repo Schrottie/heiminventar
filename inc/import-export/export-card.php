@@ -3,22 +3,28 @@
 ?>
 <div class="card shadow-sm h-100">
     <div class="card-header bg-transparent">
-        <i class="fa-solid fa-file-excel text-success me-2"></i>Daten exportieren &amp; Backups
+        <i class="fa-solid fa-file-excel text-success me-2"></i>CSV-Inventarexport &amp; Backups
     </div>
     <div class="card-body d-flex flex-column justify-content-between">
         <div>
             <p class="text-muted small">
-                Lade Inventardaten als CSV, exportiere Lagerort-IDs oder sichere das gesamte System inklusive Datenbank, Bildern und Dokumenten.
+                Lade Inventardaten als umfassende CSV-Datei (inklusive Anbau-, Zubehörteilen und Set-Inhalten), exportiere Lagerort-IDs oder sichere das gesamte System inklusive Datenbank, Bildern und Dokumenten.
             </p>
         </div>
         <div class="d-flex flex-column gap-2">
-            <a href="api/export-csv.php" class="btn btn-success w-100">
-                <i class="fa-solid fa-download me-2"></i>Erweiterter Inventar-Export (CSV)
-            </a>
-            <a href="api/export-locations-csv.php" class="btn btn-outline-success w-100">
+            <div>
+                <a href="api/export-csv.php" class="btn btn-outline-success w-100">
+                    <i class="fa-solid fa-download me-2"></i>Erweiterter Inventar-Export (CSV)
+                </a>
+                <div class="form-text text-muted mt-1" style="font-size: 0.75rem; line-height: 1.2;">
+                    <i class="fa-solid fa-circle-info me-1"></i>Beinhaltet Hauptartikel, Anbau-/Zubehörteile sowie Set-Inhalte.
+                </div>
+            </div>
+
+            <a href="api/export-locations-csv.php" class="btn btn-outline-success w-100 mt-1">
                 <i class="fa-solid fa-sitemap me-2"></i>Lagerort-IDs Exportieren
             </a>
-            
+           
             <a href="api/export-backup.php" class="btn btn-outline-primary w-100 mt-2">
                 <i class="fa-solid fa-box-archive me-2"></i>Komplettes System-Backup (ZIP)
             </a>

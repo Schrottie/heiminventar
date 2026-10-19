@@ -1,7 +1,7 @@
 @media print {
     @page {
         size: A4 portrait;
-        /* margin: 1.2cm 1cm 1.2cm 1.2cm; */
+        margin: 0.8cm; /* Schmale, saubere Druckränder */
     }
 
     body, html {
@@ -9,69 +9,124 @@
         padding: 0 !important;
         background-color: #ffffff !important;
         color: #000000 !important;
-        font-size: 11pt;
+        font-size: 10pt;
         width: 100% !important;
         max-width: 100% !important;
     }
 
+    /* 1. Alle Bildchirm-Container und Wrapper auf volle Druckbreite zwingen */
+    .container, 
+    .container-fluid, 
+    .card, 
+    .card-body,
+    #reportOutputContainer {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* 2. Alles standardmäßig unsichtbar schalten */
     body * {
         visibility: hidden !important;
     }
-    .print-container, .print-container * {
+
+    /* 3. Nur den Berichts-Container, Titel und Zähler sichtbar schalten */
+    #reportOutputContainer, 
+    #reportOutputContainer *, 
+    #printReportTitle, 
+    #printReportTitle *, 
+    #itemCountDisplay, 
+    #itemCountDisplay *,
+    .card-header, 
+    .card-header * {
         visibility: visible !important;
     }
-    .print-container {
+
+    #reportOutputContainer {
         position: absolute !important;
         left: 0 !important;
-        top: 0 !important;
+        top: 60px !important;
         width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
     }
 
+    /* Elemente mit dieser Klasse komplett ausblenden */
     .no-print {
         display: none !important;
-        visibility: hidden !important;
     }
 
-    /* Karten-Layout mit exakter Breitenverteilung ohne Überlauf */
+        /* --- Standard-Druck (Karten-Grid: exakt 2 Spalten nebeneinander auf voller Breite) --- */
+    #reportOutputContainer .row {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+
     .print-card-wrapper {
-        width: 50% !important;
-        float: left !important;
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
         box-sizing: border-box !important;
         padding: 4px !important;
+        /* WICHTIG: Verhindert, dass der Wrapper beim Seitenumbruch zerrissen wird */
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
     }
+
     .print-card {
+        /* WICHTIG: Niemals eine Karte mitten im Druck aufteilen lassen */
         break-inside: avoid !important;
         page-break-inside: avoid !important;
         border: 1px solid #bbb !important;
         background-color: #fff !important;
         padding: 6px !important;
-        height: 100% !important;
+        /* height: 100% entfernen, damit die Karte organisch mit dem Inhalt wächst und Bilder nicht herausfallen */
+        height: auto !important; 
+    }
+
+    /* Vorschaubilder im Druck fixieren, damit sie flexibel bleiben */
+    #reportOutputContainer img {
+        width: 60px !important;
+        height: 60px !important;
+        object-fit: cover !important;
+        display: block !important;
+    }
+
+
+    /* --- Versicherungs-Druck (Tabelle auf voller Breite) --- */
+    .table-responsive {
+        overflow: visible !important;
+        width: 99% !important;
     }
 
     .print-table {
         width: 100% !important;
         max-width: 100% !important;
         border-collapse: collapse !important;
-        margin-bottom: 0 !important;
     }
-    .print-table th, 
+    
+    .print-table th,
     .print-table td {
-        padding: 4px 8px !important;
-        font-size: 10pt !important;
+        padding: 5px 6px !important;
+        font-size: 9pt !important;
         color: #000000 !important;
         background-color: #ffffff !important;
-        border: 1px solid #999 !important;
+        border: 1px solid #888 !important;
         vertical-align: middle !important;
     }
-    .print-table thead th {
-        background-color: #f2f2f2 !important;
+
+    .print-table thead th, 
+    .print-table tfoot td {
+        background-color: #eaeaea !important;
         font-weight: bold !important;
     }
 
+    /* Links im Druck ohne Farbe/Unterstreichung */
     a, .print-item-link {
         text-decoration: none !important;
         color: #000000 !important;
     }
 }
+

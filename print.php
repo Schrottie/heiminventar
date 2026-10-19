@@ -501,7 +501,7 @@ function renderReport() {
                     </tbody>
                     <tfoot class="table-light fw-bold">
                         <tr>
-                            <td colspan="${colspanVal}" class="text-end">Gesamtsumme (versicherte Artikel inkl. Zubehör):</td>
+                            <td colspan="${colspanVal}" class="text-end">Gesamtsumme (versicherungsrelevante Gegenstände inkl. Zubehör):</td>
                             <td class="text-end">${formatMoney(totalSum)} €</td>
                             <td colspan="3"></td>
                         </tr>

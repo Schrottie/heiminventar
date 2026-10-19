@@ -4,13 +4,17 @@
 
 <!-- Schnellfilter / Suchleiste, QR-Button & Desktop-Warn-Buttons in einer Zeile -->
 <div class="row mb-3 g-2 align-items-center">
-    <!-- Suchleiste nimmt den flexiblen Platz ein -->
+    <!-- Textfilter -->
     <div class="col">
         <div class="input-group">
             <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
             <input type="text" id="quickFilter" class="form-control text-body" placeholder="Inventar durchsuchen..." value="<?= htmlspecialchars($_GET['q'] ?? '') ?>">
+            <!-- Integrierter X-Button für den QuickFilter -->
+            <button type="button" class="btn btn-outline-secondary d-flex align-items-center <?= empty($_GET['q']) ? 'd-none' : '' ?>" id="quickFilterClearBtn" title="Filter leeren">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
-    </div>
+    </div> 
 
     <!-- QR-Button (immer als reines Icon) -->
     <div class="col-auto">
@@ -143,3 +147,30 @@
 <div id="inventoryList">
     <?php require_once __DIR__ . '/item-loop.php'; ?>
 </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const quickFilter = document.getElementById('quickFilter');
+    const clearBtn = document.getElementById('quickFilterClearBtn');
+
+    if (quickFilter && clearBtn) {
+        // Button ein-/ausblenden je nach Inhalt
+        quickFilter.addEventListener('input', () => {
+            if (quickFilter.value.length > 0) {
+                clearBtn.classList.remove('d-none');
+            } else {
+                clearBtn.classList.add('d-none');
+            }
+        });
+
+        // Bei Klick auf das X: Feld leeren, Event triggern (damit die Live-Filterung aktualisiert wird) und Button verstecken
+        clearBtn.addEventListener('click', () => {
+            quickFilter.value = '';
+            quickFilter.dispatchEvent(new Event('input')); // Löst die bestehende Live-Filterung aus
+            clearBtn.classList.add('d-none');
+            quickFilter.focus();
+        });
+    }
+});
+</script>

@@ -150,6 +150,7 @@ if ($currentSearchQuery !== '') {
                 <div class="input-group">
                     <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                     <input type="text" name="q" class="form-control" placeholder="Nach Namen, Beschreibung, Hersteller, Kaufort oder Tags suchen..." value="<?= htmlspecialchars($currentSearchQuery) ?>" autofocus>
+                    
                     <?php if (!empty($currentSearchQuery)): ?>
                         <a href="index.php?mode=search<?= $filterLocationId !== null ? '&location_id=' . $filterLocationId : '' ?>" class="btn btn-outline-secondary d-flex align-items-center" title="Suche zurücksetzen">
                             <i class="fa-solid fa-xmark"></i>
@@ -232,3 +233,4 @@ if ($currentSearchQuery !== '') {
 
     <?php endif; ?>
 </div>
+

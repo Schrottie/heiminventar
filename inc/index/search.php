@@ -145,7 +145,8 @@ if ($currentSearchQuery !== '') {
                 <input type="hidden" name="location_id" value="<?= (int)$filterLocationId ?>">
             <?php endif; ?>
 
-            <div class="col">
+            <!-- Suchfeld: Auf Smartphone volle Breite (col-12), ab Desktop flexibel (col-md) -->
+            <div class="col-12 col-md">
                 <div class="input-group">
                     <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                     <input type="text" name="q" class="form-control" placeholder="Nach Namen, Beschreibung, Hersteller, Kaufort oder Tags suchen..." value="<?= htmlspecialchars($currentSearchQuery) ?>" autofocus>
@@ -157,15 +158,14 @@ if ($currentSearchQuery !== '') {
                 </div>
             </div>
 
-            <div class="col-auto">
-                <button type="submit" class="btn btn-primary px-4">
+            <!-- Button & Umschalter: Auf Smartphone in einer separaten Zeile (d-flex für saubere Aufteilung) -->
+            <div class="col-12 col-md-auto d-flex gap-2 justify-content-end">
+                <button type="submit" class="btn btn-primary px-4 flex-grow-1 flex-md-grow-0">
                     <i class="fa-solid fa-search me-2"></i>Suchen
                 </button>
-            </div>
 
-            <!-- Modus-Umschalter (Wechsel zur Filterliste) -->
-            <div class="col-auto">
-                <div class="btn-group" role="group" aria-label="Ansicht Modus">
+                <!-- Modus-Umschalter (Wechsel zur Filterliste) -->
+                <div class="btn-group flex-shrink-0" role="group" aria-label="Ansicht Modus">
                     <a href="index.php?mode=list" class="btn btn-outline-primary" title="Live Filterbare Liste">
                         <i class="fa-solid fa-filter"></i>
                     </a>

@@ -13,6 +13,7 @@
    09. Responsive Breakpoints
    10. Dark Theme Overrides
    11. Drucksettings
+   12. Vorschaubilder in Listen/Karten
    ========================================================================== */
 
 
@@ -941,5 +942,33 @@ body.theme-dark #filterTagContainer {
         left: 0;
         top: 0;
         width: 100%;
+    }
+}
+
+/* ==========================================================================
+   12. Vorschaubilder in Listen/Karten
+   ========================================================================== */
+
+.img-zoomable {
+    transition: transform 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+/* Desktop: Hover-Effekt */
+@media (min-width: 992px) {
+    /* Setzt den Container/die Zeile beim Hover des Kind-Elements nach oben */
+    tr:has(.img-zoomable:hover),
+    .card:has(.img-zoomable:hover),
+    .list-group-item:has(.img-zoomable:hover) {
+        position: relative;
+        z-index: 1040;
+    }
+
+    .img-zoomable:hover {
+        transform: scale(2.5);
+        position: relative;
+        z-index: 1050;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        border-radius: 4px;
     }
 }

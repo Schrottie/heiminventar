@@ -116,3 +116,25 @@ function toggleLocationPath(element, event) {
         span.textContent = shortText;
     }
 }
+
+/**
+ * Bilderzoom (steuert das universsale Zoom-Modal bei <img class="img-zoomable" ...>)
+ */
+document.addEventListener("DOMContentLoaded", function() {
+    // Prüfen, ob ein Bootstrap-Modal verfügbar ist
+    const imageModalEl = document.getElementById('imagePreviewModal');
+    if (!imageModalEl) return;
+    
+    const modalImagePreview = document.getElementById('modalImagePreview');
+    const imageModal = new bootstrap.Modal(imageModalEl);
+
+    // Alle Bilder mit der Klasse 'img-zoomable' klickbar machen
+    document.querySelectorAll('.img-zoomable').forEach(img => {
+        img.addEventListener('click', function(e) {
+            // Auf dem Desktop ist der Hover aktiv – auf Touch-Geräten soll stattdessen das Modal aufgehen
+            // Wir öffnen das Modal, sobald draufgeklickt wird (auf Mobile immer, auf Desktop optional auch bei Klick)
+            modalImagePreview.src = this.src;
+            imageModal.show();
+        });
+    });
+});

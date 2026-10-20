@@ -113,7 +113,7 @@
                         <?php if ($hasImage): ?>
                             <img src="img/items/<?= htmlspecialchars($item['image_filename']) ?>"
                                  alt="<?= htmlspecialchars($item['name']) ?>"
-                                 class="rounded object-fit-cover"
+                                 class="rounded object-fit-cover img-zoomable"
                                  style="width: 50px; height: 50px;">
                         <?php endif; ?>
 

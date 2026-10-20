@@ -557,3 +557,18 @@
 </div>
 
 <?php endif; ?>
+
+<!-- Universal Image Preview Modal -->
+<div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark bg-opacity-75 border-0 shadow-lg">
+            <div class="modal-body text-center position-relative p-4">
+                <!-- Schließen-Button als btn-primary mit X -->
+                <button type="button" class="btn btn-primary position-absolute top-0 end-0 m-3 z-3 rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 40px; height: 40px;" data-bs-dismiss="modal" aria-label="Schließen">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <img src="" id="modalImagePreview" class="img-fluid rounded shadow" alt="Vollbild" style="max-height: 80vh; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>

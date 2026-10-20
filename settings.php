@@ -1,28 +1,16 @@
 <?php
 require_once __DIR__ . '/cfg/db.php';
-require_once __DIR__ . '/inc/header.php';
 
-// Access Control: Falls Login aktiv ist, dürfen nur Admins die Seite aufrufen
-if (function_exists('isLoginEnabled') && isLoginEnabled()) {
-    if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
-        header('Location: index.php');
-        exit;
-    }
-}
-
-$msgSuccess = '';
-$msgError = '';
-
-// --- FORMULAR VERARBEITUNG ---
+// --- FORMULAR VERARBEITUNG & AJAX MÜSSEN VOR DEM HEADER STEHEN ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    
     // 1. Systemeinstellungen (Theme, Bilder, Startseite, Übersichts-Modus & Auth-Status)
     if (isset($_POST['action_save_settings'])) {
-        $theme = $_POST['theme'] ?? $settings['theme'] ?? 'light';
-        $showImagesVal = $_POST['show_images'] ?? $settings['show_images'] ?? '1';
-        $startPageVal = $_POST['start_page'] ?? $settings['start_page'] ?? 'dashboard';
-        $overviewModeVal = $_POST['overview_mode'] ?? $settings['overview_mode'] ?? 'filter';
-        $authEnabledVal = $_POST['auth_enabled'] ?? $settings['auth_enabled'] ?? '0';
+        $theme = $_POST['theme'] ?? 'light';
+        $showImagesVal = $_POST['show_images'] ?? '1';
+        $startPageVal = $_POST['start_page'] ?? 'dashboard';
+        $overviewModeVal = $_POST['overview_mode'] ?? 'filter';
+        $authEnabledVal = $_POST['auth_enabled'] ?? '0';
 
         $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
         $stmt->execute(['theme', $theme]);
@@ -31,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute(['overview_mode', $overviewModeVal]);
         $stmt->execute(['auth_enabled', $authEnabledVal]);
 
-        // Falls es ein AJAX-Request war, direkt mit JSON antworten
+        // Falls es ein AJAX-Request war, SOFORT reines JSON senden und stoppen (VOR jedem HTML!)
         if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
             header('Content-Type: application/json');
             echo json_encode(['success' => true]);
@@ -103,6 +91,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Erst JETZT, nachdem eventuelle AJAX-Exit-Befehle durch sind, kommt der Header!
+require_once __DIR__ . '/inc/header.php';
+
+// Access Control: Falls Login aktiv ist, dürfen nur Admins die Seite aufrufen
+if (function_exists('isLoginEnabled') && isLoginEnabled()) {
+    if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
+        header('Location: index.php');
+        exit;
+    }
+}
+
+$msgSuccess = $msgSuccess ?? '';
+$msgError = $msgError ?? '';
+
 // Benutzerliste abrufen
 $users = $pdo->query("SELECT * FROM users ORDER BY is_default DESC, id ASC")->fetchAll();
 ?>
@@ -142,29 +144,52 @@ $users = $pdo->query("SELECT * FROM users ORDER BY is_default DESC, id ASC")->fe
     </div>
 </div>
 
-<!-- Live-Update Skript für den Menü-Link via AJAX -->
+<!-- Live-Update Skript für den Menü-Link & Theme via AJAX -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const settingsForm = document.getElementById('settingsForm');
     if (!settingsForm) return;
 
-    settingsForm.querySelectorAll('.auto-submit').forEach(radio => {
-        radio.addEventListener('change', function() {
-            const formData = new FormData(settingsForm);
+    settingsForm.querySelectorAll('.auto-submit').forEach(input => {
+        input.addEventListener('change', function() {
+            try {
+                const formData = new FormData(settingsForm);
 
-            fetch('settings.php', {
-                method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                body: formData
-            })
-            .then(response => {
-                if (response.ok) {
-                    const startPage = settingsForm.querySelector('input[name="start_page"]:checked')?.value;
-                    const overviewMode = settingsForm.querySelector('input[name="overview_mode"]:checked')?.value;
-                    updateMenuOverviewLink(startPage, overviewMode);
+                // Theme direkt live umschalten
+                if (this.name === 'theme') {
+                    document.documentElement.setAttribute('data-bs-theme', this.value);
                 }
-            })
-            .catch(error => console.error('Fehler beim Speichern der Einstellungen:', error));
+
+                fetch('settings.php', {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('HTTP-Fehler Status: ' + response.status);
+                    }
+                    return response.text();
+                })
+                .then(text => {
+                    try {
+                        const data = JSON.parse(text);
+                        if (data.success) {
+                            const startPage = settingsForm.querySelector('input[name="start_page"]:checked')?.value;
+                            const overviewMode = settingsForm.querySelector('input[name="overview_mode"]:checked')?.value;
+                            updateMenuOverviewLink(startPage, overviewMode);
+                        }
+                    } catch (e) {
+                        console.warn("Server-Antwort war kein JSON:", text);
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch-Fehler:', error);
+                });
+
+            } catch (err) {
+                console.error('Code-Fehler im Event:', err);
+            }
         });
     });
 });
@@ -173,7 +198,7 @@ function updateMenuOverviewLink(startPage, overviewMode) {
     const overviewLinks = document.querySelectorAll('a[href*="index.php"]');
     overviewLinks.forEach(link => {
         const href = link.getAttribute('href');
-        if (href.includes('index.php') && !href.includes('item.php')) {
+        if (href && href.includes('index.php') && !href.includes('item.php')) {
             if (startPage === 'dashboard') {
                 link.setAttribute('href', 'index.php?mode=' + (overviewMode || 'filter'));
             } else {
@@ -186,4 +211,3 @@ function updateMenuOverviewLink(startPage, overviewMode) {
 
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>
-

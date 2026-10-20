@@ -537,7 +537,7 @@
 <div class="modal fade" id="imageDeleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="api/item-image-delete.php" method="POST">
+            <form action="api/image-delete.php" method="POST">
                 <div class="modal-header">
                     <h5 class="modal-title">Bild löschen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>

@@ -3,3 +3,4 @@ img/items/Thumbs.db
 img/items/*
 docs/items*
 cfg/.migration_cache
+cron-import.php

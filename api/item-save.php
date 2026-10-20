@@ -24,7 +24,7 @@ $isBulk = 0;
 try {
     // In die Datenbank einfügen
     $stmt = $pdo->prepare("INSERT INTO inventory_items 
-        (name, manufacturer, description, location_id, quantity, min_quantity, is_bulk, created_at) 
+        (name, manufacturer, description, location_id, quantity, min_quantity, is_bulk, created) 
         VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
 
     $stmt->execute([

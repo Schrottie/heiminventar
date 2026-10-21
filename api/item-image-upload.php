@@ -26,7 +26,7 @@ $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM item_images WHERE item_id = ?")
 $stmtCount->execute([$itemId]);
 $totalExistingImages = (int)$stmtCount->fetchColumn();
 
-$uploadedCount = 0;
+$uploadedImages = [];
 
 foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
     if (isset($_FILES['images']['error'][$key]) && $_FILES['images']['error'][$key] === UPLOAD_ERR_OK && is_uploaded_file($tmpName)) {
@@ -35,34 +35,48 @@ foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
             $newFilename = 'item_' . $itemId . '_' . time() . '_' . uniqid() . '.' . $ext;
            
             if (move_uploaded_file($tmpName, $imgDir . $newFilename)) {
-                $isMain = ($totalExistingImages === 0 && $uploadedCount === 0) ? 1 : 0;
+                $isMain = ($totalExistingImages === 0 && count($uploadedImages) === 0) ? 1 : 0;
 
                 try {
                     $stmt = $pdo->prepare("INSERT INTO item_images (item_id, filename, is_main) VALUES (?, ?, ?)");
                     $stmt->execute([$itemId, $newFilename, $isMain]);
+                    $newImageId = $pdo->lastInsertId();
+                    
                     $totalExistingImages++;
-                    $uploadedCount++;
+                    $uploadedImages[] = [
+                        'id' => (int)$newImageId,
+                        'filename' => $newFilename
+                    ];
                 } catch (PDOException $e) {
                     // Fallback auf is_main = 0 falls ein Constraint greift
                     $stmt = $pdo->prepare("INSERT INTO item_images (item_id, filename, is_main) VALUES (?, ?, 0)");
                     $stmt->execute([$itemId, $newFilename]);
-                    $uploadedCount++;
+                    $newImageId = $pdo->lastInsertId();
+
+                    $uploadedImages[] = [
+                        'id' => (int)$newImageId,
+                        'filename' => $newFilename
+                    ];
                 }
             }
         }
     }
 }
 
-if ($uploadedCount > 0) {
+if (!empty($uploadedImages)) {
     // Optional: Logeintrag generieren
     $stmtItem = $pdo->prepare("SELECT name, quantity FROM inventory_items WHERE id = ?");
     $stmtItem->execute([$itemId]);
     $itemData = $stmtItem->fetch();
     if ($itemData && function_exists('logInventoryAction')) {
-        logInventoryAction($pdo, $itemId, $itemData['name'], 'updated', 0, (int)$itemData['quantity'], $uploadedCount . ' neue(s) Bild(er) hochgeladen');
+        logInventoryAction($pdo, $itemId, $itemData['name'], 'updated', 0, (int)$itemData['quantity'], count($uploadedImages) . ' neue(s) Bild(er) hochgeladen');
     }
 
-    echo json_encode(['success' => true, 'count' => $uploadedCount]);
+    echo json_encode([
+        'success' => true, 
+        'count' => count($uploadedImages),
+        'images' => $uploadedImages
+    ]);
 } else {
     echo json_encode(['success' => false, 'error' => 'Fehler beim Speichern der Bilder']);
 }

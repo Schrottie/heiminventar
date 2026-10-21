@@ -161,3 +161,271 @@ require_once __DIR__ . '/inc/header.php';
 
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const currentItemId = <?= (int)($item['id'] ?? $id ?? 0) ?>;
+
+    // 1. Bilder Dropzone & Upload (strikt AJAX-only ohne Reload)
+    setupAjaxDropzone({
+        dropzoneId: 'imageDropzone',
+        inputId: 'item_images_ajax',
+        endpoint: 'api/item-image-upload.php',
+        fileKey: 'images[]',
+        onSuccess: (data) => {
+            if (data.images && Array.isArray(data.images)) {
+                appendNewImagesToGrid(data.images);
+            }
+        }
+    });
+
+    // 2. Dokumente Dropzone & Upload
+    setupAjaxDropzone({
+        dropzoneId: 'documentDropzone',
+        inputId: 'item_documents_ajax',
+        endpoint: 'api/item-document-upload.php',
+        fileKey: 'documents[]',
+        extraData: () => ({ doc_type: document.getElementById('doc_type_ajax')?.value || 'sonstiges' }),
+        onSuccess: (data) => {
+            if (data.documents && Array.isArray(data.documents)) {
+                appendNewDocumentsToGrid(data.documents);
+            }
+        }
+    });
+
+    function setupAjaxDropzone(config) {
+        const dropzone = document.getElementById(config.dropzoneId);
+        const fileInput = document.getElementById(config.inputId);
+        if (!dropzone || !fileInput) return;
+
+        // Klick auf Dropzone öffnet den Dateidialog (ohne Bubbling)
+        dropzone.addEventListener('click', (e) => {
+            if (e.target !== fileInput) {
+                fileInput.click();
+            }
+        });
+
+        // Dateiauswahl via Dialog
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                uploadFiles(this.files, config);
+                this.value = ''; // Input leeren, damit man dieselbe Datei direkt nochmal wählen könnte
+            }
+        });
+
+        // Drag & Drop Event-Handling mit sauberem PreventDefault
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.add('dropzone-active');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.remove('dropzone-active');
+            }, false);
+        });
+
+        // Drop-Event verarbeiten
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzone.classList.remove('dropzone-active');
+
+            const dt = e.dataTransfer;
+            if (dt.files && dt.files.length > 0) {
+                fileInput.files = dt.files;
+                uploadFiles(dt.files, config);
+            }
+        });
+    }
+
+    let isUploading = false;
+    function uploadFiles(files, config) {
+        if (isUploading) return;
+        isUploading = true;
+
+        const formData = new FormData();
+        formData.append('itemId', currentItemId);
+
+        if (config.extraData) {
+            const extra = config.extraData();
+            for (const key in extra) {
+                formData.append(key, extra[key]);
+            }
+        }
+
+        for (let i = 0; i < files.length; i++) {
+            formData.append(config.fileKey, files[i]);
+        }
+
+        // Optionaler Spinner, falls vorhanden
+        const spinner = document.getElementById(config.dropzoneId.includes('image') ? 'uploadSpinner' : 'docUploadSpinner');
+        if (spinner) spinner.style.display = 'inline-block';
+
+        fetch(config.endpoint, {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (spinner) spinner.style.display = 'none';
+            isUploading = false;
+            
+            if (data.success) {
+                config.onSuccess(data);
+            } else {
+                alert('Fehler beim Upload: ' + (data.error || 'Unbekannter Fehler'));
+            }
+        })
+        .catch(err => {
+            if (spinner) spinner.style.display = 'none';
+            isUploading = false;
+            console.error(err);
+            alert('Ein Netzwerkfehler ist aufgetreten.');
+        });
+    }
+
+    // Direktes Rendern neuer Bilder ins Grid ohne Reload
+    function appendNewImagesToGrid(images) {
+        let container = document.getElementById('imageGalleryContainer');
+        if (!container) {
+            const dropzoneCard = document.querySelector('#imageDropzone').closest('.card');
+            container = document.createElement('div');
+            container.className = 'row g-2 mb-3';
+            container.id = 'imageGalleryContainer';
+            dropzoneCard.parentNode.insertBefore(container, dropzoneCard);
+        }
+
+        images.forEach(img => {
+            const col = document.createElement('div');
+            col.className = 'col-6 col-md-3 image-card-wrapper';
+            col.setAttribute('data-image-id', img.id);
+            col.innerHTML = `
+                <div class="card h-100 bg-white border-0 shadow-sm">
+                    <div class="ratio ratio-4x3 bg-light overflow-hidden border-bottom image-zoom-container">
+                        <img src="img/items/${escapeHtml(img.filename)}" class="card-img-top img-fluid object-fit-cover" alt="Bild">
+                    </div>
+                    <div class="card-body p-2 d-flex flex-column justify-content-between">
+                        <div class="d-flex gap-1 mt-auto">
+                            <button type="button" class="btn btn-sm w-100 btn-outline-warning main-image-btn" onclick="setMainImage(${currentItemId}, ${img.id})">
+                                <i class="fa-solid fa-star me-1"></i><span class="btn-text">Stern</span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="openImageDeleteModal(${img.id}, ${currentItemId})">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(col);
+        });
+    }
+
+    // Direktes Rendern neuer Dokumente ins Grid ohne Reload
+    function appendNewDocumentsToGrid(docs) {
+        let container = document.getElementById('documentGalleryContainer');
+        if (!container) {
+            const dropzoneCard = document.querySelector('#documentDropzone').closest('.card');
+            container = document.createElement('div');
+            container.className = 'row g-2 mb-3';
+            container.id = 'documentGalleryContainer';
+            dropzoneCard.parentNode.insertBefore(container, dropzoneCard);
+        }
+
+        docs.forEach(doc => {
+            let badgeColor = 'bg-secondary', docTypeName = 'Sonstiges';
+            if (doc.doc_type === 'rechnung') { badgeColor = 'bg-success'; docTypeName = 'Rechnung'; }
+            if (doc.doc_type === 'bedienungsanleitung') { badgeColor = 'bg-info text-dark'; docTypeName = 'Anleitung'; }
+
+            const col = document.createElement('div');
+            col.className = 'col-6 col-md-3 document-card-wrapper';
+            col.setAttribute('data-doc-id', doc.id);
+            col.innerHTML = `
+                <div class="card h-100 bg-white border-0 shadow-sm">
+                    <div class="ratio ratio-4x3 bg-light d-flex align-items-center justify-content-center border-bottom">
+                        <i class="fa-solid fa-file-pdf text-danger fa-3x"></i>
+                    </div>
+                    <div class="card-body p-2 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="fw-semibold small text-truncate mb-1" title="${escapeHtml(doc.title)}">${escapeHtml(doc.title)}</div>
+                            <span class="badge ${badgeColor} extra-small mb-2">${docTypeName}</span>
+                        </div>
+                        <div class="d-flex gap-1 mt-1">
+                            <a href="docs/items/${escapeHtml(doc.filename)}" target="_blank" class="btn btn-sm btn-outline-secondary w-100">
+                                <i class="fa-solid fa-eye me-1"></i>Anzeigen
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="openDocumentDeleteModal(${doc.id}, ${currentItemId}, '${escapeHtml(doc.title)}')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(col);
+        });
+    }
+
+    function escapeHtml(str) {
+        return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+    }
+});
+
+
+
+function setMainImage(itemId, imageId) {
+    //console.log("SetMainImage aufgerufen mit ItemID:", itemId, "ImageID:", imageId);
+
+    const formData = new FormData();
+    formData.append('itemId', itemId);
+    formData.append('imageId', imageId);
+
+    fetch('api/item-set-main-image.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        //console.log("Antwort vom Server:", data);
+        if (data.success) {
+            // 1. Alle Karten zurücksetzen
+            document.querySelectorAll('#imageGalleryContainer .image-card-wrapper').forEach(wrapper => {
+                const card = wrapper.querySelector('.card');
+                const btn = wrapper.querySelector('.main-image-btn');
+                const btnText = btn.querySelector('.btn-text');
+
+                card.classList.remove('border-warning', 'shadow', 'main-image-card');
+                btn.classList.remove('btn-warning', 'text-white');
+                btn.classList.add('btn-outline-warning');
+                btnText.textContent = 'Stern';
+                btn.title = 'Als Hauptbild festlegen';
+            });
+
+            // 2. Das ausgewählte Bild als Hauptbild markieren
+            const selectedWrapper = document.querySelector(`[data-image-id="${imageId}"]`);
+            if (selectedWrapper) {
+                const card = selectedWrapper.querySelector('.card');
+                const btn = selectedWrapper.querySelector('.main-image-btn');
+                const btnText = btn.querySelector('.btn-text');
+
+                card.classList.add('border-warning', 'shadow', 'main-image-card');
+                btn.classList.remove('btn-outline-warning');
+                btn.classList.add('btn-warning', 'text-white');
+                btnText.textContent = 'Hauptbild';
+                btn.title = 'Aktuelles Hauptbild';
+            }
+        } else {
+            alert('Fehler beim Ändern des Hauptbildes: ' + (data.error || 'Unbekannter Fehler'));
+        }
+    })
+    .catch(error => {
+        console.error('Fetch-Error:', error);
+        alert('Ein Netzwerkfehler ist aufgetreten.');
+    });
+}
+
+</script>

@@ -5,7 +5,7 @@
     </h6>
 
     <?php if (!empty($documents)): ?>
-        <div class="list-group mb-3">
+        <div class="row g-2 mb-3" id="documentGalleryContainer">
             <?php foreach ($documents as $doc): ?>
                 <?php
                 $badgeColor = match($doc['doc_type']) {
@@ -18,22 +18,38 @@
                     'bedienungsanleitung' => 'Anleitung',
                     default => 'Sonstiges'
                 };
+                
+                $ext = strtolower(pathinfo($doc['filename'], PATHINFO_EXTENSION));
+                $fileIcon = match($ext) {
+                    'pdf' => 'fa-file-pdf text-danger',
+                    'doc', 'docx' => 'fa-file-word text-primary',
+                    'txt' => 'fa-file-lines text-secondary',
+                    default => 'fa-file text-muted'
+                };
                 ?>
-                <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3 bg-white">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-file-lines text-muted"></i>
-                        <span class="fw-semibold"><?= htmlspecialchars($doc['title']) ?></span>
-                        <span class="badge <?= $badgeColor ?>"><?= $docTypeName ?></span>
-                    </div>
-                    <div class="d-flex gap-1">
-                        <a href="docs/items/<?= htmlspecialchars($doc['filename']) ?>" target="_blank" class="btn btn-outline-secondary btn-sm" title="Anzeigen / Herunterladen">
-                            <i class="fa-solid fa-eye"></i>
-                        </a>
-                        <button type="button" class="btn btn-outline-danger btn-sm" 
-                                onclick="openDocumentDeleteModal(<?= (int)$doc['id'] ?>, <?= (int)$id ?>, '<?= htmlspecialchars($doc['title'], ENT_QUOTES) ?>')" 
-                                title="Löschen">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+                <div class="col-6 col-md-3 document-card-wrapper" data-doc-id="<?= (int)$doc['id'] ?>">
+                    <div class="card h-100 bg-white border-0 shadow-sm">
+                        <div class="ratio ratio-4x3 bg-light d-flex align-items-center justify-content-center border-bottom">
+                            <i class="fa-solid <?= $fileIcon ?> fa-3x"></i>
+                        </div>
+                        <div class="card-body p-2 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="fw-semibold small text-truncate mb-1" title="<?= htmlspecialchars($doc['title']) ?>">
+                                    <?= htmlspecialchars($doc['title']) ?>
+                                </div>
+                                <span class="badge <?= $badgeColor ?> extra-small mb-2"><?= $docTypeName ?></span>
+                            </div>
+                            <div class="d-flex gap-1 mt-1">
+                                <a href="docs/items/<?= htmlspecialchars($doc['filename']) ?>" target="_blank" class="btn btn-sm btn-outline-secondary w-100" title="Anzeigen / Herunterladen">
+                                    <i class="fa-solid fa-eye me-1"></i>Anzeigen
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        onclick="openDocumentDeleteModal(<?= (int)$doc['id'] ?>, <?= (int)$item['id'] ?>, '<?= htmlspecialchars($doc['title'], ENT_QUOTES) ?>')"
+                                        title="Löschen">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -42,21 +58,29 @@
         <p class="text-muted small mb-3">Bisher sind keine Dokumente oder Anleitungen hochgeladen.</p>
     <?php endif; ?>
 
-    <!-- Upload für neue Dokumente -->
+    <!-- Drag & Drop Uploadzone für neue Dokumente (AJAX-Sofortupload) -->
     <div>
         <label class="form-label small text-muted">Neue Dokumente hinzufügen</label>
-        <div class="row g-2">
-            <div class="col-md-8">
-                <input type="file" name="documents[]" class="form-control" accept=".pdf,.doc,.docx,.txt" multiple>
-            </div>
-            <div class="col-md-4">
-                <select name="doc_type" class="form-select">
-                    <option value="sonstiges" selected>Sonstiges</option>
-                    <option value="rechnung">Rechnung</option>
-                    <option value="bedienungsanleitung">Bedienungsanleitung</option>
+        <div class="row g-2 mb-2">
+            <div class="col-12 col-md-4 order-md-2">
+                <select id="doc_type_ajax" class="form-select form-select-sm h-100">
+                    <option value="sonstiges" selected>Typ: Sonstiges</option>
+                    <option value="rechnung">Typ: Rechnung</option>
+                    <option value="bedienungsanleitung">Typ: Bedienungsanleitung</option>
                 </select>
             </div>
+            <div class="col-12 col-md-8 order-md-1">
+                <div id="documentDropzone" class="upload-dropzone p-3 text-center border border-2 border-dashed rounded bg-white" style="cursor: pointer;">
+                    <input type="file" id="item_documents_ajax" class="d-none" accept=".pdf,.doc,.docx,.txt" multiple onchange="uploadItemDocuments(<?= (int)$item['id'] ?>)">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up text-primary fs-4"></i>
+                        <span class="small fw-semibold">Dokumente hierher ziehen oder klicken</span>
+                        <span class="spinner-border spinner-border-sm text-primary ms-2" id="docUploadSpinner" style="display: none;" role="status"></span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="form-text">Der ausgewählte Dokumenttyp gilt für alle hier neu hochgeladenen Dateien.</div>
+        <div class="form-text">Der oben gewählte Typ gilt für alle zeitgleich hochgeladenen Dokumente.</div>
     </div>
 </div>
+

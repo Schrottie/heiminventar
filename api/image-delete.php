@@ -1,83 +1,41 @@
 <?php
-
 require_once __DIR__ . '/../cfg/db.php';
-require_once __DIR__ . '/../inc/functions.php'; // Für logInventoryAction()
+require_once __DIR__ . '/../inc/functions.php';
 
-$imageId = (int)($_GET['id'] ?? 0);
-$itemId  = (int)($_GET['item_id'] ?? 0);
+// ID aus dem POST-Formular des Modals abfangen
+$imageId = (int)($_POST['image_id'] ?? 0);
+$itemId = (int)($_POST['item_id'] ?? 0);
 
 if ($imageId <= 0) {
     die('Ungültige Bild-ID');
 }
 
-/* =========================================
-   Bilddatensatz & Artikel-Info laden
-   ========================================= */
-
-$stmt = $pdo->prepare("
-    SELECT
-        img.id,
-        img.filename,
-        img.item_id,
-        i.name AS item_name,
-        i.quantity AS item_quantity
-    FROM item_images img
-    LEFT JOIN inventory_items i ON i.id = img.item_id
-    WHERE img.id = ?
-");
-
+// 1. Bilddaten aus der Datenbank holen (für den Dateinamen)
+$stmt = $pdo->prepare("SELECT * FROM item_images WHERE id = ?");
 $stmt->execute([$imageId]);
 $image = $stmt->fetch();
 
 if (!$image) {
-    die('Bild nicht gefunden');
+    die('Bild nicht gefunden.');
 }
 
-// Falls item_id nicht über GET übergeben wurde, aus der DB-Abfrage nutzen
-$targetItemId = $itemId > 0 ? $itemId : (int)$image['item_id'];
-$itemName     = $image['item_name'] ?? 'Unbekannter Artikel';
-$itemQty      = (int)($image['item_quantity'] ?? 0);
-
-/* =========================================
-   Datei löschen
-   ========================================= */
-
-$file = __DIR__ . '/../img/items/' . $image['filename'];
-
-if (file_exists($file)) {
-    unlink($file);
+// Fallback, falls item_id nicht mitgeschickt wurde
+if ($itemId <= 0) {
+    $itemId = (int)$image['item_id'];
 }
 
-/* =========================================
-   Datenbankeintrag löschen
-   ========================================= */
+$filename = $image['filename'];
 
-$stmt = $pdo->prepare("
-    DELETE FROM item_images
-    WHERE id = ?
-");
-
-$stmt->execute([$imageId]);
-
-/* =========================================
-   Protokolleintrag schreiben
-   ========================================= */
-
-if ($targetItemId > 0) {
-    logInventoryAction(
-        $pdo,
-        $targetItemId,
-        $itemName,
-        'updated',
-        0,
-        $itemQty,
-        'Bild gelöscht (' . $image['filename'] . ')'
-    );
+// 2. Datei physisch vom Server löschen (Pfad anpassen falls nötig, z.B. ../img/items/)
+$filePath = __DIR__ . '/../img/items/' . $filename;
+if (file_exists($filePath)) {
+    @unlink($filePath);
 }
 
-/* =========================================
-   Zurück zum Gegenstand
-   ========================================= */
+// 3. Datenbankeintrag löschen
+$stmtDel = $pdo->prepare("DELETE FROM item_images WHERE id = ?");
+$stmtDel->execute([$imageId]);
 
-header('Location: ../item.php?id=' . $targetItemId);
+// 4. Zurück zur Artikel-Ansicht
+header('Location: ../item.php?id=' . $itemId);
 exit;

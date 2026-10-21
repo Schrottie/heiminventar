@@ -15,6 +15,7 @@
    11. Drucksettings
    12. Vorschaubilder in Listen/Karten
    13. Global Command Palette
+   14. File- & Imagedropzone
    ========================================================================== */
 
 
@@ -1001,4 +1002,39 @@ body.theme-dark #filterTagContainer {
 }
 #cmdPaletteResults .list-group-item.active-cmd * {
     color: white !important;
+}
+
+/* ==========================================================================
+   14. File- & Imagedropzone
+   ========================================================================== */
+
+.upload-dropzone {
+    border: 2px dashed var(--bs-border-color);
+    border-radius: 0.75rem;
+    background-color: var(--bs-body-bg);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.upload-dropzone:hover,
+.upload-dropzone.dragover {
+    border-color: var(--bs-primary);
+    background-color: var(--bs-primary-bg-subtle, rgba(13, 110, 253, 0.05));
+    transform: scale(1.005);
+}
+
+.upload-dropzone .dropzone-icon {
+    font-size: 2.2rem;
+    transition: transform 0.2s ease-in-out;
+}
+
+.upload-dropzone:hover .dropzone-icon {
+    transform: translateY(-4px);
+}
+
+/* Erzwingt das blaue Highlight, wenn Dateien über die Dropzone gezogen werden */
+.upload-dropzone.dropzone-active {
+    border: 3px dashed #0d6efd !important;
+    background-color: rgba(13, 110, 253, 0.12) !important;
+    box-shadow: 0 0 15px rgba(13, 110, 253, 0.3);
 }

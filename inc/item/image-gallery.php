@@ -8,7 +8,7 @@
                 <?php $isMain = !empty($image['is_main']); ?>
                 <div class="col-6 col-md-3 image-card-wrapper" data-image-id="<?= (int)$image['id'] ?>">
                     <div class="card h-100 bg-white <?= $isMain ? 'border-warning shadow-sm main-image-card' : 'border-0' ?>">
-                        <img src="img/items/<?= htmlspecialchars($image['filename']) ?>" class="card-img-top img-fluid item-pic object-fit-cover" style="height: 140px;" alt="Bild">
+                        <img src="img/items/<?= htmlspecialchars($image['filename']) ?>" class="card-img-top img-zoomable img-fluid item-pic object-fit-cover" style="height: 140px;" alt="Bild">
                         <div class="card-body p-2 d-flex gap-1">
                            
                             <!-- Button: Als Hauptbild festlegen (AJAX) -->
@@ -43,7 +43,7 @@
                 <i class="fa-solid fa-spinner fa-spin text-primary"></i>
             </span>
         </div>
-        <div class="form-text">Wähle Bilder aus – sie werden sofort automatisch hochgeladen.</div>
+        <div class="form-text">Wähle Bilder aus - sie werden sofort automatisch hochgeladen.</div>
     </div>
 </div>
 

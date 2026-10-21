@@ -532,6 +532,23 @@ a {
     font-size: 0.85rem;
 }
 
+/* Hilfeseite: Hebt die angesprungene Sektion (Ziel des Hash-Ankers) kurz hervor */
+section:target {
+    animation: highlightSection 2s ease-out;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+}
+
+@keyframes highlightSection {
+    0% { background-color: rgba(220, 53, 69, 0.2); }
+    100% { background-color: transparent; }
+}
+
+/* Verhindert, dass fixierte Header den Anker verdecken beim Hinspringen */
+section {
+    scroll-margin-top: 80px;
+}
+
 /* ==========================================================================
    07. HELP MODAL - RESPONSIVE & MOBILE OPTIMIZATIONS
    ========================================================================== */

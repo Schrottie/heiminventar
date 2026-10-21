@@ -1,0 +1,3 @@
+<p class="small text-muted mb-0">
+    Änderungen am Lagerbestand (z. B. Entnahmen oder Umlagerungen durch andere Benutzer) werden automatisch synchronisiert. Ist der Zugriffsschutz aktiviert, können mehrere Benutzer gleichzeitig auf das System zugreifen. Alle Änderungen werden in Echtzeit übernommen, sodass jeder Benutzer stets die aktuelle Inventarliste sieht. Änderungen werden dabei namentlich protokolliert, sodass nachvollziehbar ist, wer welche Anpassungen vorgenommen hat.
+</p>

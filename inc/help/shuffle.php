@@ -1,0 +1,3 @@
+<p class="small text-muted mb-2">
+    Der Verschiebebahnhof ermöglicht das schnelle Umsortieren von Lagerorten. Die Lagerorte werden in der gleichen Baumstruktur wie in der Lagerortverwaltung angezeigt. Jeder Lagerort hat dabei einen "Greifer", mit dem er innerhalb der Struktur verschoben werden kann. Die Änderungen werden sofort übernommen und optisch signalisiert. So können Lagerorte flexibel umsortiert werden, ohne dass Gegenstände oder Unterlagerorte verloren gehen.
+</p>

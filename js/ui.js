@@ -131,8 +131,10 @@ document.addEventListener("DOMContentLoaded", function() {
     // Alle Bilder mit der Klasse 'img-zoomable' klickbar machen
     document.querySelectorAll('.img-zoomable').forEach(img => {
         img.addEventListener('click', function(e) {
-            // Auf dem Desktop ist der Hover aktiv – auf Touch-Geräten soll stattdessen das Modal aufgehen
-            // Wir öffnen das Modal, sobald draufgeklickt wird (auf Mobile immer, auf Desktop optional auch bei Klick)
+            // Auf dem Desktop ist der Hover aktiv – auf Touch-Geräten soll 
+            // stattdessen das Modal aufgehen
+            // Das Modal öffnet, sobald draufgeklickt wird 
+            // (auf Mobile immer, auf Desktop optional auch bei Klick)
             modalImagePreview.src = this.src;
             imageModal.show();
         });

@@ -128,6 +128,7 @@ $overviewLink = $isDashboardStart ? 'index.php?mode=' . ($settings['overview_mod
     <script src="js/tags.js"></script>
     <script src="js/qr.js"></script>
     <script src="js/logs.js"></script>
+    <script src="js/gc-palette.js"></script>
     <script src="js/app.js"></script>
 
 </body>

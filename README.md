@@ -36,7 +36,7 @@ Dieses System wurde primär für den privaten Gebrauch und die heimische Organis
 * **Modalbasierter 1+n-Editor:** Schnelles Hinzufügen, Bearbeiten und Sortieren von Set-Inhalten (inkl. Mengen und Freitexten via SortableJS).
 * **Inventur-Audit-Ansicht:** Nahtlose Integration der Set-Komponenten direkt in den Bestandsprüfungs- und Audit-Ansichten zur unkomplizierten Compliance-Prüfung.
 
-### 6. Druck- & Berichtsgenerator (`print.php`) 🖨️
+### 6. Druck- & Berichtsgenerator 🖨️
 * **Echtzeit-Client-Filterung:** Dynamisches Umschalten von Berichten und Filtern ohne Seiten-Reload.
 * **Flexibles Standort-Filtering:** Checkbox für den Gesamtdruck über alle Lagerorte oder zielgenaue, dynamisch erweiterbare Standort-Dropdowns (inkl. automatischer Einbeziehung aller Unterlagerorte).
 * **Standard-Inventardruck:** Kompakte Kartenansicht (optisch optimiert für mindestens 6 Gegenstände pro Seite) mit Hauptbild links, Stammdaten und farbigen Dokument-Badges.
@@ -64,7 +64,7 @@ Dieses System wurde primär für den privaten Gebrauch und die heimische Organis
 ### 10. Systemeinstellungen & Theme-Wahl 🎨
 * **Erscheinungsbild (Light/Dark Mode):** Visuelle Auswahl zwischen hellem und dunklem Design per modernem UI-Button-System.
 * **Vorschaubilder:** In der Übersicht lassen sich auf Wunsch, sofern vorhanden, Vorschaubilder zu den gelisteten Gegenständen anzeigen. Dazu wird jeweils das erste zum Gegenstand abgelegte Bild verwendet.
-* **Automatisches Datenbank-Migrationssystem:** Schema-Updates der Datenbank werden über ein zentrales Skript (`migrations.php`) vollautomatisch im Hintergrund ausgeführt.
+* **Automatisches Datenbank-Migrationssystem:** Schema-Updates der Datenbank werden über ein zentrales Skript vollautomatisch im Hintergrund ausgeführt.
 
 ### 11. Hilfe und Bedienungsanleitung 📖
 * Eine umfangreiche Hilfeseite informiert über alle Funktionen im Detail. Dabei werden die verschiedenen Optionen erläutert, Tastenkombinationen für die Benutzung auf dem Desktop gezeigt, sowie weniger offensichtliche Funktionen dargelegt.
@@ -78,10 +78,10 @@ Dieses System wurde primär für den privaten Gebrauch und die heimische Organis
 
 ---
 
-## 🛠️ Technologien
+## 🛠️ Technologie-Stack
 
-* **Backend:** PHP 8+
-* **Datenbank:** MariaDB / MySQL (Verbindung via PDO)
+* **Backend:** PHP 8+ (Modularer Aufbau mit PDO)
+* **Datenbank:** MariaDB / MySQL
 * **Frontend:** HTML5, CSS3, JavaScript (ES6+), Bootstrap 5, FontAwesome 6
 * **Drag & Drop:** [SortableJS](https://sortablejs.github.io/Sortable/)
 
@@ -91,7 +91,7 @@ Dieses System wurde primär für den privaten Gebrauch und die heimische Organis
 
 ### Voraussetzungen
 * Webserver (Apache2 oder Nginx)
-* PHP 8.0 oder höher mit den Erweiterungen `pdo_mysql` und `gd`
+* PHP 8.0 oder höher mit den Erweiterungen `pdo_mysql`, `mbstring` und `gd`
 * MariaDB / MySQL Datenbankserver
 
 ### 1. Repository klonen / herunterladen
@@ -110,7 +110,7 @@ sudo chmod -R 775 /var/www/html/inventory
 1. Öffne `http://<deine-raspi-ip>/inventory/install.php` im Browser.
 2. Gib die gewünschten Datenbank-Zugangsdaten ein.
 3. Falls die Datenbank oder der Benutzer noch nicht existiert, fordert das Installations-Script die Admin-Zugangsdaten an und legt Datenbank, Benutzer und Tabellen automatisch an.
-4. Nach erfolgreicher Installation wird eine `.env`-Datei im Ordner `cfg/` angelegt.
+4. Nach erfolgreicher Installation wird eine `.env`-Datei im Ordner `cfg/` angelegt. _(In seltenen Fällen schlägt das fehl. Dann einfach die .env.example nach .env umbenennen und mit einem beliebigen Editor die Datenbankdaten darin eintragen.)_
 
 ---
 
@@ -131,7 +131,7 @@ Um das Verzeichnis `/var/www/html/inventory` automatisch mit diesem Repository s
 
 ## 🎛️ Demo
 
-Unter [https://maik-bischoff.de/heiminventar/](https://maik-bischoff.de/heiminventar/index.php) gibt es eine (eingeschränkte) Demo.
+Unter [https://maik-bischoff.de/heiminventar/](https://maik-bischoff.de/heiminventar/index.php) gibt es eine (eingeschränkte) Demo. Hier können alle wesentlichen Funktionen (Versionsstand: 1.1.1) ausprobiert werden. Das Demosystem wird regelmäßig wieder zurückgesetzt.
 
 ## 📄 Lizenz
 

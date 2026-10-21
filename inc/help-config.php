@@ -85,6 +85,12 @@ return [
         'file'  => __DIR__ . '/help/import-export.php'
     ],
     [
+        'id'    => 'gcp',
+        'icon'  => 'fa-solid fa-binoculars',
+        'title' => 'Global Command Palette',
+        'file'  => __DIR__ . '/help/gcp.php'
+    ],
+    [
         'id'    => 'releases',
         'icon'  => 'fa-brands fa-square-github',
         'title' => 'Release-Notes & Changelog',

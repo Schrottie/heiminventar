@@ -572,3 +572,28 @@
         </div>
     </div>
 </div>
+
+<!-- Global Command Palette Modal -->
+<div class="modal fade" id="commandPaletteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-top modal-lg mt-5">
+        <div class="modal-content bg-body-tertiary shadow-lg border-0 rounded-4 overflow-hidden">
+            <div class="modal-body p-0">
+                <!-- Suchfeld -->
+                <div class="d-flex align-items-center px-3 py-2 border-bottom">
+                    <i class="fa-solid fa-magnifying-glass text-muted me-3 fs-5"></i>
+                    <input type="text" id="cmdPaletteInput" class="form-control form-control border-0 bg-transparent shadow-none" placeholder="Tippe einen Befehl, Gegenstand oder Lagerort..." autocomplete="off">
+                    <span class="badge bg-secondary-subtle text-secondary border ms-2">Esc</span>
+                </div>
+                
+                <!-- Ergebnisse & Aktionen -->
+                <div id="cmdPaletteResults" class="list-group list-group-flush overflow-auto p-2" style="max-height: 400px;">
+                    <!-- Dynamische Ergebnisse per JS -->
+                </div>
+            </div>
+            <div class="modal-footer bg-body-secondary py-1 px-3 justify-content-between small text-muted">
+                <span><kbd class="bg-secondary text-white">↑</kbd> <kbd class="bg-secondary text-white">↓</kbd> Navigieren</span>
+                <span><kbd class="bg-secondary text-white">↵</kbd> Auswählen</span>
+            </div>
+        </div>
+    </div>
+</div>

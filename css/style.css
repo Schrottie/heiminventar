@@ -14,6 +14,7 @@
    10. Dark Theme Overrides
    11. Drucksettings
    12. Vorschaubilder in Listen/Karten
+   13. Global Command Palette
    ========================================================================== */
 
 
@@ -988,4 +989,16 @@ body.theme-dark #filterTagContainer {
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
         border-radius: 4px;
     }
+}
+
+/* ==========================================================================
+   13. Global Command Palette
+   ========================================================================== */
+
+#cmdPaletteResults .list-group-item.active-cmd {
+    background-color: var(--bs-primary);
+    color: white !important;
+}
+#cmdPaletteResults .list-group-item.active-cmd * {
+    color: white !important;
 }

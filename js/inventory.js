@@ -319,18 +319,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // Modal zum Löschen von Dokuemnten
-function openDocumentDeleteModal(docId, itemId, docTitle) {
-    // Titel in den Modal-Text schreiben
-    document.getElementById('deleteDocTitlePlaceholder').textContent = '"' + docTitle + '"';
-    
-    // Den korrekten Lösch-Link auf den Bestätigen-Button legen
-    const deleteBtn = document.getElementById('confirmDeleteDocumentBtn');
-    deleteBtn.href = 'api/document-delete.php?id=' + docId + '&item_id=' + itemId;
-    
-    // Modal anzeigen
-    var myModal = new bootstrap.Modal(document.getElementById('deleteDocumentModal'));
-    myModal.show();
-}
+window.openDocumentDeleteModal = function(docId, itemId, docTitle) {
+    // 1. Titel in das Modal einfügen
+    const titlePlaceholder = document.getElementById('deleteDocTitlePlaceholder');
+    if (titlePlaceholder) {
+        titlePlaceholder.textContent = docTitle;
+    }
+
+    // 2. Den Link für den "Ja, löschen"-Button im Modal setzen
+    const confirmBtn = document.getElementById('confirmDeleteDocumentBtn');
+    if (confirmBtn) {
+        confirmBtn.href = `api/document-delete.php?id=${docId}&item_id=${itemId}`;
+    }
+
+    // 3. Das Bootstrap-Modal anzeigen
+    const modalEl = document.getElementById('deleteDocumentModal');
+    if (modalEl && window.bootstrap) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    } else {
+        // Fallback, falls Bootstrap-JS wider Erwarten nicht greift
+        if (confirm(`Möchten Sie das Dokument "${docTitle}" wirklich unwiderruflich löschen?`)) {
+            window.location.href = `api/document-delete.php?id=${docId}&item_id=${itemId}`;
+        }
+    }
+};
+
 
 // Verleihmodal öffnen
 function openLendModal(unitId, itemId, unitNumber) {

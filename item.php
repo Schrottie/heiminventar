@@ -164,31 +164,23 @@ require_once __DIR__ . '/inc/header.php';
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    const currentItemId = <?= (int)($item['id'] ?? $id ?? 0) ?>;
+    // Holt die Artikel-ID sicher aus der URL oder der PHP-Variable
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentItemId = parseInt(urlParams.get('id')) || <?= (int)($item['id'] ?? $id ?? 0) ?>;
 
-    // 1. Bilder Dropzone & Upload (strikt AJAX-only ohne Reload)
-    setupAjaxDropzone({
-        dropzoneId: 'imageDropzone',
-        inputId: 'item_images_ajax',
-        endpoint: 'api/item-image-upload.php',
-        fileKey: 'images[]',
-        onSuccess: (data) => {
-            if (data.images && Array.isArray(data.images)) {
-                appendNewImagesToGrid(data.images);
-            }
-        }
-    });
-
-    // 2. Dokumente Dropzone & Upload
+    // Dokumente Dropzone & Upload initialisieren
     setupAjaxDropzone({
         dropzoneId: 'documentDropzone',
         inputId: 'item_documents_ajax',
         endpoint: 'api/item-document-upload.php',
         fileKey: 'documents[]',
-        extraData: () => ({ doc_type: document.getElementById('doc_type_ajax')?.value || 'sonstiges' }),
+        extraData: () => ({ 
+            itemId: currentItemId, 
+            doc_type: document.getElementById('doc_type_ajax')?.value || 'sonstiges' 
+        }),
         onSuccess: (data) => {
             if (data.documents && Array.isArray(data.documents)) {
-                appendNewDocumentsToGrid(data.documents);
+                appendNewDocumentsToGrid(data.documents, currentItemId);
             }
         }
     });
@@ -198,22 +190,19 @@ document.addEventListener("DOMContentLoaded", function() {
         const fileInput = document.getElementById(config.inputId);
         if (!dropzone || !fileInput) return;
 
-        // Klick auf Dropzone öffnet den Dateidialog (ohne Bubbling)
         dropzone.addEventListener('click', (e) => {
             if (e.target !== fileInput) {
                 fileInput.click();
             }
         });
 
-        // Dateiauswahl via Dialog
         fileInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
+            if (this.files && this.files.length > 0) {
                 uploadFiles(this.files, config);
-                this.value = ''; // Input leeren, damit man dieselbe Datei direkt nochmal wählen könnte
+                this.value = ''; 
             }
         });
 
-        // Drag & Drop Event-Handling mit sauberem PreventDefault
         ['dragenter', 'dragover'].forEach(eventName => {
             dropzone.addEventListener(eventName, (e) => {
                 e.preventDefault();
@@ -230,7 +219,6 @@ document.addEventListener("DOMContentLoaded", function() {
             }, false);
         });
 
-        // Drop-Event verarbeiten
         dropzone.addEventListener('drop', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -244,13 +232,24 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    let isUploading = false;
+    let isUploadingDocs = false;
     function uploadFiles(files, config) {
-        if (isUploading) return;
-        isUploading = true;
+        if (isUploadingDocs) return;
 
+        // Maximale Dateigröße (35 MB als sichere Grenze vor dem 40 MB PHP-Limit)
+        const MAX_FILE_SIZE_MB = 35;
+        const maxBytes = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].size > maxBytes) {
+                const fileSizeFormatted = (files[i].size / (1024 * 1024)).toFixed(1);
+                showFileSizeModal(files[i].name, fileSizeFormatted, MAX_FILE_SIZE_MB);
+                return; // Bricht ab und zeigt das Modal
+            }
+        }
+
+        isUploadingDocs = true;
         const formData = new FormData();
-        formData.append('itemId', currentItemId);
 
         if (config.extraData) {
             const extra = config.extraData();
@@ -263,8 +262,7 @@ document.addEventListener("DOMContentLoaded", function() {
             formData.append(config.fileKey, files[i]);
         }
 
-        // Optionaler Spinner, falls vorhanden
-        const spinner = document.getElementById(config.dropzoneId.includes('image') ? 'uploadSpinner' : 'docUploadSpinner');
+        const spinner = document.getElementById('docUploadSpinner');
         if (spinner) spinner.style.display = 'inline-block';
 
         fetch(config.endpoint, {
@@ -274,60 +272,38 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(res => res.json())
         .then(data => {
             if (spinner) spinner.style.display = 'none';
-            isUploading = false;
+            isUploadingDocs = false;
             
             if (data.success) {
                 config.onSuccess(data);
             } else {
-                alert('Fehler beim Upload: ' + (data.error || 'Unbekannter Fehler'));
+                alert('Fehler beim Dokumenten-Upload: ' + (data.error || 'Unbekannter Fehler'));
             }
         })
         .catch(err => {
             if (spinner) spinner.style.display = 'none';
-            isUploading = false;
-            console.error(err);
-            alert('Ein Netzwerkfehler ist aufgetreten.');
+            isUploadingDocs = false;
+            console.error('GENAUER FETCH-FEHLER:', err);
+            alert('Ein Netzwerkfehler ist beim Hochladen aufgetreten.');
         });
     }
 
-    // Direktes Rendern neuer Bilder ins Grid ohne Reload
-    function appendNewImagesToGrid(images) {
-        let container = document.getElementById('imageGalleryContainer');
-        if (!container) {
-            const dropzoneCard = document.querySelector('#imageDropzone').closest('.card');
-            container = document.createElement('div');
-            container.className = 'row g-2 mb-3';
-            container.id = 'imageGalleryContainer';
-            dropzoneCard.parentNode.insertBefore(container, dropzoneCard);
+    // Hilfsfunktion: Zeigt das Bootstrap-Modal bei zu großen Dateien
+    function showFileSizeModal(fileName, fileSize, maxLimit) {
+        const modalText = document.getElementById('fileSizeModalText');
+        if (modalText) {
+            modalText.innerHTML = `Die Datei <strong>"${escapeHtml(fileName)}"</strong> ist <strong>${fileSize} MB</strong> groß.<br>Erlaubt sind maximal ${maxLimit} MB.`;
         }
-
-        images.forEach(img => {
-            const col = document.createElement('div');
-            col.className = 'col-6 col-md-3 image-card-wrapper';
-            col.setAttribute('data-image-id', img.id);
-            col.innerHTML = `
-                <div class="card h-100 bg-white border-0 shadow-sm">
-                    <div class="ratio ratio-4x3 bg-light overflow-hidden border-bottom image-zoom-container">
-                        <img src="img/items/${escapeHtml(img.filename)}" class="card-img-top img-fluid object-fit-cover" alt="Bild">
-                    </div>
-                    <div class="card-body p-2 d-flex flex-column justify-content-between">
-                        <div class="d-flex gap-1 mt-auto">
-                            <button type="button" class="btn btn-sm w-100 btn-outline-warning main-image-btn" onclick="setMainImage(${currentItemId}, ${img.id})">
-                                <i class="fa-solid fa-star me-1"></i><span class="btn-text">Stern</span>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="openImageDeleteModal(${img.id}, ${currentItemId})">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.appendChild(col);
-        });
+        const modalEl = document.getElementById('fileSizeModal');
+        if (modalEl && window.bootstrap) {
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        } else {
+            alert(`Die Datei "${fileName}" ist zu groß (${fileSize} MB). Erlaubt sind max. ${maxLimit} MB.`);
+        }
     }
 
-    // Direktes Rendern neuer Dokumente ins Grid ohne Reload
-    function appendNewDocumentsToGrid(docs) {
+    function appendNewDocumentsToGrid(docs, itemId) {
         let container = document.getElementById('documentGalleryContainer');
         if (!container) {
             const dropzoneCard = document.querySelector('#documentDropzone').closest('.card');
@@ -342,13 +318,21 @@ document.addEventListener("DOMContentLoaded", function() {
             if (doc.doc_type === 'rechnung') { badgeColor = 'bg-success'; docTypeName = 'Rechnung'; }
             if (doc.doc_type === 'bedienungsanleitung') { badgeColor = 'bg-info text-dark'; docTypeName = 'Anleitung'; }
 
+            const ext = doc.filename ? doc.filename.split('.').pop().toLowerCase() : '';
+            let fileIcon = 'fa-file text-muted';
+            if (ext === 'pdf') fileIcon = 'fa-file-pdf text-danger';
+            else if (['doc', 'docx'].includes(ext)) fileIcon = 'fa-file-word text-primary';
+            else if (ext === 'txt') fileIcon = 'fa-file-lines text-secondary';
+
             const col = document.createElement('div');
             col.className = 'col-6 col-md-3 document-card-wrapper';
             col.setAttribute('data-doc-id', doc.id);
+            
+            // Wichtig: itemId wird hier sauber als reiner Integer an die globale Löschfunktion übergeben
             col.innerHTML = `
                 <div class="card h-100 bg-white border-0 shadow-sm">
                     <div class="ratio ratio-4x3 bg-light d-flex align-items-center justify-content-center border-bottom">
-                        <i class="fa-solid fa-file-pdf text-danger fa-3x"></i>
+                        <i class="fa-solid ${fileIcon} fa-3x"></i>
                     </div>
                     <div class="card-body p-2 d-flex flex-column justify-content-between">
                         <div>
@@ -356,7 +340,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             <span class="badge ${badgeColor} extra-small mb-2">${docTypeName}</span>
                         </div>
                         <div class="d-flex gap-1 mt-1">
-                            <a href="docs/items/${escapeHtml(doc.filename)}" target="_blank" class="btn btn-sm btn-outline-secondary w-100">
+                            <a href="docs/items/${escapeHtml(doc.filename)}" target="_blank" class="btn btn-sm btn-outline-secondary w-100" title="Anzeigen / Herunterladen">
                                 <i class="fa-solid fa-eye me-1"></i>Anzeigen
                             </a>
                             <button type="button" class="btn btn-sm btn-outline-danger" onclick="openDocumentDeleteModal(${doc.id}, ${currentItemId}, '${escapeHtml(doc.title)}')">
@@ -371,9 +355,10 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function escapeHtml(str) {
-        return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+        return str ? String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : '';
     }
 });
+
 
 
 

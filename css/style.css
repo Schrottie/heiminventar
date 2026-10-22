@@ -15,7 +15,7 @@
    11. Drucksettings
    12. Vorschaubilder in Listen/Karten
    13. Global Command Palette
-   14. File- & Imagedropzone
+   14. File- & Imagedropzone mit animiertem Leuchtrahmen
    ========================================================================== */
 
 
@@ -1005,21 +1005,29 @@ body.theme-dark #filterTagContainer {
 }
 
 /* ==========================================================================
-   14. File- & Imagedropzone
+   14. File- & Imagedropzone mit animiertem Leuchtrahmen
    ========================================================================== */
 
+@property --angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
 .upload-dropzone {
+    position: relative;
     border: 2px dashed var(--bs-border-color);
     border-radius: 0.75rem;
     background-color: var(--bs-body-bg);
     transition: all 0.2s ease-in-out;
     cursor: pointer;
+    overflow: hidden;
 }
 
 .upload-dropzone:hover,
 .upload-dropzone.dragover {
     border-color: var(--bs-primary);
-    background-color: var(--bs-primary-bg-subtle, rgba(13, 110, 253, 0.05));
+    background-color: var(--bs-tertiary-bg);
     transform: scale(1.005);
 }
 
@@ -1032,9 +1040,58 @@ body.theme-dark #filterTagContainer {
     transform: translateY(-4px);
 }
 
-/* Erzwingt das blaue Highlight, wenn Dateien über die Dropzone gezogen werden */
+/* --- LIGHTMODE: Kräftiger, rotierender Blau/Cyan-Strahl --- */
 .upload-dropzone.dropzone-active {
-    border: 3px dashed #0d6efd !important;
-    background-color: rgba(13, 110, 253, 0.12) !important;
-    box-shadow: 0 0 15px rgba(13, 110, 253, 0.3);
+    border-color: transparent !important;
+    background-color: rgba(13, 110, 253, 0.08) !important;
+    box-shadow: 0 0 25px rgba(13, 110, 253, 0.4);
+}
+
+.upload-dropzone.dropzone-active::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: calc(0.75rem + 4px);
+    background: conic-gradient(
+        from var(--angle),
+        rgba(13, 110, 253, 0.1) 0%,
+        #0d6efd 15%,
+        #0dcaf0 35%,
+        #0d6efd 50%,
+        rgba(13, 110, 253, 0.1) 70%,
+        rgba(13, 110, 253, 0.1) 100%
+    );
+    z-index: -1;
+    animation: borderRotate 1.5s linear infinite; /* Deutlich flotterer Lauf */
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    padding: 4px; /* Dickerer, präsenterer Rahmen */
+}
+
+/* --- DARKMODE: Kräftiger, rotierender Rot/Korallen-Strahl --- */
+body.theme-dark .upload-dropzone.dropzone-active {
+    background-color: rgba(255, 77, 90, 0.12) !important;
+    box-shadow: 0 0 25px rgba(255, 77, 90, 0.5);
+}
+
+body.theme-dark .upload-dropzone.dropzone-active::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 77, 90, 0.1) 0%,
+        #ff4d5a 15%,
+        #ffc107 35%, /* Setzt einen knackigen Gelb/Gold-Akzent in die Spitze des Strahls */
+        #ff4d5a 50%,
+        rgba(255, 77, 90, 0.1) 70%,
+        rgba(255, 77, 90, 0.1) 100%
+    );
+}
+
+@keyframes borderRotate {
+    0% {
+        --angle: 0deg;
+    }
+    100% {
+        --angle: 360deg;
+    }
 }

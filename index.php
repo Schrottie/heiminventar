@@ -204,17 +204,16 @@ require_once __DIR__ . '/inc/header.php';
         <ul class="mb-1 ps-3 text-secondary">
             <?php if ($activeAudit): ?>
                 <?php 
-                    $auditLink = 'index.php';
+                    $auditLink = 'inventory-audit.php';
                     if (!empty($activeAudit['location_id'])) {
                         $auditLink .= '?location_id=' . (int)$activeAudit['location_id'];
                     }
                 ?>
                 <li>
                     Geplante Inventur fällig: <strong><?= htmlspecialchars($activeAudit['title']) ?></strong> (Datum: <?= date('d.m.Y', strtotime($activeAudit['audit_date'])) ?>) 
-                    — <a href="<?= $auditLink ?>" class="fw-semibold text-decoration-underline">Zum Lagerort filtern</a>
+                    — <a href="<?= $auditLink ?>" class="fw-semibold text-decoration-underline">Zur Inventur (Lagerort öffnen)</a>
                 </li>
             <?php endif; ?>
-
             <?php if ($lowStockCount > 0): ?>
                 <li><?= $lowStockCount === 1 ? 'Anstehende Nachbestellung: <strong>1 Gegenstand</strong>' : 'Anstehende Nachbestellungen: <strong>' . $lowStockCount . ' Gegenstände</strong>' ?></li>
             <?php endif; ?>

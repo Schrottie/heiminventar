@@ -6,7 +6,8 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../cfg/db.php';
 require_once __DIR__ . '/../inc/functions.php';
 
-$currentUserId = $_SESSION['user_id'] ?? 1;
+// Wenn kein User eingeloggt ist, nutzen wir ID 0 (System-Fallback ohne Auth)
+$currentUserId = $_SESSION['user_id'] ?? 0;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['audits']) && is_array($_POST['audits'])) {
     
@@ -38,7 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['audits']) && is_array
         }
     }
 
-    // Unterstützung für optionale AJAX-Requests
     if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
         header('Content-Type: application/json');
         echo json_encode(['success' => true]);

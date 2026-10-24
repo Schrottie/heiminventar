@@ -134,6 +134,9 @@ $users = $pdo->query("SELECT * FROM users ORDER BY is_default DESC, id ASC")->fe
                     <!-- Block 2: Sicherheit & Zugriff -->
                     <?php require_once __DIR__ . '/inc/settings/security.php'; ?>
 
+                    <!-- Block 3: Inventurplanung -->
+                    <?php require_once __DIR__ . '/inc/settings/audit-schedule.php'; ?>
+
                 </form>
             </div>
         </div>

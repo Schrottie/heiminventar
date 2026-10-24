@@ -1,73 +1,52 @@
-<hr class="my-4">
+<?php
+// Session starten
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-<!-- Inventur-Planung (Usergebunden, Max. 3 Slots) -->
-<div class="mb-2">
-    <label class="form-label fw-bold">Persönliche Inventur-Termine (Max. 3 Slots)</label>
-    <div class="form-text mb-3">
-        <i class="fa-solid fa-circle-info me-1"></i> Lege hier deine Inventurtermine fest. Bei Erreichen des Datums erscheint auf deiner Startseite eine Hinweismeldung mit direktem Sprungziel zum gewählten Lagerort.
-    </div>
+// Konfiguration und Hilfsfunktionen einbinden
+require_once __DIR__ . '/../cfg/db.php';
+require_once __DIR__ . '/../inc/functions.php';
 
-    <?php
-    // Aktuellen User ermitteln
-    $currentUserId = $_SESSION['user_id'] ?? 0;
+// Prüfen ob der User eingeloggt ist (Fallback auf User-ID 1 falls Auth deaktiviert oder nicht gesetzt)
+$currentUserId = $_SESSION['user_id'] ?? 1;
 
-    // Lagerorte abfragen, falls noch nicht geschehen
-    if (!isset($allLocations) && isset($pdo)) {
-        $allLocations = $pdo->query("SELECT id, parent_id, name FROM locations ORDER BY name")->fetchAll();
-    }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['audits']) && is_array($_POST['audits'])) {
+    
+    // Vorbereitetes Statement für Upsert (Einfügen oder Aktualisieren pro Slot)
+    $stmt = $pdo->prepare("
+        INSERT INTO audit_schedules (user_id, slot_index, audit_date, location_id, title)
+        VALUES (?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE 
+            audit_date = VALUES(audit_date),
+            location_id = VALUES(location_id),
+            title = VALUES(title),
+            updated_at = CURRENT_TIMESTAMP
+    ");
 
-    // Vorhandene Einträge NUR für diesen User aus audit_schedules laden
-    $savedAudits = [];
-    if (isset($pdo) && $currentUserId > 0) {
-        try {
-            $stmt = $pdo->prepare("SELECT * FROM audit_schedules WHERE user_id = ?");
-            $stmt->execute([$currentUserId]);
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                $savedAudits[$row['slot_index']] = $row;
-            }
-        } catch (Exception $e) {
-            // Tabelle eventuell noch nicht da
+    foreach ($_POST['audits'] as $slotIndex => $data) {
+        $slotIndex = (int)$slotIndex;
+        
+        // Nur Slots 1 bis 3 zulassen
+        if ($slotIndex < 1 || $slotIndex > 3) {
+            continue;
+        }
+
+        $date = trim($data['date'] ?? '');
+        $locationId = !empty($data['location_id']) && is_numeric($data['location_id']) ? (int)$data['location_id'] : null;
+        $title = trim($data['title'] ?? '') ?: 'Reguläre Inventur';
+
+        // Wenn kein Datum angegeben wurde, leeren wir den Slot bzw. löschen ihn
+        if (empty($date)) {
+            $deleteStmt = $pdo->prepare("DELETE FROM audit_schedules WHERE user_id = ? AND slot_index = ?");
+            $deleteStmt->execute([$currentUserId, $slotIndex]);
+        } else {
+            // Speichern / Aktualisieren
+            $stmt->execute([$currentUserId, $slotIndex, $date, $locationId, $title]);
         }
     }
-    ?>
+}
 
-    <form action="api/audit-schedule-save.php" method="POST">
-        <?php for ($i = 1; $i <= 3; $i++): ?>
-            <?php 
-                $slotData = $savedAudits[$i] ?? ['audit_date' => '', 'location_id' => '', 'title' => 'Reguläre Inventur'];
-            ?>
-            <div class="border rounded p-3 mb-3 bg-body-tertiary">
-                <div class="fw-semibold small text-primary mb-2">
-                    <i class="fa-solid fa-calendar-check me-1"></i> Inventur-Eintrag #<?= $i ?>
-                </div>
-                <div class="row g-2">
-                    <div class="col-md-4">
-                        <label class="form-label small text-muted mb-1">Bezeichnung / Titel</label>
-                        <input type="text" class="form-control form-control-sm" name="audits[<?= $i ?>][title]" value="<?= htmlspecialchars($slotData['title'] ?: 'Inventur ' . $i) ?>" placeholder="z.B. Quartalsinventur">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small text-muted mb-1">Datum</label>
-                        <input type="date" class="form-control form-control-sm" name="audits[<?= $i ?>][date]" value="<?= htmlspecialchars($slotData['audit_date'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small text-muted mb-1">Lagerort (Optional)</label>
-                        <select class="form-select form-select-sm" name="audits[<?= $i ?>][location_id]">
-                            <option value="">-- Alle Lagerorte (Gesamt) --</option>
-                            <?php if (!empty($allLocations)): foreach ($allLocations as $loc): ?>
-                                <option value="<?= (int)$loc['id'] ?>" <?= (isset($slotData['location_id']) && (int)$slotData['location_id'] === (int)$loc['id']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($loc['name']) ?>
-                                </option>
-                            <?php endforeach; endif; ?>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        <?php endfor; ?>
-
-        <div class="text-end mt-3">
-            <button type="submit" class="btn btn-primary btn-sm">
-                <i class="fa-solid fa-floppy-disk me-1"></i>Inventur-Planung speichern
-            </button>
-        </div>
-    </form>
-</div>
+// Zurück zur Einstellungsseite leiten
+header('Location: ../settings.php?tab=general&success=1');
+exit;

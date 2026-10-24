@@ -13,6 +13,7 @@ try {
     }
 } catch (Exception $e) {}
 ?>
+<hr class="my-4">
 
 <div class="mb-2">
     <label class="form-label fw-bold">Persönliche Inventur-Termine (Max. 3 Slots)</label>

@@ -1,11 +1,11 @@
 <?php
 // /inc/settings/audit-schedule.php - Standalone Karte für die Inventur-Planung
-$currentUserId = $_SESSION['user_id'] ?? 1;
+$currentUserId = $_SESSION['user_id'] ?? 0;
 
 // Lagerorte für das Dropdown laden
 $allLocations = $pdo->query("SELECT id, parent_id, name FROM locations ORDER BY name")->fetchAll();
 
-// Bestehende Einträge für diesen User aus der Datenbank laden
+// Bestehende Einträge laden (berücksichtigt auch den Fall ohne aktiven User mit user_id = 0)
 $savedAudits = [];
 try {
     $stmt = $pdo->prepare("SELECT * FROM audit_schedules WHERE user_id = ?");

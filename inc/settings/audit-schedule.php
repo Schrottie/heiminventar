@@ -13,10 +13,9 @@ try {
     }
 } catch (Exception $e) {}
 ?>
-<hr class="my-4">
 
 <div class="mb-2">
-    <label class="form-label fw-bold">Persönliche Inventur-Termine (Max. 3 Slots)</label>
+    <label class="form-label fw-bold">Inventur-Termine (max. 3 Slots)</label>
     <div class="form-text mb-3">
         <i class="fa-solid fa-circle-info me-1"></i> Lege hier deine Inventurtermine fest. Bei Erreichen des Datums erscheint auf deiner Startseite eine Hinweismeldung mit direktem Sprungziel zum gewählten Lagerort.
     </div>

@@ -1,4 +1,21 @@
 <?php
+// Session starten
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Fehler direkt im Browser anzeigen
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+echo "<pre>";
+echo "POST-Daten:\n";
+print_r($_POST);
+echo "\nSession-Daten:\n";
+print_r($_SESSION);
+echo "</pre>";
+exit;
+
 require_once __DIR__ . '/cfg/db.php';
 
 // --- FORMULAR VERARBEITUNG & AJAX MÜSSEN VOR DEM HEADER STEHEN ---

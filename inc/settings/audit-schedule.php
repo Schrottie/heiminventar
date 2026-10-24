@@ -1,5 +1,5 @@
 <?php
-// /inc/settings/audit-schedule.php - Reine UI-Felder für das Hauptformular
+// /inc/settings/audit-schedule.php - Reine UI-Karte für das Hauptformular
 $currentUserId = $_SESSION['user_id'] ?? 0;
 
 $allLocations = $pdo->query("SELECT id, parent_id, name FROM locations ORDER BY name")->fetchAll();
@@ -14,8 +14,8 @@ try {
 } catch (Exception $e) {}
 ?>
 
-<div class="mb-3">
-    <label class="form-label fw-bold">Persönliche Inventur-Termine (max. 3 Slots)</label>
+<div class="mb-2">
+    <label class="form-label fw-bold">Persönliche Inventur-Termine (Max. 3 Slots)</label>
     <div class="form-text mb-3">
         <i class="fa-solid fa-circle-info me-1"></i> Lege hier deine Inventurtermine fest. Bei Erreichen des Datums erscheint auf deiner Startseite eine Hinweismeldung mit direktem Sprungziel zum gewählten Lagerort.
     </div>

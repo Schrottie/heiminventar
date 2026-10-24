@@ -76,7 +76,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$deleteId]);
         $msgSuccess = "Benutzer gelöscht.";
     }
+// --- Inventur-Planung mit speichern ---
+if (isset($_POST['audits']) && is_array($_POST['audits'])) {
+    $currentUserId = $_SESSION['user_id'] ?? 0;
 
+    $auditStmt = $pdo->prepare("
+        INSERT INTO audit_schedules (user_id, slot_index, audit_date, location_id, title)
+        VALUES (?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE 
+            audit_date = VALUES(audit_date),
+            location_id = VALUES(location_id),
+            title = VALUES(title),
+            updated_at = CURRENT_TIMESTAMP
+    ");
+
+    foreach ($_POST['audits'] as $slotIndex => $data) {
+        $slotIndex = (int)$slotIndex;
+        if ($slotIndex < 1 || $slotIndex > 3) continue;
+
+        $date = trim($data['date'] ?? '');
+        $locationId = !empty($data['location_id']) && is_numeric($data['location_id']) ? (int)$data['location_id'] : null;
+        $title = trim($data['title'] ?? '') ?: 'Reguläre Inventur';
+
+        if (empty($date)) {
+            $delStmt = $pdo->prepare("DELETE FROM audit_schedules WHERE user_id = ? AND slot_index = ?");
+            $delStmt->execute([$currentUserId, $slotIndex]);
+        } else {
+            $auditStmt->execute([$currentUserId, $slotIndex, $date, $locationId, $title]);
+        }
+    }
+}
+    
     // 5. Benutzer bearbeiten
     if (isset($_POST['action_edit_user'])) {
         $editUserId = (int)$_POST['edit_user_id'];

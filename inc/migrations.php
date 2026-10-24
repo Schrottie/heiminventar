@@ -28,7 +28,8 @@ function runDatabaseMigrations(PDO $pdo): void
             quantity INT NOT NULL DEFAULT 1,
             created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             CONSTRAINT fk_inventory_location FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE SET NULL
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;\
+
     ");
 
     // ///////////////////////////////////////////////////////////
@@ -218,6 +219,19 @@ function runDatabaseMigrations(PDO $pdo): void
         ",
 
         '026_release_1_1_1' => "
+        ",
+
+        '027_add_audit_schedules' => "
+            CREATE TABLE IF NOT EXISTS user_inventory_schedules (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL DEFAULT 0,
+                slot_index TINYINT NOT NULL,
+                inventory_date DATE NOT NULL,
+                location_id INT DEFAULT NULL, 
+                title VARCHAR(100) DEFAULT 'Reguläre Inventur',
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY user_slot (user_id, slot_index)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         "
     ];
 

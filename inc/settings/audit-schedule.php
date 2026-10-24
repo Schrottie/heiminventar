@@ -11,6 +11,11 @@
     // Aktuellen User ermitteln
     $currentUserId = $_SESSION['user_id'] ?? 0;
 
+    // Falls $allLocations in diesem Kontext noch nicht existiert, direkt abfragen
+    if (!isset($allLocations) && isset($pdo)) {
+        $allLocations = $pdo->query("SELECT id, parent_id, name FROM locations ORDER BY name")->fetchAll();
+    }
+
     // Vorhandene Einträge NUR für diesen User aus audit_schedules laden
     $savedAudits = [];
     if (isset($pdo) && $currentUserId > 0) {

@@ -222,11 +222,11 @@ function runDatabaseMigrations(PDO $pdo): void
         ",
 
         '027_add_audit_schedules' => "
-            CREATE TABLE IF NOT EXISTS user_inventory_schedules (
+            CREATE TABLE IF NOT EXISTS audit_schedules (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT NOT NULL DEFAULT 0,
                 slot_index TINYINT NOT NULL,
-                inventory_date DATE NOT NULL,
+                audit_date DATE NOT NULL,
                 location_id INT DEFAULT NULL, 
                 title VARCHAR(100) DEFAULT 'Reguläre Inventur',
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

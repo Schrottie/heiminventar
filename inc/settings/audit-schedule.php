@@ -11,7 +11,7 @@
     // Aktuellen User ermitteln
     $currentUserId = $_SESSION['user_id'] ?? 0;
 
-    // Falls $allLocations in diesem Kontext noch nicht existiert, direkt abfragen
+    // Lagerorte abfragen, falls noch nicht geschehen
     if (!isset($allLocations) && isset($pdo)) {
         $allLocations = $pdo->query("SELECT id, parent_id, name FROM locations ORDER BY name")->fetchAll();
     }
@@ -26,7 +26,7 @@
                 $savedAudits[$row['slot_index']] = $row;
             }
         } catch (Exception $e) {
-            // Tabelle eventuell noch nicht da oder Fehler
+            // Tabelle eventuell noch nicht da
         }
     }
     ?>

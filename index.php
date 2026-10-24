@@ -1,4 +1,9 @@
 <?php
+// Session starten, falls noch nicht geschehen
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Prüfen, ob das System überhaupt installiert ist
 if (!file_exists(__DIR__ . '/cfg/.env')) {
     header('Location: install.php');
@@ -27,7 +32,7 @@ if ($isPureDirectoryCall && $startPageSetting === 'dashboard') {
 }
 
 // --- MODUS-ERKENNUNG (Liste vs. Umfassende Suche) ---
-// Entweder per URL-Parameter (?mode=list oder ?mode=search) oder aus den Systemeinstellungen
+// Entweder per URL-Parameter (?mode=list eller ?mode=search) oder aus den Systemeinstellungen
 $defaultOverviewMode = $settings['overview_mode'] ?? 'filter';
 $currentMode = $_GET['mode'] ?? $defaultOverviewMode;
 
@@ -190,7 +195,7 @@ require_once __DIR__ . '/inc/header.php';
 <?php endif; ?>
 
 <!-- Meldungsbanner -->
-<?php if (($lowStockCount > 0 || $expiredCount > 0 || $maintenanceCount > 0 || $activeAudit !== false) && (!isset($_COOKIE['hide_daily_notice']) || $_COOKIE['hide_daily_notice'] !== date('Y-m-d'))): ?>
+<?php if (($lowStockCount > 0 || $expiredCount > 0 || $maintenanceCount > 0 || !empty($activeAudit)) && (!isset($_COOKIE['hide_daily_notice']) || $_COOKIE['hide_daily_notice'] !== date('Y-m-d'))): ?>
     <div id="dailyNoticeBanner" class="border rounded-3 p-2 px-3 mb-3 bg-body-tertiary small text-body-secondary shadow-none" style="font-size: 0.875rem;">
         <div class="d-flex align-items-center justify-content-between pb-1 mb-2">
             <div class="fw-bold text-secondary">
@@ -202,7 +207,7 @@ require_once __DIR__ . '/inc/header.php';
         </div>
 
         <ul class="mb-1 ps-3 text-secondary">
-            <?php if ($activeAudit): ?>
+            <?php if (!empty($activeAudit)): ?>
                 <?php 
                     $auditLink = 'inventory-audit.php';
                     if (!empty($activeAudit['location_id'])) {

@@ -155,6 +155,17 @@ foreach ($items as $chk) {
     }
 }
 
+// --- ANSTEHENDE INVENTUR / AUDIT ABRUFEN ---
+$currentUserId = $_SESSION['user_id'] ?? 0;
+$todayDate = date('Y-m-d');
+$auditStmt = $pdo->prepare("
+    SELECT * FROM audit_schedules 
+    WHERE user_id = ? AND audit_date <= ? 
+    ORDER BY audit_date ASC LIMIT 1
+");
+$auditStmt->execute([$currentUserId, $todayDate]);
+$activeAudit = $auditStmt->fetch(PDO::FETCH_ASSOC);
+
 require_once __DIR__ . '/inc/header.php';
 ?>
 
@@ -179,7 +190,7 @@ require_once __DIR__ . '/inc/header.php';
 <?php endif; ?>
 
 <!-- Meldungsbanner -->
-<?php if (($lowStockCount > 0 || $expiredCount > 0 || $maintenanceCount > 0) && (!isset($_COOKIE['hide_daily_notice']) || $_COOKIE['hide_daily_notice'] !== date('Y-m-d'))): ?>
+<?php if (($lowStockCount > 0 || $expiredCount > 0 || $maintenanceCount > 0 || $activeAudit !== false) && (!isset($_COOKIE['hide_daily_notice']) || $_COOKIE['hide_daily_notice'] !== date('Y-m-d'))): ?>
     <div id="dailyNoticeBanner" class="border rounded-3 p-2 px-3 mb-3 bg-body-tertiary small text-body-secondary shadow-none" style="font-size: 0.875rem;">
         <div class="d-flex align-items-center justify-content-between pb-1 mb-2">
             <div class="fw-bold text-secondary">
@@ -191,6 +202,19 @@ require_once __DIR__ . '/inc/header.php';
         </div>
 
         <ul class="mb-1 ps-3 text-secondary">
+            <?php if ($activeAudit): ?>
+                <?php 
+                    $auditLink = 'index.php';
+                    if (!empty($activeAudit['location_id'])) {
+                        $auditLink .= '?location_id=' . (int)$activeAudit['location_id'];
+                    }
+                ?>
+                <li>
+                    Geplante Inventur fällig: <strong><?= htmlspecialchars($activeAudit['title']) ?></strong> (Datum: <?= date('d.m.Y', strtotime($activeAudit['audit_date'])) ?>) 
+                    — <a href="<?= $auditLink ?>" class="fw-semibold text-decoration-underline">Zum Lagerort filtern</a>
+                </li>
+            <?php endif; ?>
+
             <?php if ($lowStockCount > 0): ?>
                 <li><?= $lowStockCount === 1 ? 'Anstehende Nachbestellung: <strong>1 Gegenstand</strong>' : 'Anstehende Nachbestellungen: <strong>' . $lowStockCount . ' Gegenstände</strong>' ?></li>
             <?php endif; ?>

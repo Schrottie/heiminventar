@@ -235,7 +235,7 @@ function runDatabaseMigrations(PDO $pdo): void
             unit_number INT NOT NULL DEFAULT 1,
             status ENUM('available', 'lent') NOT NULL DEFAULT 'available',
             borrower_name VARCHAR(255) DEFAULT NULL,
-            lent_date DATE DATE NULL,
+            lent_date DATE DEFAULT NULL,
             notes TEXT DEFAULT NULL,
             FOREIGN KEY (item_id) REFERENCES inventory_items(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

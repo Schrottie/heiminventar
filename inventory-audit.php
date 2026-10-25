@@ -18,8 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $locationId = !empty($_POST['location_id']) && is_numeric($_POST['location_id']) ? (int)$_POST['location_id'] : null;
 
         if (!empty($auditDate)) {
-            $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
+            try {
+                $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
+            } catch (Exception $e) {
+                // Fehler abfangen
+            }
         }
         header("Location: inventory-audit.php" . ($locationId ? "?location_id=" . $locationId : ""));
         exit;
@@ -28,8 +32,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action_delete_audit_schedule'])) {
         $scheduleId = (int)($_POST['schedule_id'] ?? 0);
         if ($scheduleId > 0) {
-            $stmt = $pdo->prepare("DELETE FROM audit_schedules WHERE id = ? AND user_id = ?");
-            $stmt->execute([$scheduleId, $currentUserId]);
+            try {
+                $stmt = $pdo->prepare("DELETE FROM audit_schedules WHERE id = ? AND user_id = ?");
+                $stmt->execute([$scheduleId, $currentUserId]);
+            } catch (Exception $e) {
+                // Fehler abfangen
+            }
         }
         header("Location: inventory-audit.php");
         exit;
@@ -349,13 +357,4 @@ require_once __DIR__ . '/inc/header.php';
                                 <?php endif; ?>
 
                             <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
-<?php endif; ?>
-
-<?php require_once __DIR__ . '/inc/modals.php'; ?>
-<?php require_once __DIR__
+         

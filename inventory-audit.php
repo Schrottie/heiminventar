@@ -8,7 +8,7 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/cfg/db.php';
 require_once __DIR__ . '/inc/functions.php';
 
-$currentUserId = $_SESSION['user_id'] ?? ($_SESSION['user']['id'] ?? 1);
+$currentUserId = $_SESSION['user_id'] ?? ($_SESSION['user']['id'] ?? 0);
 
 // --- FORMULAR-VERARBEITUNG FÜR INVENTUR-TERMINE ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -18,12 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $locationId = !empty($_POST['location_id']) && is_numeric($_POST['location_id']) ? (int)$_POST['location_id'] : null;
 
         if (!empty($auditDate)) {
-            try {
-                $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
-                $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
-            } catch (Exception $e) {
-                // Fehler abfangen
-            }
+            $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
         }
         header("Location: inventory-audit.php" . ($locationId ? "?location_id=" . $locationId : ""));
         exit;
@@ -32,12 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action_delete_audit_schedule'])) {
         $scheduleId = (int)($_POST['schedule_id'] ?? 0);
         if ($scheduleId > 0) {
-            try {
-                $stmt = $pdo->prepare("DELETE FROM audit_schedules WHERE id = ? AND user_id = ?");
-                $stmt->execute([$scheduleId, $currentUserId]);
-            } catch (Exception $e) {
-                // Fehler abfangen
-            }
+            $stmt = $pdo->prepare("DELETE FROM audit_schedules WHERE id = ? AND user_id = ?");
+            $stmt->execute([$scheduleId, $currentUserId]);
         }
         header("Location: inventory-audit.php");
         exit;
@@ -358,4 +350,13 @@ require_once __DIR__ . '/inc/header.php';
 
                             <?php endforeach; ?>
                         </tbody>
-                    </tabl
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php require_once __DIR__ . '/inc/modals.php'; ?>
+<?php require_once __DIR__ . '/inc/footer.php'; ?>
+

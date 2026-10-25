@@ -18,12 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $locationId = !empty($_POST['location_id']) && is_numeric($_POST['location_id']) ? (int)$_POST['location_id'] : null;
 
         if (!empty($auditDate)) {
-            try {
-                $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
-                $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
-            } catch (Exception $e) {
-                // Fehler abfangen
-            }
+            $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
         }
         header("Location: inventory-audit.php" . ($locationId ? "?location_id=" . $locationId : ""));
         exit;
@@ -32,12 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action_delete_audit_schedule'])) {
         $scheduleId = (int)($_POST['schedule_id'] ?? 0);
         if ($scheduleId > 0) {
-            try {
-                $stmt = $pdo->prepare("DELETE FROM audit_schedules WHERE id = ? AND user_id = ?");
-                $stmt->execute([$scheduleId, $currentUserId]);
-            } catch (Exception $e) {
-                // Fehler abfangen
-            }
+            $stmt = $pdo->prepare("DELETE FROM audit_schedules WHERE id = ? AND user_id = ?");
+            $stmt->execute([$scheduleId, $currentUserId]);
         }
         header("Location: inventory-audit.php");
         exit;
@@ -140,7 +132,7 @@ require_once __DIR__ . '/inc/header.php';
     </div>
     <div class="card-body">
         
-        <!-- Nächster Inventurtermin als Infobox -->
+        <!-- Nächster Inventurtermin als Infobox (falls vorhanden) -->
         <?php if ($nextAudit): ?>
             <div class="alert alert-info d-flex align-items-center justify-content-between py-2 px-3 mb-3">
                 <div>
@@ -150,9 +142,6 @@ require_once __DIR__ . '/inc/header.php';
                         – Ort: <a href="inventory-audit.php?location_id=<?= (int)$nextAudit['location_id'] ?>" class="alert-link"><?= htmlspecialchars($nextAudit['location_name']) ?></a>
                     <?php endif; ?>
                 </div>
-                <a href="inventory-audit.php<?php echo !empty($nextAudit['location_id']) ? '?location_id=' . (int)$nextAudit['location_id'] : ''; ?>" class="btn btn-sm btn-primary fw-semibold px-3">
-                    <i class="fa-solid fa-play me-1"></i>Los!
-                </a>
             </div>
         <?php endif; ?>
 
@@ -357,4 +346,14 @@ require_once __DIR__ . '/inc/header.php';
                                 <?php endif; ?>
 
                             <?php endforeach; ?>
-         
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php require_once __DIR__ . '/inc/modals.php'; ?>
+<?php require_once __DIR__ . '/inc/footer.php'; ?>
+

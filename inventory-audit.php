@@ -8,25 +8,15 @@ $currentUserId = $_SESSION['user_id'] ?? 0;
 // --- FORMULAR-VERARBEITUNG FÜR INVENTUR-TERMINE (Hinzufügen / Löschen) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
-    // 1. Termin hinzufügen
+    // 1. Termin hinzufügen (Multi-Termin fähig ohne Slots)
     if (isset($_POST['action_save_audit_schedule'])) {
         $title = trim($_POST['title'] ?? '') ?: 'Reguläre Inventur';
         $auditDate = $_POST['audit_date'] ?? '';
         $locationId = !empty($_POST['location_id']) && is_numeric($_POST['location_id']) ? (int)$_POST['location_id'] : null;
 
         if (!empty($auditDate)) {
-            try {
-                $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, slot_index, audit_date, location_id, title) VALUES (?, 0, ?, ?, ?)");
-                $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
-            } catch (PDOException $e) {
-                // Fallback falls slot_index nicht existiert oder strict mode zuschlägt
-                try {
-                    $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
-                    $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
-                } catch (Exception $ex) {
-                    // Fehler abfangen
-                }
-            }
+            $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
         }
         
         $redirectUrl = "inventory-audit.php";
@@ -61,7 +51,7 @@ try {
         LIMIT 1
     ");
     $stmt->execute([$currentUserId]);
-    $nextAudit = $stmt->fetch(PDO::FETCH_ASSOC);
+    $nextAudit = $stmt$stmt->fetch(PDO::FETCH_ASSOC);
 } catch (Exception $e) {}
 
 // Alle Termine für das Verwaltungs-Modal laden
@@ -132,6 +122,7 @@ if ($selectedLocationId !== null) {
 
 require_once __DIR__ . '/inc/header.php';
 ?>
+
 
 
 <div class="card shadow-sm mb-4">

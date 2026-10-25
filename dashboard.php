@@ -165,7 +165,7 @@ require_once __DIR__ . '/inc/header.php';
 <!-- Kalender (Row 2) -->
 <?php require_once __DIR__ . '/inc/dashboard/row2-calendar.php'; ?>
 <!-- Widgets (Row 3) -->
-<?php require_once __DIR__ . '/inc/dashboard/row3-dates.php'; ?>
+<?php require_once __DIR__ . '/inc/dashboard/row3-widgets.php'; ?>
 
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>

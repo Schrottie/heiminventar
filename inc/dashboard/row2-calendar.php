@@ -63,7 +63,7 @@ try {
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-transparent d-flex align-items-center justify-content-between py-3">
         <h5 class="mb-0"><i class="fa-solid fa-calendar-days text-primary me-2"></i>Termin-Übersicht</h5>
-        <span class="text-muted small d-none d-sm-inline">Inventur, Verfall &amp; Wartung im Blick</span>
+        <span class="text-muted small d-none d-sm-inline">Alle wichtigen Termine im Blick</span>
     </div>
     <div class="card-body">
         <div class="row g-4">

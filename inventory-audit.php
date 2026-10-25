@@ -8,10 +8,9 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/cfg/db.php';
 require_once __DIR__ . '/inc/functions.php';
 
-// Robuste Ermittlung der User-ID (unterstützt verschiedene Session-Strukturen, Fallback auf 1)
 $currentUserId = $_SESSION['user_id'] ?? ($_SESSION['user']['id'] ?? 1);
 
-// --- FORMULAR-VERARBEITUNG FÜR INVENTUR-TERMINE (Hinzufügen / Löschen mit Fehlerschutz) ---
+// --- FORMULAR-VERARBEITUNG FÜR INVENTUR-TERMINE ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action_save_audit_schedule'])) {
         $title = trim($_POST['title'] ?? '') ?: 'Reguläre Inventur';
@@ -23,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
                 $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
             } catch (Exception $e) {
-                // Verhindert den 500er, falls ein DB-Constraint greift
+                // Fehler abfangen
             }
         }
         header("Location: inventory-audit.php" . ($locationId ? "?location_id=" . $locationId : ""));
@@ -37,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare("DELETE FROM audit_schedules WHERE id = ? AND user_id = ?");
                 $stmt->execute([$scheduleId, $currentUserId]);
             } catch (Exception $e) {
-                // Verhindert den 500er
+                // Fehler abfangen
             }
         }
         header("Location: inventory-audit.php");
@@ -264,9 +263,99 @@ require_once __DIR__ . '/inc/header.php';
 </div>
 
 <?php if ($selectedLocationId !== null): ?>
-    <!-- Deine bestehende Artikeltabelle bleibt hier exakt wie gewohnt -->
-    ...
-<?php endif; ?>
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="fa-solid fa-boxes-stacked me-2"></i>Gegenstände im gewählten Bereich (<span id="itemCount"><?= count($items) ?></span> verbleibend)</span>
+            <span class="badge bg-success" id="auditStatusBadge" style="display: none;">Änderungen gespeichert</span>
+        </div>
+        <div class="card-body p-0">
+            <?php if (empty($items)): ?>
+                <div class="p-4 text-center text-muted" id="emptyMessage">
+                    Keine Gegenstände in diesem Lagerort gefunden.
+                </div>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">Gegenstand</th>
+                                <th>Lagerort</th>
+                                <th class="text-center" style="width: 220px;">Bestand &amp; Verleih-Info</th>
+                                <th class="text-center" style="width: 180px;">Ist-Menge (Gesamt)</th>
+                                <th class="text-end pe-3" style="width: 140px;">Aktion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($items as $item): 
+                                $totalQty = (int)$item['quantity'];
+                                $availableQty = (int)$item['available_count'];
+                                $lentQty = (int)$item['lent_count'];
+                            ?>
+                                <tr id="row-<?= (int)$item['id'] ?>" class="audit-row">
+                                    <td class="ps-3 fw-semibold text-break">
+                                        <div class="d-flex align-items-center">
+                                            <?php if (!empty($item['is_set'])): ?>
+                                                <i class="fa-solid fa-layer-group text-primary me-2" title="Dies ist ein Set"></i>
+                                            <?php endif; ?>
+                                            <span><?= htmlspecialchars($item['name']) ?></span>
+                                        </div>
+                                    </td>
+                                    <td class="text-muted small">
+                                        <?= htmlspecialchars($item['location_name']) ?>
+                                    </td>
+                                    <td class="text-center small">
+                                        <?php if (empty($item['is_bulk'])): ?>
+                                            <span class="badge bg-secondary" title="Im Lager verfügbar">Lager: <?= $availableQty ?></span>
+                                            <?php if ($lentQty > 0): ?>
+                                                <span class="badge bg-warning text-dark ms-1" title="Verliehene Details: <?= htmlspecialchars($item['lent_details']) ?>">
+                                                    <i class="fa-solid fa-handshake me-1"></i>Verliehen: <?= $lentQty ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <span class="badge bg-light text-secondary border" title="Massenartikel / Schüttgut">
+                                                <i class="fa-solid fa-boxes-stacked me-1"></i>Schüttgut
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="input-group input-group-sm justify-content-center">
+                                            <button type="button" class="btn btn-outline-secondary" onclick="updateQty(<?= (int)$item['id'] ?>, -1)">
+                                                <i class="fa-solid fa-minus"></i>
+                                            </button>
+                                            <input type="number" id="qty-<?= (int)$item['id'] ?>" class="form-control text-center px-1" value="<?= $totalQty ?>" min="0" style="max-width: 60px;" onchange="saveQty(<?= (int)$item['id'] ?>)">
+                                            <button type="button" class="btn btn-outline-secondary" onclick="updateQty(<?= (int)$item['id'] ?>, 1)">
+                                                <i class="fa-solid fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <div class="d-flex justify-content-end gap-1">
+                                            <button type="button" class="btn btn-sm btn-outline-success" onclick="verifyItem(<?= (int)$item['id'] ?>)" title="Als vorhanden bestätigen (ausblenden)">
+                                                <i class="fa-solid fa-check"></i>
+                                            </button>
+                                            <a href="item.php?id=<?= (int)$item['id'] ?>" class="btn btn-sm btn-outline-primary" target="_blank" title="Details öffnen">
+                                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
 
-<?php require_once __DIR__ . '/inc/modals.php'; ?>
-<?php require_once __DIR__ . '/inc/footer.php'; ?>
+                                <?php if (!empty($item['is_set']) && !empty($setComponentsMap[$item['id']])): ?>
+                                    <tr class="table-light text-muted small audit-row" data-parent-row="<?= (int)$item['id'] ?>">
+                                        <td colspan="5" class="ps-5 py-2">
+                                            <div class="fw-semibold text-secondary mb-1"><i class="fa-solid fa-list-ul me-1"></i>Set-Inhalt (auf Vollständigkeit prüfen):</div>
+                                            <ul class="mb-0 ps-3">
+                                                <?php foreach ($setComponentsMap[$item['id']] as $comp): ?>
+                                                    <li>
+                                                        <span class="text-secondary"><?= htmlspecialchars($comp['name']) ?></span>
+                                                        <span class="badge bg-secondary text-white ms-1" style="font-size: 0.75rem;">Anzahl: <?= (int)$comp['quantity'] ?></span>
+                                                    </li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
+
+                            <?php endforeach; ?>
+                        </tbody>
+                    </tabl

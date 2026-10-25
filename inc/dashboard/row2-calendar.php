@@ -11,6 +11,53 @@ $germanMonths = [
     9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Dezember'
 ];
 $germanWeekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+
+// --- TERMINE FÜR DEN KALENDER SAMMELN ---
+$calStart = date('Y-m-01', $monthsToDisplay[0]);
+$calEnd = date('Y-m-t', end($monthsToDisplay));
+$calendarEvents = [];
+
+try {
+    // 1. Verfallsdaten (Link führt direkt zur Artikel-Detailseite)
+    $stmtExp = $pdo->prepare("SELECT id, expiration_date AS event_date, name AS event_title FROM inventory_items WHERE is_archived='0' AND expiration_date BETWEEN ? AND ?");
+    $stmtExp->execute([$calStart, $calEnd]);
+    foreach ($stmtExp->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $calendarEvents[$row['event_date']][] = [
+            'type' => 'danger', 
+            'text' => 'Verfall: ' . $row['event_title'],
+            'url' => 'item.php?id=' . (int)$row['id']
+        ];
+    }
+
+    // 2. Wartungen (Link führt direkt zur Artikel-Detailseite)
+    $stmtMaint = $pdo->query("SELECT id, name, last_maintenance_date, maintenance_interval_months FROM inventory_items WHERE is_archived='0' AND maintenance_interval_months > 0");
+    foreach ($stmtMaint->fetchAll(PDO::FETCH_ASSOC) as $item) {
+        $baseDate = $item['last_maintenance_date'] ?: date('Y-m-d');
+        $nextDate = date('Y-m-d', strtotime($baseDate . ' + ' . $item['maintenance_interval_months'] . ' months'));
+        if ($nextDate >= $calStart && $nextDate <= $calEnd) {
+            $calendarEvents[$nextDate][] = [
+                'type' => 'info', 
+                'text' => 'Wartung fällig: ' . $item['name'],
+                'url' => 'item.php?id=' . (int)$item['id']
+            ];
+        }
+    }
+
+    // 3. Inventurtermine (Link führt direkt in den Inventur-Modus zum Ort)
+    $stmtAud = $pdo->prepare("SELECT s.audit_date, s.title, s.location_id, l.name as loc FROM audit_schedules s LEFT JOIN locations l ON l.id = s.location_id WHERE s.audit_date BETWEEN ? AND ?");
+    $stmtAud->execute([$calStart, $calEnd]);
+    foreach ($stmtAud->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $auditUrl = 'inventory-audit.php';
+        if (!empty($row['location_id'])) {
+            $auditUrl .= '?location_id=' . (int)$row['location_id'];
+        }
+        $calendarEvents[$row['audit_date']][] = [
+            'type' => 'primary', 
+            'text' => 'Inventur: ' . $row['title'] . ($row['loc'] ? ' (' . $row['loc'] . ')' : ''),
+            'url' => $auditUrl
+        ];
+    }
+} catch (Exception $e) {}
 ?>
 
 <div class="card shadow-sm border-0 mb-4">
@@ -79,11 +126,11 @@ $germanWeekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
     </div>
 </div>
 
-<!-- Popup-Element im nativen Bootstrap Theme-Look (funktioniert perfekt im Dark- und Lightmode) -->
+<!-- Popup-Element mit bg-transparent im Header -->
 <div id="calEventPopup" class="card shadow-lg border d-none" style="position: fixed; width: 280px; z-index: 2147483647; font-size: 0.85rem; pointer-events: auto;">
-    <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center bg-primary text-white">
+    <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center bg-transparent border-bottom">
         <span id="popupDate" class="fw-bold">Datum</span>
-        <button type="button" class="btn-close btn-close-white btn-sm" onclick="document.getElementById('calEventPopup').classList.add('d-none');"></button>
+        <button type="button" class="btn-close btn-sm" onclick="document.getElementById('calEventPopup').classList.add('d-none');"></button>
     </div>
     <div class="card-body py-2 px-3 bg-body text-body rounded-bottom" id="popupContent">
         <!-- Inhalt -->
@@ -162,14 +209,20 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let html = '<ul class="mb-0 ps-3">';
         events.forEach(ev => {
-            if (!ev || !ev.text) return; // Verhindert fehlerhafte/leere "undefined"-Einträge
+            if (!ev || !ev.text) return;
             
             let badgeClass = 'bg-secondary';
             if (ev.type === 'danger') badgeClass = 'bg-danger';
             if (ev.type === 'info') badgeClass = 'bg-info text-dark';
             if (ev.type === 'primary') badgeClass = 'bg-primary';
 
-            html += `<li class="mb-1"><span class="badge ${badgeClass} me-1">&bull;</span> ${ev.text}</li>`;
+            // Termine als klickbare Links gestalten, falls eine URL hinterlegt ist
+            let contentHtml = ev.text;
+            if (ev.url) {
+                contentHtml = `<a href="${ev.url}" class="text-decoration-none text-body fw-semibold text-hover-primary">${ev.text} <i class="fa-solid fa-arrow-up-right-from-square ms-1 small text-muted"></i></a>`;
+            }
+
+            html += `<li class="mb-2"><span class="badge ${badgeClass} me-1">&bull;</span> ${contentHtml}</li>`;
         });
         html += '</ul>';
         
@@ -201,4 +254,5 @@ document.addEventListener('DOMContentLoaded', function() {
 <style>
 .cursor-pointer { cursor: pointer; }
 .has-event:hover { opacity: 0.85; transform: scale(1.1); transition: all 0.15s ease-in-out; }
+.text-hover-primary:hover { color: var(--bs-primary) !important; }
 </style>

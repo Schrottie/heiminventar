@@ -1,4 +1,9 @@
 <?php
+// Fehleranzeige temporär einschalten, um den 500er sofort sichtbar zu machen
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Session starten
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -8,7 +13,8 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/cfg/db.php';
 require_once __DIR__ . '/inc/functions.php';
 
-$currentUserId = $_SESSION['user_id'] ?? 0;
+// WICHTIG: Wenn kein User eingeloggt ist, nutzen wir ID 1 (falls ID 0 einen Fremdschlüssel-Fehler in der users-Tabelle auslöst!)
+$currentUserId = $_SESSION['user_id'] ?? 1;
 
 // --- FORMULAR-VERARBEITUNG FÜR INVENTUR-TERMINE (Hinzufügen / Löschen) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -20,19 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $locationId = !empty($_POST['location_id']) && is_numeric($_POST['location_id']) ? (int)$_POST['location_id'] : null;
 
         if (!empty($auditDate)) {
-            try {
-                // Versuch 1: Mit slot_index = 0 (falls die Spalte in der DB noch existiert)
-                $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, slot_index, audit_date, location_id, title) VALUES (?, 0, ?, ?, ?)");
-                $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
-            } catch (PDOException $e1) {
-                try {
-                    // Versuch 2: Ohne slot_index (falls die Spalte bereits gelöscht wurde)
-                    $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
-                    $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
-                } catch (PDOException $e2) {
-                    // Stiller Fallback bei unerwarteten Fehlern
-                }
-            }
+            $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
         }
         
         $redirectUrl = "inventory-audit.php";
@@ -47,12 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action_delete_audit_schedule'])) {
         $scheduleId = (int)($_POST['schedule_id'] ?? 0);
         if ($scheduleId > 0) {
-            try {
-                $stmt = $pdo->prepare("DELETE FROM audit_schedules WHERE id = ? AND user_id = ?");
-                $stmt->execute([$scheduleId, $currentUserId]);
-            } catch (Exception $e) {
-                // Fehler abfangen
-            }
+            $stmt = $pdo->prepare("DELETE FROM audit_schedules WHERE id = ? AND user_id = ?");
+            $stmt->execute([$scheduleId, $currentUserId]);
         }
         header("Location: inventory-audit.php");
         exit;

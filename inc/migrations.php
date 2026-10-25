@@ -268,18 +268,22 @@ function runDatabaseMigrations(PDO $pdo): void
         CREATE TABLE IF NOT EXISTS audit_schedules (
             id INT AUTO_INCREMENT PRIMARY KEY,
             user_id INT NOT NULL DEFAULT 0,
-            slot_index TINYINT NOT NULL,
             audit_date DATE NOT NULL,
             location_id INT DEFAULT NULL, 
             title VARCHAR(100) DEFAULT 'Reguläre Inventur',
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            UNIQUE KEY user_slot (user_id, slot_index)
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
-    // Begrenzung der Inventuren aufheben
-    if (!$columnExists($pdo, 'item_parts', 'invoice_status')) {
-        $pdo->exec("ALTER TABLE audit_schedules DROP INDEX user_slot;");
+    // Alte slot_index Spalte und Unique Key bereinigen, falls sie noch existieren
+    if ($columnExists($pdo, 'audit_schedules', 'slot_index')) {
+        try {
+            $pdo->exec("ALTER TABLE audit_schedules DROP INDEX user_slot;");
+        } catch (Exception $e) {}
+        try {
+            $pdo->exec("ALTER TABLE audit_schedules DROP COLUMN slot_index;");
+        } catch (Exception $e) {}
     }
+
 
     // ///////////////////////////////////////////////////////////
     // 6. Standard-Migrationen ganz normal ausführen (falls Cache nicht greift)

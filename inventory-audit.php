@@ -36,20 +36,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// --- NÄCHSTEN ANSTEHENDEN TERMIN LADEN ---
+// --- NÄCHSTEN ANSTEHENDEN TERMIN LADEN (nur innerhalb der nächsten 14 Tage) ---
 $nextAudit = null;
 try {
     $stmt = $pdo->prepare("
         SELECT s.*, l.name AS location_name 
         FROM audit_schedules s 
         LEFT JOIN locations l ON l.id = s.location_id 
-        WHERE s.user_id = ? AND s.audit_date >= CURDATE() 
+        WHERE s.user_id = ? 
+          AND s.audit_date >= CURDATE() 
+          AND s.audit_date <= DATE_ADD(CURDATE(), INTERVAL 14 DAY) 
         ORDER BY s.audit_date ASC 
         LIMIT 1
     ");
     $stmt->execute([$currentUserId]);
     $nextAudit = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (Exception $e) {}
+
 
 // Alle Termine für das Verwaltungs-Modal laden
 $allSchedules = [];

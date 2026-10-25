@@ -15,19 +15,31 @@ $germanWeekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-body d-flex align-items-center justify-content-between py-3">
-        <h5 class="mb-0"><i class="fa-solid fa-calendar-days text-primary me-2"></i>Termin-Übersicht (3 Monate)</h5>
-        <span class="text-muted small">Inventur, Verfall &amp; Wartung im Blick</span>
+        <h5 class="mb-0"><i class="fa-solid fa-calendar-days text-primary me-2"></i>Termin-Übersicht</h5>
+        <span class="text-muted small d-none d-sm-inline">Inventur, Verfall &amp; Wartung im Blick</span>
     </div>
     <div class="card-body">
+        <!-- 
+            Responsive Steuerung via Bootstrap Grid:
+            - col-12: Auf Smartphones nur 1 Monat pro Zeile
+            - col-md-6: Auf Tablets (ab mittlerer Größe) 2 Monate nebeneinander
+            - col-xl-4: Auf großen Desktops 3 Monate nebeneinander
+        -->
         <div class="row g-4">
-            <?php foreach ($monthsToDisplay as $mTimestamp): 
+            <?php foreach ($monthsToDisplay as $index => $mTimestamp): 
                 $year = date('Y', $mTimestamp);
                 $monthNum = (int)date('m', $mTimestamp);
                 $daysInMonth = (int)date('t', $mTimestamp);
-                // Wochentag des 1. Tages (0 = Sonntag, 1 = Montag, ..., 6 = Samstag) -> Anpassen auf Montag-Start (0 = Montag)
                 $firstDayOfWeek = (int)date('N', strtotime("$year-$monthNum-01")) - 1;
+                
+                // Klassen für Tablet-Steuerung: Den 3. Monat auf kleineren Tablets optional ausblenden oder umbrechen lassen, 
+                // oder über Bootstrap-Klassen steuern (z.B. d-md-block d-xl-block)
+                $visibilityClass = '';
+                if ($index === 1) $visibilityClass = 'col-12 col-md-6 col-xl-4'; // Monat 2: Immer ab Tablet sichtbar
+                elseif ($index === 2) $visibilityClass = 'col-12 col-md-6 col-xl-4 d-none d-md-block'; // Monat 3: Erst ab Desktop (oder flexibel)
+                else $visibilityClass = 'col-12 col-md-6 col-xl-4'; // Monat 1: Immer da
             ?>
-                <div class="col-md-4">
+                <div class="<?= $visibilityClass ?>">
                     <div class="border rounded p-3 h-100 bg-body-tertiary">
                         <h6 class="text-center fw-bold mb-3"><?= $germanMonths[$monthNum] ?> <?= $year ?></h6>
                         
@@ -41,7 +53,6 @@ $germanWeekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
                         <!-- Kalendertage Grid -->
                         <div class="d-grid gap-1 text-center" style="grid-template-columns: repeat(7, 1fr);">
                             <?php 
-                            // Leere Felder für Tage vor dem Monatsstart
                             for ($es = 0; $es < $firstDayOfWeek; $es++): 
                             ?>
                                 <div></div>
@@ -53,14 +64,13 @@ $germanWeekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
                                 $hasEvents = isset($calendarEvents[$currentDateStr]);
                                 $isToday = ($currentDateStr === date('Y-m-d'));
                                 
-                                // Events für diesen Tag vorbereiten
                                 $dayEventsJson = $hasEvents ? htmlspecialchars(json_encode($calendarEvents[$currentDateStr]), ENT_QUOTES, 'UTF-8') : '';
                             ?>
-                                <div class="position-relative py-1">
+                                <div class="position-relative py-1 d-flex justify-content-center">
                                     <div class="cal-day d-inline-flex align-items-center justify-content-center rounded-circle 
                                         <?= $isToday ? 'border border-primary fw-bold' : '' ?> 
                                         <?= $hasEvents ? 'bg-primary text-white has-event cursor-pointer shadow-sm' : 'text-secondary' ?>"
-                                        style="width: 30px; height: 30px; font-size: 0.85rem;"
+                                        style="width: 32px; height: 32px; font-size: 0.85rem;"
                                         <?php if ($hasEvents): ?>
                                             data-date="<?= $currentDateStr ?>"
                                             data-events="<?= $dayEventsJson ?>"
@@ -94,23 +104,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const popupDate = document.getElementById('popupDate');
     const popupContent = document.getElementById('popupContent');
     
-    let activePinnedElement = null; // Speichert das aktuell per Klick fixierte Element
+    let activePinnedElement = null;
     let isPinned = false;
 
-    // Alle Tage mit Terminen auslesen
     const eventDays = document.querySelectorAll('.has-event');
 
     eventDays.forEach(dayEl => {
         const eventsData = JSON.parse(dayEl.getAttribute('data-events'));
         const dateStr = dayEl.getAttribute('data-date');
 
-        // Formatiertes Datum für die Anzeige (z.B. 24.10.2026)
         const parts = dateStr.split('-');
         const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
 
-        // 1. Mouseover (Hover) - nur wenn nicht festgeklickt ist
+        // 1. Mouseover (nur für Desktops mit Maus)
         dayEl.addEventListener('mouseenter', function() {
-            if (isPinned) return; // Wenn ein Klick-Popup offen ist, Hover ignorieren
+            if (isPinned) return;
             showPopup(dayEl, formattedDate, eventsData);
         });
 
@@ -119,15 +127,13 @@ document.addEventListener('DOMContentLoaded', function() {
             hidePopup();
         });
 
-        // 2. Klick (Toggle / Fixierung)
+        // 2. Click / Touch (Funktioniert perfekt auf Smartphones und Tablets)
         dayEl.addEventListener('click', function(e) {
-            e.stopPropagation(); // Verhindert sofortiges Schließen durch Dokument-Klick
+            e.stopPropagation(); 
 
             if (activePinnedElement === dayEl && isPinned) {
-                // Erneuter Klick auf denselben Tag schließt das Popup
                 unpinPopup();
             } else {
-                // Klick auf einen neuen Tag (oder erster Klick)
                 activePinnedElement = dayEl;
                 isPinned = true;
                 showPopup(dayEl, formattedDate, eventsData, true);
@@ -135,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Klick außerhalb schließt das fixierte Popup
+    // Klick außerhalb schließt das Popup
     document.addEventListener('click', function(e) {
         if (isPinned && !popup.contains(e.target) && !e.target.classList.contains('has-event')) {
             unpinPopup();
@@ -156,17 +162,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         html += '</ul>';
         if (pinned) {
-            html += '<div class="text-end mt-2 pt-1 border-top"><small class="text-muted" style="font-size:0.7rem;">(Erneut klicken zum Schließen)</small></div>';
+            html += '<div class="text-end mt-2 pt-1 border-top"><small class="text-muted" style="font-size:0.7rem;">(Erneut tippen zum Schließen)</small></div>';
         }
         popupContent.innerHTML = html;
 
-        // Positionierung über dem Element berechnen
+        // Intelligente Positionierung (verhindert Abschneiden am Bildschirmrand)
         const rect = targetEl.getBoundingClientRect();
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
 
+        let leftPos = rect.left + scrollLeft - (popup.offsetWidth / 2) + (rect.width / 2);
+        // Verhindern, dass das Popup links aus dem Bildschirm ragt
+        if (leftPos < 10) leftPos = 10;
+
         popup.style.top = (rect.top + scrollTop - popup.offsetHeight - 8) + 'px';
-        popup.style.left = (rect.left + scrollLeft - (popup.offsetWidth / 2) + (rect.width / 2)) + 'px';
+        popup.style.left = leftPos + 'px';
         
         popup.classList.remove('d-none');
     }
@@ -182,6 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function unpinPopup() {
+        isinned = false;
         isPinned = false;
         activePinnedElement = null;
         popup.classList.add('d-none');

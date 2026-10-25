@@ -9,7 +9,7 @@ require_once __DIR__ . '/cfg/db.php';
 // --- FORMULAR VERARBEITUNG & AJAX MÜSSEN VOR DEM HEADER STEHEN ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    
-    // 1. Systemeinstellungen (Theme, Bilder, Startseite, Übersichts-Modus & Auth-Status) + Inventurplanung
+    // 1. Systemeinstellungen (Theme, Bilder, Startseite, Übersichts-Modus & Auth-Status)
     if (isset($_POST['action_save_settings'])) {
         $theme = $_POST['theme'] ?? 'light';
         $showImagesVal = $_POST['show_images'] ?? '1';
@@ -23,37 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute(['start_page', $startPageVal]);
         $stmt->execute(['overview_mode', $overviewModeVal]);
         $stmt->execute(['auth_enabled', $authEnabledVal]);
-
-        // Inventur-Planung (Slots 1 bis 3) direkt hier mitspeichern
-        if (isset($_POST['audits']) && is_array($_POST['audits'])) {
-            $currentUserId = $_SESSION['user_id'] ?? 0;
-
-            $auditStmt = $pdo->prepare("
-                INSERT INTO audit_schedules (user_id, slot_index, audit_date, location_id, title)
-                VALUES (?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE 
-                    audit_date = VALUES(audit_date),
-                    location_id = VALUES(location_id),
-                    title = VALUES(title),
-                    updated_at = CURRENT_TIMESTAMP
-            ");
-
-            foreach ($_POST['audits'] as $slotIndex => $data) {
-                $slotIndex = (int)$slotIndex;
-                if ($slotIndex < 1 || $slotIndex > 3) continue;
-
-                $date = trim($data['date'] ?? '');
-                $locationId = !empty($data['location_id']) && is_numeric($data['location_id']) ? (int)$data['location_id'] : null;
-                $title = trim($data['title'] ?? '') ?: 'Reguläre Inventur';
-
-                if (empty($date)) {
-                    $delStmt = $pdo->prepare("DELETE FROM audit_schedules WHERE user_id = ? AND slot_index = ?");
-                    $delStmt->execute([$currentUserId, $slotIndex]);
-                } else {
-                    $auditStmt->execute([$currentUserId, $slotIndex, $date, $locationId, $title]);
-                }
-            }
-        }
 
         // Falls es ein AJAX-Request war, SOFORT reines JSON senden und stoppen (VOR jedem HTML!)
         if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
@@ -169,11 +138,6 @@ $users = $pdo->query("SELECT * FROM users ORDER BY is_default DESC, id ASC")->fe
 
                     <!-- Block 2: Sicherheit & Zugriff -->
                     <?php require_once __DIR__ . '/inc/settings/security.php'; ?>
-
-                    <hr class="my-4">
-
-                    <!-- Block 3: Inventurplanung -->
-                    <?php require_once __DIR__ . '/inc/settings/audit-schedule.php'; ?>
 
                     <div class="text-end mt-4">
                         <button type="submit" class="btn btn-primary">

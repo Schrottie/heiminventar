@@ -7,23 +7,43 @@ $currentUserId = $_SESSION['user_id'] ?? 0;
 
 // --- FORMULAR-VERARBEITUNG FÜR INVENTUR-TERMINE (Hinzufügen / Löschen) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    // 1. Termin hinzufügen
     if (isset($_POST['action_save_audit_schedule'])) {
         $title = trim($_POST['title'] ?? '') ?: 'Reguläre Inventur';
         $auditDate = $_POST['audit_date'] ?? '';
         $locationId = !empty($_POST['location_id']) && is_numeric($_POST['location_id']) ? (int)$_POST['location_id'] : null;
 
         if (!empty($auditDate)) {
-            $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
+            try {
+                $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, slot_index, audit_date, location_id, title) VALUES (?, 0, ?, ?, ?)");
+                $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
+            } catch (PDOException $e) {
+                // Fallback falls slot_index nicht existiert oder strict mode zuschlägt
+                try {
+                    $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
+                    $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
+                } catch (Exception $ex) {
+                    // Fehler abfangen
+                }
+            }
         }
-        header("Location: inventory-audit.php" . ($locationId ? "?location_id=" . $locationId : ""));
+        
+        $redirectUrl = "inventory-audit.php";
+        if ($locationId) {
+            $redirectUrl .= "?location_id=" . $locationId;
+        }
+        header("Location: " . $redirectUrl);
         exit;
     }
 
+    // 2. Termin löschen
     if (isset($_POST['action_delete_audit_schedule'])) {
-        $scheduleId = (int)$_POST['schedule_id'];
-        $stmt = $pdo->prepare("DELETE FROM audit_schedules WHERE id = ? AND user_id = ?");
-        $stmt->execute([$scheduleId, $currentUserId]);
+        $scheduleId = (int)($_POST['schedule_id'] ?? 0);
+        if ($scheduleId > 0) {
+            $stmt = $pdo->prepare("DELETE FROM audit_schedules WHERE id = ? AND user_id = ?");
+            $stmt->execute([$scheduleId, $currentUserId]);
+        }
         header("Location: inventory-audit.php");
         exit;
     }
@@ -112,6 +132,7 @@ if ($selectedLocationId !== null) {
 
 require_once __DIR__ . '/inc/header.php';
 ?>
+
 
 <div class="card shadow-sm mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">

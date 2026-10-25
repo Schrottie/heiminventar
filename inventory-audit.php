@@ -132,7 +132,7 @@ require_once __DIR__ . '/inc/header.php';
     </div>
     <div class="card-body">
         
-        <!-- Nächster Inventurtermin als Infobox (falls vorhanden) -->
+        <!-- Nächster Inventurtermin als Infobox -->
         <?php if ($nextAudit): ?>
             <div class="alert alert-info d-flex align-items-center justify-content-between py-2 px-3 mb-3">
                 <div>
@@ -142,9 +142,9 @@ require_once __DIR__ . '/inc/header.php';
                         – Ort: <a href="inventory-audit.php?location_id=<?= (int)$nextAudit['location_id'] ?>" class="alert-link"><?= htmlspecialchars($nextAudit['location_name']) ?></a>
                     <?php endif; ?>
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-info text-dark bg-white" data-bs-toggle="modal" data-bs-target="#auditScheduleModal">
-                    Details / Neu
-                </button>
+                <a href="inventory-audit.php<?php echo !empty($nextAudit['location_id']) ? '?location_id=' . (int)$nextAudit['location_id'] : ''; ?>" class="btn btn-sm btn-primary fw-semibold px-3">
+                    <i class="fa-solid fa-play me-1"></i>Los!
+                </a>
             </div>
         <?php endif; ?>
 
@@ -358,5 +358,4 @@ require_once __DIR__ . '/inc/header.php';
 <?php endif; ?>
 
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
-<?php require_once __DIR__ . '/inc/footer.php'; ?>
-
+<?php require_once __DIR__

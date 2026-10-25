@@ -3,7 +3,7 @@
 require_once __DIR__ . '/cfg/db.php';
 require_once __DIR__ . '/inc/functions.php';
 
-$currentUserId =$_SESSION['user_id'] ?? 0;
+$currentUserId = $_SESSION['user_id'] ?? 0;
 
 // --- FORMULAR-VERARBEITUNG FÜR INVENTUR-TERMINE (Hinzufügen / Löschen) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -11,12 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 1. Termin hinzufügen (Multi-Termin fähig ohne Slots)
     if (isset($_POST['action_save_audit_schedule'])) {
         $title = trim($_POST['title'] ?? '') ?: 'Reguläre Inventur';
-        $auditDate =$_POST['audit_date'] ?? '';
-        $locationId = !empty($_POST['location_id']) && is_numeric($_POST['location_id']) ? (int$_POST['location_id'] : null;
+        $auditDate = $_POST['audit_date'] ?? '';
+        $locationId = !empty($_POST['location_id']) && is_numeric($_POST['location_id']) ? (int)$_POST['location_id'] : null;
 
         if (!empty($auditDate)) {
-            $stmt =$pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$currentUserId,$auditDate, $locationId,$title]);
+            $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
         }
         
         $redirectUrl = "inventory-audit.php";
@@ -31,8 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action_delete_audit_schedule'])) {
         $scheduleId = (int)($_POST['schedule_id'] ?? 0);
         if ($scheduleId > 0) {
-            $stmt =$pdo->prepare("DELETE FROM audit_schedules WHERE id = ? AND user_id = ?");
-            $stmt->execute([$scheduleId,$currentUserId]);
+            $stmt = $pdo->prepare("DELETE FROM audit_schedules WHERE id = ? AND user_id = ?");
+            $stmt->execute([$scheduleId, $currentUserId]);
         }
         header("Location: inventory-audit.php");
         exit;
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // --- NÄCHSTEN ANSTEHENDEN TERMIN LADEN ---
 $nextAudit = null;
 try {
-    $stmt =$pdo->prepare("
+    $stmt = $pdo->prepare("
         SELECT s.*, l.name AS location_name 
         FROM audit_schedules s 
         LEFT JOIN locations l ON l.id = s.location_id 
@@ -50,13 +50,14 @@ try {
         ORDER BY s.audit_date ASC 
         LIMIT 1
     ");
-    $stmt->execute([$currentUserId]);$nextAudit = $stmt->fetch(PDO::FETCH_ASSOC); // Korrigiert:$stmt->fetch
+    $stmt->execute([$currentUserId]);
+    $nextAudit = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (Exception $e) {}
 
 // Alle Termine für das Verwaltungs-Modal laden
 $allSchedules = [];
 try {
-    $stmt =$pdo->prepare("
+    $stmt = $pdo->prepare("
         SELECT s.*, l.name AS location_name 
         FROM audit_schedules s 
         LEFT JOIN locations l ON l.id = s.location_id 
@@ -64,30 +65,30 @@ try {
         ORDER BY s.audit_date ASC
     ");
     $stmt->execute([$currentUserId]);
-    $allSchedules =$stmt->fetchAll(PDO::FETCH_ASSOC);
+    $allSchedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {}
 
 // Alle Lagerorte für das Auswahl-Dropdown abfragen
-$locations =$pdo->query("SELECT id, parent_id, name FROM locations ORDER BY name")->fetchAll();
+$locations = $pdo->query("SELECT id, parent_id, name FROM locations ORDER BY name")->fetchAll();
 
 // Ausgewählten Lagerort aus der URL holen
 $selectedLocationId = isset($_GET['location_id']) && is_numeric($_GET['location_id']) ? (int)$_GET['location_id'] : null;
 
 $items = [];
 if ($selectedLocationId !== null) {
-    function getSubLocationIds(array $locations, int$parentId): array {
+    function getSubLocationIds(array $locations, int $parentId): array {
         $ids = [$parentId];
-        foreach ($locations as$loc) {
-            if ((int)$loc['parent_id'] ===$parentId) {
+        foreach ($locations as $loc) {
+            if ((int)$loc['parent_id'] === $parentId) {
                 $ids = array_merge($ids, getSubLocationIds($locations, (int)$loc['id']));
             }
         }
         return $ids;
     }
-    $targetLocationIds = getSubLocationIds($locations,$selectedLocationId);
+    $targetLocationIds = getSubLocationIds($locations, $selectedLocationId);
     $placeholders = implode(',', array_fill(0, count($targetLocationIds), '?'));
    
-    $stmt =$pdo->prepare("
+    $stmt = $pdo->prepare("
         SELECT 
             i.id, i.name, i.quantity, i.min_quantity, i.is_set, is_bulk, 
             l.name AS location_name,
@@ -100,25 +101,28 @@ if ($selectedLocationId !== null) {
         ORDER BY i.name
     ");
     $stmt->execute($targetLocationIds);
-    $items =$stmt->fetchAll();
+    $items = $stmt->fetchAll();
 
-    $setIds = array_column(array_filter($items, fn($it) => !empty($it['is_set'])), 'id');$setComponentsMap = [];
+    $setIds = array_column(array_filter($items, fn($it) => !empty($it['is_set'])), 'id');
+    $setComponentsMap = [];
     if (!empty($setIds)) {
         $setPlaceholders = implode(',', array_fill(0, count($setIds), '?'));
-        $stmtComp =$pdo->prepare("
+        $stmtComp = $pdo->prepare("
             SELECT item_id, name, quantity, sort_order
             FROM item_set_items
             WHERE item_id IN ($setPlaceholders)
             ORDER BY sort_order ASC, id ASC
         ");
         $stmtComp->execute($setIds);
-        while ($comp = $stmtComp->fetch(PDO::FETCH_ASSOC)) {$setComponentsMap[$comp['item_id']][] =$comp;
+        while ($comp = $stmtComp->fetch(PDO::FETCH_ASSOC)) {
+            $setComponentsMap[$comp['item_id']][] = $comp;
         }
     }
 }
 
 require_once __DIR__ . '/inc/header.php';
 ?>
+
 
 <div class="card shadow-sm mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">

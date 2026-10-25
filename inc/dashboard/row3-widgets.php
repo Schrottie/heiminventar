@@ -1,4 +1,4 @@
-<!-- Widgets (Row 2 & 3) -->
+<!-- Widgets (Row3) -->
 <div class="row g-4 mb-4">
     <!-- Widget 1: Nachbestellen / Mindestbestand -->
     <div class="col-lg-6">

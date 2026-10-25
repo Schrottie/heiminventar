@@ -1,4 +1,9 @@
 <?php
+// Session starten
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Konfiguration und Hilfsfunktionen einbinden
 require_once __DIR__ . '/cfg/db.php';
 require_once __DIR__ . '/inc/functions.php';
@@ -8,15 +13,26 @@ $currentUserId = $_SESSION['user_id'] ?? 0;
 // --- FORMULAR-VERARBEITUNG FÜR INVENTUR-TERMINE (Hinzufügen / Löschen) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
-    // 1. Termin hinzufügen (Multi-Termin fähig ohne Slots)
+    // 1. Termin hinzufügen
     if (isset($_POST['action_save_audit_schedule'])) {
         $title = trim($_POST['title'] ?? '') ?: 'Reguläre Inventur';
         $auditDate = $_POST['audit_date'] ?? '';
         $locationId = !empty($_POST['location_id']) && is_numeric($_POST['location_id']) ? (int)$_POST['location_id'] : null;
 
         if (!empty($auditDate)) {
-            $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
+            try {
+                // Versuch 1: Mit slot_index = 0 (falls die Spalte in der DB noch existiert)
+                $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, slot_index, audit_date, location_id, title) VALUES (?, 0, ?, ?, ?)");
+                $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
+            } catch (PDOException $e1) {
+                try {
+                    // Versuch 2: Ohne slot_index (falls die Spalte bereits gelöscht wurde)
+                    $stmt = $pdo->prepare("INSERT INTO audit_schedules (user_id, audit_date, location_id, title) VALUES (?, ?, ?, ?)");
+                    $stmt->execute([$currentUserId, $auditDate, $locationId, $title]);
+                } catch (PDOException $e2) {
+                    // Stiller Fallback bei unerwarteten Fehlern
+                }
+            }
         }
         
         $redirectUrl = "inventory-audit.php";
@@ -31,8 +47,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action_delete_audit_schedule'])) {
         $scheduleId = (int)($_POST['schedule_id'] ?? 0);
         if ($scheduleId > 0) {
-            $stmt = $pdo->prepare("DELETE FROM audit_schedules WHERE id = ? AND user_id = ?");
-            $stmt->execute([$scheduleId, $currentUserId]);
+            try {
+                $stmt = $pdo->prepare("DELETE FROM audit_schedules WHERE id = ? AND user_id = ?");
+                $stmt->execute([$scheduleId, $currentUserId]);
+            } catch (Exception $e) {
+                // Fehler abfangen
+            }
         }
         header("Location: inventory-audit.php");
         exit;
@@ -122,7 +142,6 @@ if ($selectedLocationId !== null) {
 
 require_once __DIR__ . '/inc/header.php';
 ?>
-
 
 <div class="card shadow-sm mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">

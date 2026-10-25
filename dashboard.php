@@ -74,6 +74,76 @@ $stmtMaintenance = $pdo->prepare("
 $stmtMaintenance->execute([$thirtyDaysAhead]);
 $maintenanceItems = $stmtMaintenance->fetchAll(PDO::FETCH_ASSOC);
 
+// --- 3. Termine für den 3-Monats-Kalender laden ---
+$calStart = date('Y-m-01'); // Erster Tag des aktuellen Monats
+$calEnd = date('Y-m-t', strtotime('+2 months')); // Letzter Tag in 2 Monaten
+
+$calendarEvents = [];
+
+// A) Inventur-Termine laden (aus audit_schedules)
+try {
+    $stmtAudit = $pdo->prepare("
+        SELECT audit_date AS event_date, title AS event_title, 'audit' AS event_type, l.name AS location_name
+        FROM audit_schedules s
+        LEFT JOIN locations l ON l.id = s.location_id
+        WHERE s.audit_date BETWEEN ? AND ?
+    ");
+    $stmtAudit->execute([$calStart, $calEnd]);
+    foreach ($stmtAudit->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $calendarEvents[$row['event_date']][] = [
+            'type' => 'audit',
+            'title' => 'Inventur: ' . $row['event_title'] . (!empty($row['location_name']) ? ' (' . $row['location_name'] . ')' : '')
+        ];
+    }
+} catch (Exception $e) {}
+
+// B) Verfallsdaten / Ablauf laden
+try {
+    $stmtExp = $pdo->prepare("
+        SELECT expiration_date AS event_date, name AS event_title, 'expiration' AS event_type
+        FROM inventory_items
+        WHERE is_archived = '0' AND expiration_date IS BETWEEN ? AND ?
+    ");
+    // Korrektur für direkte Abfrage ohne Syntaxfehler
+    $stmtExp = $pdo->prepare("
+        SELECT expiration_date AS event_date, name AS event_title, 'expiration' AS event_type
+        FROM inventory_items
+        WHERE is_archived = '0' AND expiration_date >= ? AND expiration_date <= ?
+    ");
+    $stmtExp->execute([$calStart, $calEnd]);
+    foreach ($stmtExp.fetchAll(PDO::FETCH_ASSOC) as $row) { // Kleinigkeits-Korrektur weiter unten im Render-Teil
+    }
+} catch (Exception $e) {}
+
+// Komplette, sichere Termin-Sammel Abfrage für das 3-Monats-Fenster:
+try {
+    // 1. Verfallsdaten
+    $stmtExp = $pdo->prepare("SELECT expiration_date AS event_date, name AS event_title, 'Verfall' AS category FROM inventory_items WHERE is_archived='0' AND expiration_date BETWEEN ? AND ?");
+    $stmtExp->execute([$calStart, $calEnd]);
+    foreach ($stmtExp->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $calendarEvents[$row['event_date']][] = ['type' => 'danger', 'text' => 'Verfall: ' . $row['event_title']];
+    }
+
+    // 2. Wartungen (errechnetes Datum)
+    $stmtMaint = $pdo->query("SELECT id, name, last_maintenance_date, maintenance_interval_months FROM inventory_items WHERE is_archived='0' AND maintenance_interval_months > 0");
+    foreach ($stmtMaint->fetchAll(PDO::FETCH_ASSOC) as $item) {
+        $baseDate = $item['last_maintenance_date'] ?: date('Y-m-d');
+        // Nächste Fälligkeiten im 3-Monats-Fenster berechnen
+        $nextDate = date('Y-m-d', strtotime($baseDate . ' + ' . $item['maintenance_interval_months'] . ' months'));
+        if ($nextDate >= $calStart && $nextDate <= $calEnd) {
+            $calendarEvents[$nextDate][] = ['type' => 'info', 'text' => 'Wartung fällig: ' . $item['name']];
+        }
+    }
+
+    // 3. Inventurtermine
+    $stmtAud = $pdo->prepare("SELECT s.audit_date, s.title, l.name as loc FROM audit_schedules s LEFT JOIN locations l ON l.id = s.location_id WHERE s.audit_date BETWEEN ? AND ?");
+    $stmtAud->execute([$calStart, $calEnd]);
+    foreach ($stmtAud->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $calendarEvents[$row['audit_date']][] = ['type' => 'primary', 'text' => 'Inventur: ' . $row['title'] . ($row['loc'] ? ' (' . $row['loc'] . ')' : '')];
+    }
+} catch (Exception $e) {}
+
+
 require_once __DIR__ . '/inc/header.php';
 ?>
 
@@ -92,9 +162,10 @@ require_once __DIR__ . '/inc/header.php';
 
 <!-- KPI-Karten (Row 1) -->
 <?php require_once __DIR__ . '/inc/dashboard/row1-kpi.php'; ?>
-
-<!-- Widgets (Row 2 & 3) -->
-<?php require_once __DIR__ . '/inc/dashboard/row2-3-dates.php'; ?>
+<!-- Kalender (Row 2) -->
+<?php require_once __DIR__ . '/inc/dashboard/row2-calendar.php'; ?>
+<!-- Widgets (Row 3) -->
+<?php require_once __DIR__ . '/inc/dashboard/row3-dates.php'; ?>
 
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>

@@ -26,7 +26,6 @@ $germanWeekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
                 $daysInMonth = (int)date('t', $mTimestamp);
                 $firstDayOfWeek = (int)date('N', strtotime("$year-$monthNum-01")) - 1;
                 
-                // Sichtbarkeit: Index 0 & 1 immer, Index 2 nur auf Desktop (xl)
                 $visibilityClass = 'col-12 col-md-6 col-xl-4';
                 if ($index === 2) {
                     $visibilityClass = 'col-12 col-md-6 col-xl-4 d-none d-xl-block';
@@ -54,7 +53,7 @@ $germanWeekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
                             <?php 
                             for ($day = 1; $day <= $daysInMonth; $day++):
                                 $currentDateStr = sprintf('%04d-%02d-%02d', $year, $monthNum, $day);
-                                $hasEvents = isset($calendarEvents[$currentDateStr]);
+                                $hasEvents = !empty($calendarEvents[$currentDateStr]);
                                 $isToday = ($currentDateStr === date('Y-m-d'));
                                 
                                 $dayEventsJson = $hasEvents ? htmlspecialchars(json_encode($calendarEvents[$currentDateStr]), ENT_QUOTES, 'UTF-8') : '';
@@ -80,13 +79,13 @@ $germanWeekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
     </div>
 </div>
 
-<!-- Direkt integriertes Popup-Element mit hoher z-index und absolutem Schutz vor Verdeckung -->
-<div id="calEventPopup" class="card shadow-lg border-0 d-none" style="position: fixed; width: 280px; z-index: 2147483647; font-size: 0.85rem; pointer-events: auto;">
-    <div class="card-header bg-dark text-white py-1 px-2 d-flex justify-content-between align-items-center">
+<!-- Popup-Element im nativen Bootstrap Theme-Look (funktioniert perfekt im Dark- und Lightmode) -->
+<div id="calEventPopup" class="card shadow-lg border d-none" style="position: fixed; width: 280px; z-index: 2147483647; font-size: 0.85rem; pointer-events: auto;">
+    <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center bg-primary text-white">
         <span id="popupDate" class="fw-bold">Datum</span>
         <button type="button" class="btn-close btn-close-white btn-sm" onclick="document.getElementById('calEventPopup').classList.add('d-none');"></button>
     </div>
-    <div class="card-body py-2 px-3 bg-body rounded-bottom" id="popupContent">
+    <div class="card-body py-2 px-3 bg-body text-body rounded-bottom" id="popupContent">
         <!-- Inhalt -->
     </div>
 </div>
@@ -105,12 +104,17 @@ document.addEventListener('DOMContentLoaded', function() {
     eventDays.forEach(dayEl => {
         let eventsData = [];
         try {
-            eventsData = JSON.parse(dayEl.getAttribute('data-events'));
+            const rawEvents = dayEl.getAttribute('data-events');
+            if (rawEvents) {
+                eventsData = JSON.parse(rawEvents);
+            }
         } catch(e) {
             return;
         }
 
         const dateStr = dayEl.getAttribute('data-date');
+        if (!dateStr) return;
+
         const parts = dateStr.split('-');
         const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
 
@@ -122,7 +126,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         dayEl.addEventListener('mouseleave', function() {
             if (isPinned) return;
-            // Kurze Verzögerung, damit man ins Popup fahren kann
             setTimeout(() => {
                 if (!popup.matches(':hover') && !isPinned) {
                     popup.classList.add('d-none');
@@ -130,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 100);
         });
 
-        // Klick / Touch für Mobil & Tablet
+        // Klick / Touch
         dayEl.addEventListener('click', function(e) {
             e.stopPropagation(); 
 
@@ -146,7 +149,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Klick außerhalb schließt das Popup
     document.addEventListener('click', function(e) {
         if (isPinned && !popup.contains(e.target) && !e.target.classList.contains('has-event')) {
             popup.classList.add('d-none');
@@ -160,6 +162,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let html = '<ul class="mb-0 ps-3">';
         events.forEach(ev => {
+            if (!ev || !ev.text) return; // Verhindert fehlerhafte/leere "undefined"-Einträge
+            
             let badgeClass = 'bg-secondary';
             if (ev.type === 'danger') badgeClass = 'bg-danger';
             if (ev.type === 'info') badgeClass = 'bg-info text-dark';
@@ -168,16 +172,16 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `<li class="mb-1"><span class="badge ${badgeClass} me-1">&bull;</span> ${ev.text}</li>`;
         });
         html += '</ul>';
+        
         if (pinned) {
             html += '<div class="text-end mt-2 pt-1 border-top"><small class="text-muted" style="font-size:0.7rem;">(Erneut tippen zum Schließen)</small></div>';
         }
         popupContent.innerHTML = html;
 
-        // Einmal kurz anzeigen, damit Offset-Größen berechnet werden können
         popup.classList.remove('d-none');
 
         const rect = targetEl.getBoundingClientRect();
-        let leftPos = rect.left + (rect.width / 2) - 140; // 140 = 280px / 2
+        let leftPos = rect.left + (rect.width / 2) - 140; 
         
         if (leftPos < 10) leftPos = 10;
         if (leftPos + 280 > window.innerWidth - 10) {

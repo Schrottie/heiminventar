@@ -126,7 +126,7 @@ $unseenRelease = getUnseenRelease($pdo);
     <?php if ($authEnabled && $isLoggedIn): ?>
         <a href="?logout=1" class="btn btn-outline-secondary btn-sm position-absolute top-0 end-0 m-3 d-flex align-items-center gap-2 shadow-sm" title="Abmelden">
             <i class="fa-solid fa-right-from-bracket"></i>
-            <span class="d-none d-md-inline">abmelden</span>
+            <span class="d-none text-secondary d-md-inline">abmelden</span>
         </a>
     <?php endif; ?>
     </header>

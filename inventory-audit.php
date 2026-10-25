@@ -53,7 +53,6 @@ try {
     $nextAudit = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (Exception $e) {}
 
-
 // Alle Termine für das Verwaltungs-Modal laden
 $allSchedules = [];
 try {
@@ -135,7 +134,7 @@ require_once __DIR__ . '/inc/header.php';
     </div>
     <div class="card-body">
         
-        <!-- Nächster Inventurtermin als Infobox (falls vorhanden) -->
+        <!-- Nächster Inventurtermin als Infobox (nur innerhalb der nächsten 14 Tage) -->
         <?php if ($nextAudit): ?>
             <div class="alert alert-info d-flex align-items-center justify-content-between py-2 px-3 mb-3">
                 <div>
@@ -145,6 +144,9 @@ require_once __DIR__ . '/inc/header.php';
                         – Ort: <a href="inventory-audit.php?location_id=<?= (int)$nextAudit['location_id'] ?>" class="alert-link"><?= htmlspecialchars($nextAudit['location_name']) ?></a>
                     <?php endif; ?>
                 </div>
+                <a href="inventory-audit.php<?php echo !empty($nextAudit['location_id']) ? '?location_id=' . (int)$nextAudit['location_id'] : ''; ?>" class="btn btn-sm btn-primary fw-semibold px-3">
+                    <i class="fa-solid fa-play me-1"></i>Los!
+                </a>
             </div>
         <?php endif; ?>
 
@@ -231,13 +233,12 @@ require_once __DIR__ . '/inc/header.php';
                                         <td class="fw-semibold"><?= htmlspecialchars($sch['title']) ?></td>
                                         <td class="text-muted"><?= htmlspecialchars($sch['location_name'] ?? 'Gesamt') ?></td>
                                         <td class="text-end">
-                                            <form action="inventory-audit.php" method="POST" class="d-inline" onsubmit="return confirm('Termin wirklich löschen?');">
-                                                <input type="hidden" name="action_delete_audit_schedule" value="1">
-                                                <input type="hidden" name="schedule_id" value="<?= (int)$sch['id'] ?>">
-                                                <button type="submit" class="btn btn-outline-danger btn-sm" style="padding: 1px 6px;">
-                                                    <i class="fa-solid fa-trash"></i>
-                                                </button>
-                                            </form>
+                                            <button type="button" class="btn btn-outline-danger btn-sm" style="padding: 1px 6px;" 
+                                                    data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" 
+                                                    data-schedule-id="<?= (int)$sch['id'] ?>"
+                                                    data-schedule-title="<?= htmlspecialchars($sch['title'], ENT_QUOTES) ?>">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -253,6 +254,46 @@ require_once __DIR__ . '/inc/header.php';
         </div>
     </div>
 </div>
+
+<!-- Modal: Bestätigung vor dem Löschen -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation me-2"></i>Termin löschen?</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-1">Möchtest du den Inventurtermin <strong id="deleteScheduleTitle"></strong> wirklich unwiderruflich löschen?</p>
+            </div>
+            <div class="modal-footer">
+                <form action="inventory-audit.php" method="POST">
+                    <input type="hidden" name="action_delete_audit_schedule" value="1">
+                    <input type="hidden" name="schedule_id" id="deleteScheduleId" value="">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-danger btn-sm px-3">Löschen</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript zum Übergeben der Termin-ID an das Lösch-Modal -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+    if (confirmDeleteModal) {
+        confirmDeleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const scheduleId = button.getAttribute('data-schedule-id');
+            const scheduleTitle = button.getAttribute('data-schedule-title');
+            
+            document.getElementById('deleteScheduleId').value = scheduleId;
+            document.getElementById('deleteScheduleTitle').textContent = '"' + scheduleTitle + '"';
+        });
+    }
+});
+</script>
 
 <?php if ($selectedLocationId !== null): ?>
     <div class="card shadow-sm">
@@ -359,4 +400,3 @@ require_once __DIR__ . '/inc/header.php';
 
 <?php require_once __DIR__ . '/inc/modals.php'; ?>
 <?php require_once __DIR__ . '/inc/footer.php'; ?>
-

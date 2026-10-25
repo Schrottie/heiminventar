@@ -19,12 +19,6 @@ $germanWeekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
         <span class="text-muted small d-none d-sm-inline">Inventur, Verfall &amp; Wartung im Blick</span>
     </div>
     <div class="card-body">
-        <!-- 
-            Responsive Steuerung via Bootstrap Grid:
-            - col-12: Auf Smartphones nur 1 Monat pro Zeile
-            - col-md-6: Auf Tablets (ab mittlerer Größe) 2 Monate nebeneinander
-            - col-xl-4: Auf großen Desktops 3 Monate nebeneinander
-        -->
         <div class="row g-4">
             <?php foreach ($monthsToDisplay as $index => $mTimestamp): 
                 $year = date('Y', $mTimestamp);
@@ -32,12 +26,22 @@ $germanWeekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
                 $daysInMonth = (int)date('t', $mTimestamp);
                 $firstDayOfWeek = (int)date('N', strtotime("$year-$monthNum-01")) - 1;
                 
-                // Klassen für Tablet-Steuerung: Den 3. Monat auf kleineren Tablets optional ausblenden oder umbrechen lassen, 
-                // oder über Bootstrap-Klassen steuern (z.B. d-md-block d-xl-block)
-                $visibilityClass = '';
-                if ($index === 1) $visibilityClass = 'col-12 col-md-6 col-xl-4'; // Monat 2: Immer ab Tablet sichtbar
-                elseif ($index === 2) $visibilityClass = 'col-12 col-md-6 col-xl-4 d-none d-md-block'; // Monat 3: Erst ab Desktop (oder flexibel)
-                else $visibilityClass = 'col-12 col-md-6 col-xl-4'; // Monat 1: Immer da
+                // Sichtbarkeits-Steuerung: 
+                // Index 0 (Monat 1): Immer sichtbar
+                // Index 1 (Monat 2): Ab Tablet (md) sichtbar
+                // Index 2 (Monat 3): Erst ab Desktop (xl) sichtbar
+                $visibilityClass = 'col-12 col-md-6 col-xl-4';
+                if ($index === 1) {
+                    $visibilityClass = 'col-12 col-md-6 col-xl-4';
+                } elseif ($index === 2) {
+                    $visibilityClass = 'col-12 col-md-6 col-xl-4 d-none d-xl-block';
+                }
+                // Hinweis: Damit Tablet genau 2 Monate zeigt und Smartphone 1, steuern wir Monat 2 über d-none d-md-block
+                if ($index === 1) {
+                    $visibilityClass = 'col-12 col-md-6 col-xl-4';
+                } elseif ($index === 2) {
+                    $visibilityClass = 'col-12 col-md-6 col-xl-4 d-none d-xl-block';
+                }
             ?>
                 <div class="<?= $visibilityClass ?>">
                     <div class="border rounded p-3 h-100 bg-body-tertiary">
@@ -87,14 +91,14 @@ $germanWeekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
     </div>
 </div>
 
-<!-- Globales Popover / Infobox Element für den Kalender -->
-<div id="calEventPopup" class="card shadow-lg border-0 position-absolute d-none" style="width: 280px; z-index: 1050; font-size: 0.85rem;">
+<!-- Globales Popup (fixed position, damit es nicht abgeschnitten wird) -->
+<div id="calEventPopup" class="card shadow-lg border-0 position-fixed d-none" style="width: 280px; z-index: 9999; font-size: 0.85rem;">
     <div class="card-header bg-dark text-white py-1 px-2 d-flex justify-content-between align-items-center">
         <span id="popupDate" class="fw-bold">Datum</span>
         <button type="button" class="btn-close btn-close-white btn-sm" onclick="closeCalPopup()"></button>
     </div>
     <div class="card-body py-2 px-3" id="popupContent">
-        <!-- Inhalt wird dynamisch gefüllt -->
+        <!-- Inhalt -->
     </div>
 </div>
 
@@ -116,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const parts = dateStr.split('-');
         const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
 
-        // 1. Mouseover (nur für Desktops mit Maus)
+        // 1. Mouseover (Desktop)
         dayEl.addEventListener('mouseenter', function() {
             if (isPinned) return;
             showPopup(dayEl, formattedDate, eventsData);
@@ -127,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
             hidePopup();
         });
 
-        // 2. Click / Touch (Funktioniert perfekt auf Smartphones und Tablets)
+        // 2. Click / Touch (Mobil, Tablet & Desktop)
         dayEl.addEventListener('click', function(e) {
             e.stopPropagation(); 
 
@@ -141,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Klick außerhalb schließt das Popup
+    // Klick außerhalb schließt das fixierte Popup
     document.addEventListener('click', function(e) {
         if (isPinned && !popup.contains(e.target) && !e.target.classList.contains('has-event')) {
             unpinPopup();
@@ -166,16 +170,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         popupContent.innerHTML = html;
 
-        // Intelligente Positionierung (verhindert Abschneiden am Bildschirmrand)
+        // Positionierung via getBoundingClientRect (fixed)
         const rect = targetEl.getBoundingClientRect();
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-
-        let leftPos = rect.left + scrollLeft - (popup.offsetWidth / 2) + (rect.width / 2);
-        // Verhindern, dass das Popup links aus dem Bildschirm ragt
+        
+        let leftPos = rect.left + (rect.width / 2) - 140; // 140 = halbe Popup-Breite (280px)
+        // Verhindern, dass es links oder rechts aus dem Bildschirm ragt
         if (leftPos < 10) leftPos = 10;
+        if (leftPos + 280 > window.innerWidth - 10) {
+            leftPos = window.innerWidth - 290;
+        }
 
-        popup.style.top = (rect.top + scrollTop - popup.offsetHeight - 8) + 'px';
+        // Standardmäßig oberhalb des Elements anzeigen, wenn Platz ist, sonst unterhalb
+        let topPos = rect.top - popup.offsetHeight - 8;
+        if (topPos < 10) {
+            topPos = rect.bottom + 8;
+        }
+
+        popup.style.top = topPos + 'px';
         popup.style.left = leftPos + 'px';
         
         popup.classList.remove('d-none');
@@ -192,7 +203,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function unpinPopup() {
-        isinned = false;
         isPinned = false;
         activePinnedElement = null;
         popup.classList.add('d-none');

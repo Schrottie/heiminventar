@@ -276,6 +276,10 @@ function runDatabaseMigrations(PDO $pdo): void
             UNIQUE KEY user_slot (user_id, slot_index)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
+    // Begrenzung der Inventuren aufheben
+    if (!$columnExists($pdo, 'item_parts', 'invoice_status')) {
+        $pdo->exec("ALTER TABLE audit_schedules DROP INDEX user_slot;");
+    }
 
     // ///////////////////////////////////////////////////////////
     // 6. Standard-Migrationen ganz normal ausführen (falls Cache nicht greift)

@@ -3,30 +3,32 @@
 require_once __DIR__ . '/cfg/db.php';
 require_once __DIR__ . '/inc/functions.php';
 
-// Alle Lagerorte für die Dropdowns & Hierarchie abfragen
-$allLocations =$pdo->query("SELECT id, parent_id, name FROM locations ORDER BY name")->fetchAll();
-
-// Hilfsfunktion: Alle untergeordneten IDs für einen Standort ermitteln
-function getAllSubLocationIds(array $locations, int$parentId): array {
-    $ids = [$parentId];
-    foreach ($locations as$loc) {
-        if ((int)$loc['parent_id'] ===$parentId) {
-            $ids = array_merge($ids, getAllSubLocationIds($locations, (int)$loc['id']));
+// Hilfsfunktionen für Standorte und Daten
+if (!function_exists('getAllSubLocationIds')) {
+    function getAllSubLocationIds(array $locations, int $parentId): array {
+        $ids = [$parentId];
+        foreach ($locations as $loc) {
+            if ((int)$loc['parent_id'] === $parentId) {
+                $ids = array_merge($ids, getAllSubLocationIds($locations, (int)$loc['id']));
+            }
         }
+        return $ids;
     }
-    return $ids;
 }
 
-// Hilfsfunktion für deutsches Datumsformat (YYYY-MM-DD -> DD.MM.YYYY)
-function formatDateDe($dateStr) {
-    if (empty($dateStr)) return '';
-    $dt = DateTime::createFromFormat('Y-m-d',$dateStr);
-    return $dt ? $dt->format('d.m.Y') : htmlspecialchars($dateStr);
+if (!function_exists('formatDateDe')) {
+    function formatDateDe($dateStr) {
+        if (empty($dateStr)) return '';
+        $dt = DateTime::createFromFormat('Y-m-d', $dateStr);
+        return $dt ? $dt->format('d.m.Y') : htmlspecialchars($dateStr);
+    }
 }
 
-// Map für Standort-Namen und Eltern-Beziehungen für das Frontend aufbauen
+// Alle Lagerorte abfragen
+$allLocations = $pdo->query("SELECT id, parent_id, name FROM locations ORDER BY name")->fetchAll();
+
 $locationsMap = [];
-foreach ($allLocations as$loc) {
+foreach ($allLocations as $loc) {
     $locationsMap[$loc['id']] = [
         'id' => (int)$loc['id'],
         'name' => $loc['name'],
@@ -35,7 +37,10 @@ foreach ($allLocations as$loc) {
     ];
 }
 
-// ALLE nicht archivierten Gegenstände laden
+// Fall 1: ZIP-Export verarbeiten (falls aufgerufen)
+require_once __DIR__ . '/inc/print/export-zip.php';
+
+// Fall 2: Normale Seitenanzeige
 $sql = "
     SELECT
         i.id, i.name, i.quantity, COALESCE(i.on_loan, 0) AS lent_quantity,
@@ -55,56 +60,62 @@ $sql = "
 ";
 $items = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
-// Dokumente und Anbauteile für alle Gegenstände laden
-$itemDocumentsMap = [];$itemPartsMap = [];
+$itemDocumentsMap = []; 
+$itemPartsMap = [];
 if (!empty($items)) {
     $itemIds = array_column($items, 'id');
     $docPlaceholders = implode(',', array_fill(0, count($itemIds), '?'));
    
-    // Dokumente laden
-    $stmtDocs =$pdo->prepare("SELECT id, item_id, filename, title, doc_type FROM item_documents WHERE item_id IN ($docPlaceholders)");
+    $stmtDocs = $pdo->prepare("SELECT id, item_id, filename, title, doc_type FROM item_documents WHERE item_id IN ($docPlaceholders)");
     $stmtDocs->execute($itemIds);
-    while ($doc = $stmtDocs->fetch(PDO::FETCH_ASSOC)) {$itemDocumentsMap[$doc['item_id']][] =$doc;
+    while ($doc = $stmtDocs->fetch(PDO::FETCH_ASSOC)) {
+        $itemDocumentsMap[$doc['item_id']][] = $doc;
     }
 
-    // Anbauteile laden
-    $stmtParts =$pdo->prepare("SELECT * FROM item_parts WHERE item_id IN ($docPlaceholders) ORDER BY sort_order ASC, id ASC");
+    $stmtParts = $pdo->prepare("SELECT * FROM item_parts WHERE item_id IN ($docPlaceholders) ORDER BY sort_order ASC, id ASC");
     $stmtParts->execute($itemIds);
-    while ($part = $stmtParts->fetch(PDO::FETCH_ASSOC)) {$itemPartsMap[$part['item_id']][] =$part;
+    while ($part = $stmtParts->fetch(PDO::FETCH_ASSOC)) {
+        $itemPartsMap[$part['item_id']][] = $part;
     }
 }
 
-// Werte vorab berechnen
 foreach ($items as &$it) {
-    $it['documents'] =$itemDocumentsMap[$it['id']] ?? [];$it['parts'] = $itemPartsMap[$it['id']] ?? [];
+    $it['documents'] = $itemDocumentsMap[$it['id']] ?? [];
+    $it['parts'] = $itemPartsMap[$it['id']] ?? [];
    
-    $it['quantity'] = (int)$it['quantity']; // Gesamtanzahl
-    $it['lent_quantity'] = (int)$it['lent_quantity']; // davon verliehen
+    $it['quantity'] = (int)$it['quantity'];
+    $it['lent_quantity'] = (int)$it['lent_quantity'];
 
-    // Einzel-Basispreis + Anbauteile-Einzelpreise
     $partsSum = 0;
-    foreach ($it['parts'] as $p) {$partsSum += (float)($p['price'] ?? 0); }$it['unit_price'] = (float)($it['price'] ?? 0) +$partsSum;
+    foreach ($it['parts'] as $p) {
+        $partsSum += (float)($p['price'] ?? 0);
+    }
+    $it['unit_price'] = (float)($it['price'] ?? 0) + $partsSum;
+    $it['total_price_standard'] = $it['unit_price'] * $it['quantity'];
 
-    // Standarddruck Gesamtwert = Gesamtanzahl * Einzelpreis
-    $it['total_price_standard'] = $it['unit_price'] *$it['quantity'];
-
-    // Versicherungsdruck vorrätige Anzahl = quantity - lent_quantity
-    $it['insured_quantity'] = max(0,$it['quantity'] - $it['lent_quantity']);$it['total_price_insured'] = $it['unit_price'] *$it['insured_quantity'];
-
-    // Datum aufbereiten
+    $it['insured_quantity'] = max(0, $it['quantity'] - $it['lent_quantity']);
+    $it['total_price_insured'] = $it['unit_price'] * $it['insured_quantity'];
     $it['purchase_date_formatted'] = formatDateDe($it['purchase_date']);
 }
 unset($it);
 
-// HTML-Optionen für die Lagerort-Dropdowns vorab generieren
 ob_start();
-renderLocationOptions($allLocations, null, 0, null);$locationOptionsHtml = ob_get_clean();
+renderLocationOptions($allLocations, null, 0, null);
+$locationOptionsHtml = ob_get_clean();
 
 require_once __DIR__ . '/inc/header.php';
 require_once __DIR__ . '/inc/print/general.php';
 ?>
 
-<!-- JavaScript für reibungslose Echtzeit-Filterung und Persistence -->
+<!-- Formular für den ZIP-Export -->
+<form id="insuranceZipForm" method="POST" action="print.php" style="display: none;">
+    <input type="hidden" name="action_insurance_zip_export" value="1">
+    <input type="hidden" name="all_locations" id="zip_all_locations" value="1">
+    <input type="hidden" name="excluded_item_ids" id="zip_excluded_item_ids" value="[]">
+    <div id="zipLocationInputsContainer"></div>
+</form>
+
+<!-- JavaScript für Echtzeit-Filterung, ZIP-Trigger & Persistence -->
 <script>
 const allItems = <?= json_encode($items) ?>;
 const locationsMap = <?= json_encode($locationsMap) ?>;
@@ -115,11 +126,10 @@ let isIndividualModeActive = false;
 
 const STORAGE_KEY_PRINT = 'inventory_print_settings';
 
-// Speichert den aktuellen Status im localStorage
 function savePrintSettings() {
     const reportType = document.getElementById('reportTypeSelect').value;
     const allLocations = document.getElementById('all_locations').checked;
-    
+   
     let locationIds = [];
     if (!allLocations) {
         document.querySelectorAll('.location-filter-select').forEach(sel => {
@@ -138,7 +148,6 @@ function savePrintSettings() {
     localStorage.setItem(STORAGE_KEY_PRINT, JSON.stringify(settings));
 }
 
-// Lädt den gespeicherten Status aus dem localStorage
 function restorePrintSettings() {
     const saved = localStorage.getItem(STORAGE_KEY_PRINT);
     if (!saved) {
@@ -193,11 +202,14 @@ function restorePrintSettings() {
 function onReportTypeChange() {
     const reportType = document.getElementById('reportTypeSelect').value;
     const indSelectionWrapper = document.getElementById('individualSelectionWrapper');
+    const zipBtn = document.getElementById('insuranceZipExportBtn');
    
     if (reportType === 'insurance') {
         indSelectionWrapper.style.display = 'block';
+        if (zipBtn) zipBtn.style.display = 'inline-block';
     } else {
         indSelectionWrapper.style.display = 'none';
+        if (zipBtn) zipBtn.style.display = 'none';
         document.getElementById('enable_individual_selection').checked = false;
         isIndividualModeActive = false;
         excludedItemIds.clear();
@@ -206,21 +218,33 @@ function onReportTypeChange() {
     renderReport();
 }
 
+function triggerInsuranceZipExport() {
+    const allLocationsChecked = document.getElementById('all_locations').checked;
+    document.getElementById('zip_all_locations').value = allLocationsChecked ? '1' : '0';
+    document.getElementById('zip_excluded_item_ids').value = JSON.stringify(Array.from(excludedItemIds));
+
+    const container = document.getElementById('zipLocationInputsContainer');
+    container.innerHTML = '';
+
+    if (!allLocationsChecked) {
+        document.querySelectorAll('.location-filter-select').forEach(sel => {
+            if (sel.value) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'location_ids[]';
+                input.value = sel.value;
+                container.appendChild(input);
+            }
+        });
+    }
+
+    document.getElementById('insuranceZipForm').submit();
+}
+
 function toggleIndividualSelectionMode() {
     isIndividualModeActive = document.getElementById('enable_individual_selection').checked;
     if (!isIndividualModeActive) {
         excludedItemIds.clear();
-    }
-    savePrintSettings();
-    renderReport();
-}
-
-function handleItemCheckboxChange(itemId, checkbox) {
-    itemId = parseInt(itemId);
-    if (checkbox.checked) {
-        excludedItemIds.delete(itemId);
-    } else {
-        excludedItemIds.add(itemId);
     }
     savePrintSettings();
     renderReport();
@@ -252,10 +276,9 @@ function addLocationDropdown(selectedVal = '') {
             <i class="fa-solid fa-trash"></i>
         </button>
     `;
-    
+   
     if (selectedVal) {
-        const select = div.querySelector('select');
-        select.value = selectedVal;
+        div.querySelector('select').value = selectedVal;
     }
 
     wrapper.appendChild(div);
@@ -267,8 +290,7 @@ function onLocationChange() {
 }
 
 function removeLocationRow(button) {
-    const row = button.closest('.location-row');
-    row.remove();
+    button.closest('.location-row').remove();
     savePrintSettings();
     renderReport();
 }
@@ -279,15 +301,9 @@ function renderReport() {
    
     let targetLocationIds = [];
     if (!allLocationsChecked) {
-        const selects = document.querySelectorAll('.location-filter-select');
-        let selectedIds = [];
-        selects.forEach(sel => {
-            if (sel.value) selectedIds.push(parseInt(sel.value));
-        });
-
-        selectedIds.forEach(locId => {
-            if (locationsMap[locId]) {
-                targetLocationIds = targetLocationIds.concat(locationsMap[locId].sub_ids);
+        document.querySelectorAll('.location-filter-select').forEach(sel => {
+            if (sel.value && locationsMap[sel.value]) {
+                targetLocationIds = targetLocationIds.concat(locationsMap[sel.value].sub_ids);
             }
         });
         targetLocationIds = [...new Set(targetLocationIds)];
@@ -301,13 +317,9 @@ function renderReport() {
 
         if (!allLocationsChecked) {
             if (!item.location_id) return false;
-            if (!targetLocationIds.includes(parseInt(item.location_id))) {
-                return false;
-            }
+            if (!targetLocationIds.includes(parseInt(item.location_id))) return false;
         }
-        if (isIndividualModeActive && excludedItemIds.has(parseInt(item.id))) {
-            return false;
-        }
+        if (isIndividualModeActive && excludedItemIds.has(parseInt(item.id))) return false;
         return true;
     });
 
@@ -332,21 +344,17 @@ function renderReport() {
                     let badgeClass = 'bg-secondary text-white';
                     if (doc.doc_type === 'rechnung') badgeClass = 'bg-success text-white';
                     if (doc.doc_type === 'bedienungsanleitung') badgeClass = 'bg-info text-dark';
-                    
-                    // Dokumententitel auf max. 15 Zeichen kürzen (mit Ellipsis, falls länger)
+                   
                     let docTitle = doc.title || '';
                     if (docTitle.length > 15) {
                         docTitle = docTitle.substring(0, 15) + '…';
                     }
-                    
-                    // Dokumententyp mit Großbuchstaben beginnen lassen (z.B. "Rechnung", "Bedienungsanleitung")
                     let docTypeFormatted = doc.doc_type ? doc.doc_type.charAt(0).toUpperCase() + doc.doc_type.slice(1) : '';
 
                     docsHtml += `<span class="badge ${badgeClass}" style="font-size: 0.65rem;" title="${escapeHtml(doc.title)}">${escapeHtml(docTitle)} (${escapeHtml(docTypeFormatted)})</span>`;
                 });
                 docsHtml += `</div>`;
             }
-
 
             let imageHtml = item.image_filename
                 ? `<img src="img/items/${escapeHtml(item.image_filename)}" class="rounded object-fit-cover" style="width: 70px; height: 70px;" alt="Bild">`
@@ -398,7 +406,6 @@ function renderReport() {
         container.innerHTML = html;
 
     } else {
-       // Versicherungsliste als Tabelle
         window.currentPrintItems = filteredItems;
         let totalSum = 0;
         let rowsHtml = '';
@@ -407,8 +414,6 @@ function renderReport() {
             const itemId = parseInt(item.id);
             const basePrice = parseFloat(item.price || 0);
             const insuredQty = item.insured_quantity;
-            
-            // Prüfen, ob das Item aktuell ausgeschlossen ist
             const isExcluded = excludedItemIds.has(itemId);
             const rowClassState = isExcluded ? 'table-active text-muted opacity-50 excluded-row' : 'fw-semibold';
            
@@ -434,7 +439,6 @@ function renderReport() {
                         }
                     }
 
-                    // Zubehör-Teile gehören zum Hauptartikel und erhalten eine Verknüpfungs-Klasse
                     partsRowsHtml += `
                         <tr class="small text-muted border-0 part-row-${itemId} ${isExcluded ? 'excluded-row' : ''}">
                             <td class="ps-4 text-break" colspan="2">
@@ -455,7 +459,6 @@ function renderReport() {
             const unitTotalValue = basePrice + partsSum;
             const itemTotalInsuredValue = item.total_price_insured;
 
-            // Gesamtsumme im Footer wird optional live angepasst oder bleibt unberührt (je nach Wunsch)
             if (!isExcluded) {
                 totalSum += itemTotalInsuredValue;
             }
@@ -463,7 +466,6 @@ function renderReport() {
             let checkboxCell = '';
             if (isIndividualModeActive) {
                 let isChecked = !isExcluded ? 'checked' : '';
-                // Wir übergeben die itemId an eine neue Funktion togglePrintExclusion(itemId, checkbox)
                 checkboxCell = `
                     <td class="text-center no-print">
                         <input class="form-check-input item-print-checkbox" type="checkbox" value="${itemId}" ${isChecked} onchange="togglePrintExclusion(${itemId}, this)">
@@ -482,9 +484,7 @@ function renderReport() {
             rowsHtml += `
                 <tr class="${rowClassState} main-row-${itemId}">
                     ${checkboxCell}
-                    <td class="text-break">
-                        <a href="item.php?id=${item.id}" class="print-item-link">${itemNameDisplay}</a>
-                    </td>
+                    <td class="text-break"><a href="item.php?id=${item.id}" class="print-item-link">${itemNameDisplay}</a></td>
                     <td class="small text-muted text-break">${escapeHtml(item.location_name || '-')}</td>
                     <td class="text-center">${insuredQty}</td>
                     <td class="text-end">${unitTotalValue > 0 ? formatMoney(unitTotalValue) + ' €' : '-'}</td>
@@ -494,7 +494,6 @@ function renderReport() {
                     <td class="text-center">${invoiceBadge}</td>
                 </tr>
             `;
-
             rowsHtml += partsRowsHtml;
         });
 
@@ -517,9 +516,7 @@ function renderReport() {
                             <th class="text-center" style="width: 85px;">Rechnung?</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        ${rowsHtml}
-                    </tbody>
+                    <tbody>${rowsHtml}</tbody>
                     <tfoot class="table-light fw-bold">
                         <tr>
                             <td colspan="${colspanVal}" class="text-end">Gesamtsumme (versicherte Artikel inkl. Zubehör):</td>
@@ -539,21 +536,14 @@ function togglePrintExclusion(itemId, checkbox) {
 
     if (checkbox.checked) {
         excludedItemIds.delete(itemId);
-        if (mainRow) {
-            mainRow.classList.remove('table-active', 'text-muted', 'opacity-50', 'excluded-row');
-            mainRow.classList.add('fw-semibold');
-        }
+        if (mainRow) mainRow.classList.remove('table-active', 'text-muted', 'opacity-50', 'excluded-row');
         partRows.forEach(row => row.classList.remove('excluded-row'));
     } else {
         excludedItemIds.add(itemId);
-        if (mainRow) {
-            mainRow.classList.remove('fw-semibold');
-            mainRow.classList.add('table-active', 'text-muted', 'opacity-50', 'excluded-row');
-        }
+        if (mainRow) mainRow.classList.add('table-active', 'text-muted', 'opacity-50', 'excluded-row');
         partRows.forEach(row => row.classList.add('excluded-row'));
     }
 
-    // --- Gesamtsumme korrekt über die global gesicherten Items berechnen ---
     let newTotalSum = 0;
     if (typeof window.currentPrintItems !== 'undefined') {
         window.currentPrintItems.forEach(item => {
@@ -570,7 +560,6 @@ function togglePrintExclusion(itemId, checkbox) {
     }
 }
 
-
 function escapeHtml(str) {
     if (!str) return '';
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -584,6 +573,8 @@ document.addEventListener('DOMContentLoaded', () => {
     restorePrintSettings();
     const reportType = document.getElementById('reportTypeSelect').value;
     document.getElementById('individualSelectionWrapper').style.display = (reportType === 'insurance') ? 'block' : 'none';
+    const zipBtn = document.getElementById('insuranceZipExportBtn');
+    if (zipBtn) zipBtn.style.display = (reportType === 'insurance') ? 'inline-block' : 'none';
     renderReport();
 });
 </script>
